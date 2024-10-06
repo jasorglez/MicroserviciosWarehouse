@@ -33,7 +33,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1.5", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.5 Mod. 06-10-24 13:58" });
+    c.SwaggerDoc("v1.5", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.5 Mod. 06-10-24 14:58" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Ejemplo: \"Authorization: Bearer {token}\"",
@@ -59,18 +59,13 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddSignalR();
-builder.Services.AddHttpClient();
-builder.Services.AddLogging();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-
 builder.Services.AddDbContext<DbWarehouseContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("dbConWarehouse")));
 
 //WareHouse BD and Services
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
-
 
 builder.Services.AddHttpContextAccessor();
 
@@ -107,6 +102,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowWarehouseOrigin");
 
+app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();
