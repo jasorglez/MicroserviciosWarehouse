@@ -1,0 +1,12 @@
+services:
+  warehouse:
+    image: warehouse
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "127.0.0.1:5006:80"
+    environment:
+      ASPNETCORE_ENVIRONMENT: "Development"
+      ASPNETCORE_URLS: "http://+:80"
+    restart: always
