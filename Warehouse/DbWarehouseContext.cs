@@ -13,5 +13,6 @@ namespace Warehouse
         { }
 
         public virtual DbSet<Warehouset> Warehousest { get; set; }
+        public virtual DbSet<Catalog> Catalogs { get; set; }
     }
 }
