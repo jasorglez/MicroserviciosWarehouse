@@ -19,7 +19,7 @@ namespace Warehouse.Models
         [Column("valueaddition")]
         public string ValueAddition { get; set; } = "NA";
 
-        [StringLength(10)]
+        [StringLength(13)]
         [Column("type")]
         public string Type { get; set; } = "MEASURE";
 
