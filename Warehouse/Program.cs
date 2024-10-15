@@ -33,7 +33,7 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1.9", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.9 Mod. 14-10-24 10:58" });
+    c.SwaggerDoc("v1.9", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.9 Mod. 14-10-24 11:08" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Ejemplo: \"Authorization: Bearer {token}\"",
