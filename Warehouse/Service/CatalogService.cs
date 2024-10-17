@@ -24,6 +24,7 @@ namespace Warehouse.Service
                     .Where(c => c.Active ==1 && c.Type==type)
                     .Select(cat => new Catalog
                     {
+                        Id = cat.Id,
                         Description = cat.Description,
                         Type          = cat.Type,
                         ValueAddition =cat.ValueAddition
