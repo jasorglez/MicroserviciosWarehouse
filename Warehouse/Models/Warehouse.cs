@@ -43,11 +43,14 @@ namespace Warehouse.Models
         [Column("city", TypeName = "NCHAR")]
         public string? City { get; set; }
 
-        [Required]
-        [StringLength(10)]
-        [Column("codepostal", TypeName = "CHAR")]
-        [DefaultValue("CP")]
-        public string CodePostal { get; set; } = string.Empty;
+        /// <summary>
+        /// 
+        /// </summary>
+        ///[Required]
+        ///[StringLength(10)]
+        ///[Column("codepostal", TypeName = "CHAR")]
+        ///[DefaultValue("CP")]
+        ///public string CodePostal { get; set; } = string.Empty;
 
         [Required]
         [StringLength(10)]
