@@ -15,12 +15,12 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<object>> GetWarehouses(string idCompany, string idProject)
+        public async Task<List<object>> GetWarehouses(int idBranch)
         {
             try
             {
-                return await _context.Warehousest
-                    .Where(w => (w.IdCompany == idCompany && w.IdProject == idProject) || w.Principal == "SI")
+                return await _context.Warehouses
+                    .Where(w => ( w.IdBranch == idBranch  && w.Active == true))
                     .Select(w => new
                     {
                         w.Id,
@@ -29,17 +29,16 @@ namespace Warehouse.Service
                         w.City,
                         w.Place,
                         w.State,
-                        w.Principal,
-                        w.Cp,
+                        w.Principal,                       
                         w.Phone,
-                        w.Leader
+                        w.Leader, w.Active
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdCompany} and project {IdProject}", idCompany, idProject);
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBranch);
                 throw;
             }
         }
@@ -48,7 +47,7 @@ namespace Warehouse.Service
         {
             try
             {
-                _context.Warehousest.Add(wh);
+                _context.Warehouses.Add(wh);
                 await _context.SaveChangesAsync();                
             }
             catch (DbUpdateException dbEx)
@@ -65,7 +64,7 @@ namespace Warehouse.Service
 
         public async Task<bool> Update(int id, Warehouset warehousest)
         {
-            var existingWarehouse = await _context.Warehousest.FindAsync(id);
+            var existingWarehouse = await _context.Warehouses.FindAsync(id);
             if (existingWarehouse == null)
             {
                 return false;
@@ -95,7 +94,7 @@ namespace Warehouse.Service
 
     public interface IWarehouseService
     {
-        Task<List<object>> GetWarehouses(string idCompany, string idProject);
+        Task<List<object>> GetWarehouses(int idCompany);
         Task Save(Warehouset wh);
         Task<bool> Update(int id, Warehouset warehousest);
     }

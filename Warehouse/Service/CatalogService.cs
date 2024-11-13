@@ -1,6 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Diagnostics.Contracts;
-using System.Threading.Tasks;
 using Warehouse.Models;
 
 namespace Warehouse.Service

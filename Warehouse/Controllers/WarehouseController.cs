@@ -18,12 +18,12 @@ namespace Warehouse.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [HttpGet("{idCompany}/{idProject}")]
-        public async Task<ActionResult<List<object>>> GetWarByComp(string idCompany, string idProject)
+        [HttpGet()]
+        public async Task<ActionResult<List<object>>> GetWarByComp(int idBranch)
         {
             try
             {
-                var warehouses = await _warehouseService.GetWarehouses(idCompany, idProject);
+                var warehouses = await _warehouseService.GetWarehouses(idBranch);
                 if (warehouses == null || warehouses.Count == 0)
                 {
                     return NotFound();
@@ -32,7 +32,7 @@ namespace Warehouse.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdCompany} and project {IdProject}", idCompany, idProject);
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBranch);
                 return StatusCode(500, "An error occurred while retrieving warehouses.");
             }
         }
@@ -43,7 +43,7 @@ namespace Warehouse.Controllers
             try
             {
                 await _warehouseService.Save(wh);
-                return CreatedAtAction(nameof(GetWarByComp), new { idCompany = wh.IdCompany, idProject = wh.IdProject }, wh);
+                return CreatedAtAction(nameof(GetWarByComp), new { idCompany = wh.IdBranch  }, wh);
             }
             catch (Exception ex)
             {
