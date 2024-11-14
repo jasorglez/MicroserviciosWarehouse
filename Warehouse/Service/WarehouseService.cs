@@ -24,6 +24,7 @@ namespace Warehouse.Service
                     .Select(w => new
                     {
                         w.Id,
+                        w.IdBranch,
                         w.Name,
                         w.Address,
                         w.City,w.CodePostal,
