@@ -26,7 +26,7 @@ namespace Warehouse.Service
                         w.Id,
                         w.Name,
                         w.Address,
-                        w.City,
+                        w.City,w.CodePostal,
                         w.Place,
                         w.State,
                         w.Principal,                       

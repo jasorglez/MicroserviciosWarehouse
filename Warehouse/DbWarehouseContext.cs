@@ -14,5 +14,6 @@ namespace Warehouse
 
         public virtual DbSet<Warehouset> Warehouses { get; set; }
         public virtual DbSet<Catalog> Catalogs { get; set; }
+        
     }
 }
