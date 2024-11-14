@@ -40,7 +40,8 @@ namespace Warehouse.Service
                         s.VentaDLL,
                         s.StockMin,
                         s.StockMax,
-                        s.Picture
+                        s.Picture,
+                        s.Active
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();
