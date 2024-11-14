@@ -5,7 +5,7 @@ using System.ComponentModel;
 
 namespace Warehouse.Models
 {
-    [Table("supplies")]
+    [Table("materials")]
     public class Material
     {
         [Key]
@@ -13,9 +13,8 @@ namespace Warehouse.Models
         [Column("id")]
         public int Id { get; set; }
 
-        [Column("id_company", TypeName = "NCHAR")]
-        [StringLength(20)]
-        public string? IdCompany { get; set; }
+        [Column("id_company")]
+        public int IdCompany { get; set; }
 
         [Column("insumo", TypeName = "VARCHAR")]
         [StringLength(35)]
@@ -74,5 +73,9 @@ namespace Warehouse.Models
         [Column("picture", TypeName = "NVARCHAR")]
         [StringLength(250)]
         public string Picture { get; set; } = string.Empty;
+
+        [Required]
+        [Column("active")]
+        public bool Active { get; set; }
     }
 }

@@ -12,8 +12,9 @@ namespace Warehouse
             : base(options)
         { }
 
-        public virtual DbSet<Warehouset> Warehouses { get; set; }
         public virtual DbSet<Catalog> Catalogs { get; set; }
+        public virtual DbSet<Material> Materials { get; set; }
+        public virtual DbSet<Warehouset> Warehouses { get; set; }
         
     }
 }

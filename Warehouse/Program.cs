@@ -33,7 +33,10 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1.98", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.98 Mod. 14-11-24 11:12 198.71.49.16" });
+    /*  c.SwaggerDoc("v1.98", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.98 Mod. 14-11-24 11:12 20.221.74.88" });*/
+
+    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 10:59 198.71.49.16" }); 
+
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Ejemplo: \"Authorization: Bearer {token}\"",
@@ -67,6 +70,7 @@ builder.Services.AddDbContext<DbWarehouseContext>(options =>
 //WareHouse BD and Services
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
+builder.Services.AddScoped<IMaterialService, MaterialService>();
 
 
 builder.Services.AddHttpContextAccessor();
@@ -94,7 +98,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1.98/swagger.json", "Microservicio Warehouse V1.98");
+        c.SwaggerEndpoint("/swagger/v1.99/swagger.json", "Microservicio Warehouse V1.99");
         c.RoutePrefix = "swagger";
     });
 }
