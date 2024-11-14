@@ -35,7 +35,7 @@ builder.Services.AddSwaggerGen(c =>
 {
     /*  c.SwaggerDoc("v1.98", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.98 Mod. 14-11-24 11:12 20.221.74.88" });*/
 
-    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 10:59 198.71.49.16" }); 
+    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 17:59 198.71.49.16" }); 
 
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -71,6 +71,8 @@ builder.Services.AddDbContext<DbWarehouseContext>(options =>
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<IOcandreqService, OcandreqService>();
+builder.Services.AddScoped<IDetailsreqocService, DetailsreqocService>();
 
 
 builder.Services.AddHttpContextAccessor();

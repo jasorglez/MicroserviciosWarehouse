@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Mvc;
 using Warehouse.Models;
 using Warehouse.Service;
 using Microsoft.Extensions.Logging;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Warehouse.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class MaterialController : ControllerBase
