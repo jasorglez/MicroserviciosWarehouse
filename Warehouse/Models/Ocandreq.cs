@@ -22,11 +22,10 @@ namespace Warehouse.Models
         [Required]
         [Column("datecreate", TypeName = "DATE")]
         public DateTime DateCreate { get; set; }
-
-        [Required]
-        [Column("id_proveedor", TypeName = "VARCHAR")]
+        
+        [Column("id_proveedor")]
         [StringLength(20)]
-        public string IdProveedor { get; set; } = string.Empty;
+        public int IdProveedor { get; set; }
 
         [Required]
         [Column("id_departament")]
