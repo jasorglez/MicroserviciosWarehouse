@@ -20,7 +20,7 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Ocandreqs
-                    .Where(o => o.Active == true && idProject==idProject)
+                    .Where(o => o.Active == true && idProject==o.IdProject)
                     .Select(o => new
                     {
                         o.Id,
@@ -40,7 +40,8 @@ namespace Warehouse.Service
                         o.Priority,
                         o.Solicit,
                         o.Type,
-                        o.Comments
+                        o.Comments,
+                        o.Active
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();
