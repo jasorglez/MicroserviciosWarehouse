@@ -40,7 +40,8 @@ namespace Warehouse.Service
                         s.VentaDLL,
                         s.StockMin,
                         s.StockMax,
-                        s.Picture, s.Active
+                        s.Picture,
+                        s.Active
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -60,9 +61,10 @@ namespace Warehouse.Service
                     .Where(s => s.Active && idCompany == idCompany)
                     .Select(s => new
                     {
-                        s.Id,
-                        s.Description
-                            })
+                        s.Id,                        
+                        s.Description,
+                        s.Active
+                    })
                     .AsNoTracking()
                     .ToListAsync<object>();
             }

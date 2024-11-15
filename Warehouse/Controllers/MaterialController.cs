@@ -35,7 +35,7 @@ namespace Warehouse.Controllers
             }
         }
 
-        [HttpGet("{2fields}")]
+        [HttpGet("2fields")]
         public async Task<ActionResult<List<object>>> Supplies(int idCompany)
         {
             try
