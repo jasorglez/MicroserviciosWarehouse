@@ -35,6 +35,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("{2fields}")]
+        public async Task<ActionResult<List<object>>> Supplies(int idCompany)
+        {
+            try
+            {
+                return await _service.Get2Supplies(idCompany);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {IdCompany}", idCompany);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
         [HttpPost]
         public async Task<ActionResult> Save([FromBody] Material material)
         {

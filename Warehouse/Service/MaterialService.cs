@@ -40,8 +40,29 @@ namespace Warehouse.Service
                         s.VentaDLL,
                         s.StockMin,
                         s.StockMax,
-                        s.Picture
+                        s.Picture, s.Active
                     })
+                    .AsNoTracking()
+                    .ToListAsync<object>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Supplies");
+                throw;
+            }
+        }
+
+        public async Task<List<object>> Get2Supplies(int idCompany)
+        {
+            try
+            {
+                return await _context.Materials
+                    .Where(s => s.Active && idCompany == idCompany)
+                    .Select(s => new
+                    {
+                        s.Id,
+                        s.Description
+                            })
                     .AsNoTracking()
                     .ToListAsync<object>();
             }
@@ -119,6 +140,7 @@ namespace Warehouse.Service
     public interface IMaterialService
     {
         Task<List<object>> GetSupplies(int idCompany);
+        Task<List<object>> Get2Supplies(int idCompany);
         Task Save(Material material);
         Task<Material?> Update(int id, Material material);
         Task<bool> Delete(int id);
