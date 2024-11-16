@@ -21,7 +21,7 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active && idCompany==idCompany)
+                    .Where(s => s.Active && idCompany==s.IdCompany)
                     .Select(s => new
                     {
                         s.Id,

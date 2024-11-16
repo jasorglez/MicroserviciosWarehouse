@@ -24,8 +24,7 @@ namespace Warehouse.Models
         public DateTime DateCreate { get; set; }
         
         [Column("id_proveedor")]
-        [StringLength(20)]
-        public int IdProveedor { get; set; }
+        public int? IdProveedor { get; set; }
 
         [Required]
         [Column("id_departament")]
