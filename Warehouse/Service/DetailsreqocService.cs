@@ -21,7 +21,7 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Detailsreqoc
-                    .Where(d => d.Active == true && d.IdMovement == idMovement)
+                    .Where(d => d.Active == true && idMovement == d.IdMovement)
                     .Select(d => new
                     {
                         d.Id,
@@ -31,7 +31,8 @@ namespace Warehouse.Service
                         d.Price,
                         d.Total,
                         d.Type,
-                        d.Comment
+                        d.Comment,
+                        d.Dateuse
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();
