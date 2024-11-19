@@ -35,7 +35,7 @@ builder.Services.AddSwaggerGen(c =>
 {
  /*     c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 11:12 20.221.74.88" });
  */
-    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 18:59, Server 198.71.49.16" }); 
+    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 19-11-24 18:00, Server 198.71.49.16" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -87,7 +87,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("La clave JWT no está configurada")))
+                builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("La clave JWT no estï¿½ configurada")))
         };
 
     });

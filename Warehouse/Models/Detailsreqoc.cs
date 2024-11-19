@@ -20,6 +20,7 @@ namespace Warehouse.Models
         [Column("id_supplie")]
         public int IdSupplie { get; set; }
         
+        [Required]
         [Column("dateuse", TypeName = "date")]
         public DateTime Dateuse { get; set; }
 
