@@ -32,7 +32,8 @@ namespace Warehouse.Service
                         d.Total,
                         d.Type,
                         d.Comment,
-                        d.Dateuse
+                        d.Dateuse,
+                        d.Active
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();
