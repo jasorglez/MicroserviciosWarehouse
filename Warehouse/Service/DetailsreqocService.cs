@@ -21,22 +21,26 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Detailsreqoc
-                    .Where(d => d.Active == true && idMovement == d.IdMovement)
-                    .Select(d => new
-                    {
-                        d.Id,
-                        d.IdMovement,
-                        d.IdSupplie,
-                        d.Quantity,
-                        d.Price,
-                        d.Total,
-                        d.Type,
-                        d.Comment,
-                        d.Dateuse,
-                        d.Active
-                    })
-                    .AsNoTracking()
-                    .ToListAsync<object>();
+            .Where(d => d.Active == true && idMovement == d.IdMovement)
+            .Join(_context.Materials,
+                d => d.IdSupplie,
+                m => m.Id,
+                (d, m) => new
+                {
+                    d.Id,
+                    d.IdMovement,
+                    d.IdSupplie,
+                    description = m.Description,
+                    d.Quantity,
+                    d.Price,
+                    d.Total,
+                    d.Type,
+                    d.Comment,
+                    d.Dateuse,
+                    d.Active
+                })
+            .AsNoTracking()
+            .ToListAsync<object>();
             }
             catch (Exception ex)
             {
