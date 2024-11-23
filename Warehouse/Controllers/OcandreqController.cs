@@ -35,6 +35,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetOrderById(int id)
+        {
+            try
+            {
+                var result = await _service.GetOrderById(id);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting Orders");
+                return StatusCode(500, "An error occurred while retrieving the orders");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> Save([FromBody] Ocandreq ocandreq)
         {

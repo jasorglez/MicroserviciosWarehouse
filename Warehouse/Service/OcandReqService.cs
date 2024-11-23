@@ -53,6 +53,50 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<object?> GetOrderById(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    _logger.LogWarning("Invalid Order ID provided: {Id}", id);
+                    return null;
+                }
+
+                return await _context.Ocandreqs
+                    .Where(o => o.Active == true && o.Id == id)
+                    .Select(o => new
+                    {
+                        o.Id,
+                        o.Folio,
+                        o.IdProject,
+                        o.DateCreate,
+                        o.IdProveedor,
+                        o.IdDepartament,
+                        o.Delivery,
+                        o.DeliveryTime,
+                        o.TypeOc,
+                        o.DateSupply,
+                        o.IdPayment,
+                        o.IdCurrency,
+                        o.Conditions,
+                        o.IdAuthorize,
+                        o.Priority,
+                        o.Solicit,
+                        o.Type,
+                        o.Comments,
+                        o.Active
+                    })
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Order by ID {Id}", id);
+                throw;
+            }
+        }
+
         public async Task Save(Ocandreq ocandreq)
         {
             try
@@ -120,6 +164,7 @@ namespace Warehouse.Service
     public interface IOcandreqService
     {
         Task<List<object>> GetOrders(int idProject);
+        Task<object> GetOrderById(int id);
         Task Save(Ocandreq ocandreq);
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
         Task<bool> Delete(int id);
