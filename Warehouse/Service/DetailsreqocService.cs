@@ -21,26 +21,31 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Detailsreqoc
-            .Where(d => d.Active == true && idMovement == d.IdMovement)
-            .Join(_context.Materials,
-                d => d.IdSupplie,
-                m => m.Id,
-                (d, m) => new
-                {
-                    d.Id,
-                    d.IdMovement,
-                    d.IdSupplie,
-                    description = m.Description,
-                    d.Quantity,
-                    d.Price,
-                    d.Total,
-                    d.Type,
-                    d.Comment,
-                    d.Dateuse,
-                    d.Active
-                })
-            .AsNoTracking()
-            .ToListAsync<object>();
+                    .Where(d => d.Active == true && idMovement == d.IdMovement)
+                    .Join(_context.Materials,
+                        d => d.IdSupplie,
+                        m => m.Id,
+                        (d, m) => new { Details = d, Material = m })
+                    .Join(_context.Catalogs,
+                        dm => dm.Material.IdMedida,
+                        c => c.Id,
+                        (dm, c) => new
+                        {
+                            dm.Details.Id,
+                            dm.Details.IdMovement,
+                            dm.Details.IdSupplie,
+                            description = dm.Material.Description,
+                            measure = c.Description,  // Descripción de la unidad de medida
+                            dm.Details.Quantity,
+                            dm.Details.Price,
+                            dm.Details.Total,
+                            dm.Details.Type,
+                            dm.Details.Comment,
+                            dm.Details.Dateuse,
+                            dm.Details.Active
+                        })
+                    .AsNoTracking()
+                    .ToListAsync<object>();
             }
             catch (Exception ex)
             {
