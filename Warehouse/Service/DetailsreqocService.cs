@@ -34,6 +34,7 @@ namespace Warehouse.Service
                             dm.Details.Id,
                             dm.Details.IdMovement,
                             dm.Details.IdSupplie,
+                            code = dm.Material.Insumo,
                             description = dm.Material.Description,
                             measure = c.Description,  // Descripción de la unidad de medida
                             dm.Details.Quantity,
