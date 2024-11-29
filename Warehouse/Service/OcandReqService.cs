@@ -15,12 +15,12 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<object>> GetOrders(int idProject)
+        public async Task<List<object>> GetOrders(int idProject, string type)
         {
             try
             {
                 return await _context.Ocandreqs
-                    .Where(o => o.Active == true && idProject==o.IdProject)
+                    .Where(o => o.Active == true && idProject == o.IdProject && type == o.Type)
                     .Select(o => new
                     {
                         o.Id,
@@ -163,7 +163,7 @@ namespace Warehouse.Service
 
     public interface IOcandreqService
     {
-        Task<List<object>> GetOrders(int idProject);
+        Task<List<object>> GetOrders(int idProject, string type);
         Task<object> GetOrderById(int id);
         Task Save(Ocandreq ocandreq);
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
