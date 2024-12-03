@@ -61,9 +61,8 @@ namespace Warehouse.Models
         [StringLength(50)]
         public string? Conditions { get; set; }
 
-        [Column("id_authorize", TypeName = "VARCHAR")]
-        [StringLength(30)]
-        public string? IdAuthorize { get; set; }
+        [Column("id_authorize")]
+        public int IdAuthorize { get; set; }
 
         [Column("priority", TypeName = "VARCHAR")]
         [StringLength(12)]
@@ -80,6 +79,27 @@ namespace Warehouse.Models
         [Column("comments", TypeName = "VARCHAR")]
         [StringLength(50)]
         public string? Comments { get; set; }
+        
+        [Column("id_provider")]
+        public int? IdProvider { get; set; }
+        
+        [Column("iva_retention", TypeName = "DECIMAL(16,2)")]
+        public decimal? IvaRetention { get; set; }
+        
+        [Column("address", TypeName = "VARCHAR")]
+        [StringLength(200)]
+        public string? Address { get; set; }
+        
+        [Column("city", TypeName = "VARCHAR")]
+        [StringLength(100)]
+        public string? City { get; set; }
+        
+        [Column("phone", TypeName = "VARCHAR")]
+        [StringLength(10)]
+        public string? Phone { get; set; }
+        
+        [Column("id_solicit")]
+        public int? IdSolicit { get; set; }
 
         [Column("active")]
         public bool? Active { get; set; } = true;
