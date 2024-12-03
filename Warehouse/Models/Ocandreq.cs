@@ -22,9 +22,6 @@ namespace Warehouse.Models
         [Required]
         [Column("datecreate", TypeName = "DATE")]
         public DateTime DateCreate { get; set; }
-        
-        [Column("id_proveedor")]
-        public int? IdProveedor { get; set; }
 
         [Required]
         [Column("id_departament")]
