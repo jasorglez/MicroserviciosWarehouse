@@ -47,6 +47,7 @@ namespace Warehouse.Service
                         o.Address,
                         o.City,
                         o.Phone,
+                        o.Discount,
                         o.Active
                     })
                     .AsNoTracking()
@@ -78,7 +79,6 @@ namespace Warehouse.Service
                         o.IdProject,
                         o.IdReq,
                         o.DateCreate,
-                        o.IdProvider,
                         o.IdDepartament,
                         o.Delivery,
                         o.DeliveryTime,
@@ -88,10 +88,17 @@ namespace Warehouse.Service
                         o.IdCurrency,
                         o.Conditions,
                         o.IdAuthorize,
-                        o.Priority,
+                        o.IdSolicit,
+                        o.IdProvider,
                         o.Solicit,
+                        o.Priority,
                         o.Type,
                         o.Comments,
+                        o.IvaRetention,
+                        o.Address,
+                        o.City,
+                        o.Phone,
+                        o.Discount,
                         o.Active
                     })
             .AsNoTracking()
