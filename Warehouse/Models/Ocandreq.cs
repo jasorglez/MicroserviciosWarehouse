@@ -18,6 +18,9 @@ namespace Warehouse.Models
 
         [Column("id_project")]
         public int? IdProject { get; set; }
+        
+        [Column("id_req")]
+        public int? IdReq { get; set; }
 
         [Required]
         [Column("datecreate", TypeName = "DATE")]
