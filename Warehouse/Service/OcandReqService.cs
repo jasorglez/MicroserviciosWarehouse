@@ -40,7 +40,7 @@ namespace Warehouse.Service
                         o.Priority,
                         o.Solicit,
                         o.Type,
-                        o.Comments
+                        o.Comments, o.Active
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();

@@ -15,16 +15,16 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<object>> GetWarehouses(int idBranch)
+        public async Task<List<object>> GetWarehouses(int idBusinnes)
         {
             try
             {
                 return await _context.Warehouses
-                    .Where(w => ( w.IdBranch == idBranch  && w.Active == true))
+                    .Where(w => ( w.IdBusinnes == idBusinnes  && w.Active == true))
                     .Select(w => new
                     {
                         w.Id,
-                        w.IdBranch,
+                        w.IdBusinnes,
                         w.Name,
                         w.Address,
                         w.City,w.CodePostal,
@@ -39,7 +39,7 @@ namespace Warehouse.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBranch);
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBusinnes);
                 throw;
             }
         }
@@ -89,15 +89,41 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<bool> Delete(int id)
+        {
+            var existing = await _context.Warehouses.FindAsync(id);
+            if (existing == null)
+            {
+                _logger.LogWarning("Attempted to update non-existent Warehouses With ID {Id}", id);
+                return false;
+            }
+            try
+            {
+                existing.Active = false;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Concurrency error occurred while updating Catalogs", id);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while updating Catalog", id);
+                throw;
+            }
+        }
+
 
     }
 
-
     public interface IWarehouseService
     {
-        Task<List<object>> GetWarehouses(int idCompany);
+        Task<List<object>> GetWarehouses(int idBusinnes);
         Task Save(Warehouset wh);
         Task<bool> Update(int id, Warehouset warehousest);
+        Task<bool> Delete(int id);
     }
 
 }

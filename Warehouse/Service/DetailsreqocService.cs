@@ -31,7 +31,7 @@ namespace Warehouse.Service
                         d.Price,
                         d.Total,
                         d.Type,
-                        d.Comment
+                        d.Comment, d.Active
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();

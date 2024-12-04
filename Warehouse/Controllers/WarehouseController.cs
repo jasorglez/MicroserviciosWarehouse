@@ -21,11 +21,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet()]
-        public async Task<ActionResult<List<object>>> GetWarByComp(int idBranch)
+        public async Task<ActionResult<List<object>>> GetWarByComp(int idBussines)
         {
             try
             {
-                var warehouses = await _warehouseService.GetWarehouses(idBranch);
+                var warehouses = await _warehouseService.GetWarehouses(idBussines);
                 if (warehouses == null || warehouses.Count == 0)
                 {
                     return NotFound();
@@ -34,7 +34,7 @@ namespace Warehouse.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBranch);
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBussines);
                 return StatusCode(500, "An error occurred while retrieving warehouses.");
             }
         }
@@ -45,7 +45,7 @@ namespace Warehouse.Controllers
             try
             {
                 await _warehouseService.Save(wh);
-                return CreatedAtAction(nameof(GetWarByComp), new { idCompany = wh.IdBranch  }, wh);
+                return CreatedAtAction(nameof(GetWarByComp), new { idCompany = wh.IdBusinnes  }, wh);
             }
             catch (Exception ex)
             {
@@ -73,6 +73,23 @@ namespace Warehouse.Controllers
             {
                 _logger.LogError(ex, "Error updating warehouse with ID {Id}", id);
                 return StatusCode(500, "An error occurred while updating the warehouse.");
+            }
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<ActionResult> Delete(int id)
+        {
+            try
+            {
+                var result = await _warehouseService.Delete(id);
+                if (!result)
+                    return NotFound();
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting Warehouse with ID {Id}", id);
+                return StatusCode(500, "Internal server error");
             }
         }
 
