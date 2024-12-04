@@ -45,7 +45,7 @@ namespace Warehouse.Controllers
             try
             {
                 await _warehouseService.Save(wh);
-                return CreatedAtAction(nameof(GetWarByComp), new { idCompany = wh.IdBusinnes  }, wh);
+                return CreatedAtAction(nameof(GetWarByComp), new { idCompany = wh.IdBussines  }, wh);
             }
             catch (Exception ex)
             {

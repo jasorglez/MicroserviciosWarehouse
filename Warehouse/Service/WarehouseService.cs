@@ -20,11 +20,11 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Warehouses
-                    .Where(w => ( w.IdBusinnes == idBusinnes  && w.Active == true))
+                    .Where(w => ( w.IdBussines == idBusinnes  && w.Active == true))
                     .Select(w => new
                     {
                         w.Id,
-                        w.IdBusinnes,
+                        w.IdBussines,
                         w.Name,
                         w.Address,
                         w.City,w.CodePostal,
