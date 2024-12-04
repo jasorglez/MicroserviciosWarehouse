@@ -15,19 +15,19 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<object>> GetOrders(int idProject)
+        public async Task<List<object>> GetOrders(int idProject, string type)
         {
             try
             {
                 return await _context.Ocandreqs
-                    .Where(o => o.Active == true && idProject==idProject)
+                    .Where(o => o.Active == true && idProject == o.IdProject && type == o.Type)
                     .Select(o => new
                     {
                         o.Id,
                         o.Folio,
                         o.IdProject,
+                        o.IdReq,
                         o.DateCreate,
-                        o.IdProveedor,
                         o.IdDepartament,
                         o.Delivery,
                         o.DeliveryTime,
@@ -37,10 +37,18 @@ namespace Warehouse.Service
                         o.IdCurrency,
                         o.Conditions,
                         o.IdAuthorize,
-                        o.Priority,
+                        o.IdSolicit,
+                        o.IdProvider,
                         o.Solicit,
+                        o.Priority,
                         o.Type,
-                        o.Comments, o.Active
+                        o.Comments,
+                        o.IvaRetention,
+                        o.Address,
+                        o.City,
+                        o.Phone,
+                        o.Discount,
+                        o.Active
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -48,6 +56,57 @@ namespace Warehouse.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving Orders");
+                throw;
+            }
+        }
+
+        public async Task<object?> GetOrderById(int id)
+        {
+            try
+            {
+                if (id <= 0)
+                {
+                    _logger.LogWarning("Invalid Order ID provided: {Id}", id);
+                    return null;
+                }
+
+                return await _context.Ocandreqs
+                    .Where(o => o.Active == true && o.Id == id)
+                    .Select(o => new
+                    {
+                        o.Id,
+                        o.Folio,
+                        o.IdProject,
+                        o.IdReq,
+                        o.DateCreate,
+                        o.IdDepartament,
+                        o.Delivery,
+                        o.DeliveryTime,
+                        o.TypeOc,
+                        o.DateSupply,
+                        o.IdPayment,
+                        o.IdCurrency,
+                        o.Conditions,
+                        o.IdAuthorize,
+                        o.IdSolicit,
+                        o.IdProvider,
+                        o.Solicit,
+                        o.Priority,
+                        o.Type,
+                        o.Comments,
+                        o.IvaRetention,
+                        o.Address,
+                        o.City,
+                        o.Phone,
+                        o.Discount,
+                        o.Active
+                    })
+            .AsNoTracking()
+            .FirstOrDefaultAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Order by ID {Id}", id);
                 throw;
             }
         }
@@ -118,7 +177,8 @@ namespace Warehouse.Service
 
     public interface IOcandreqService
     {
-        Task<List<object>> GetOrders(int idProject);
+        Task<List<object>> GetOrders(int idProject, string type);
+        Task<object> GetOrderById(int id);
         Task Save(Ocandreq ocandreq);
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
         Task<bool> Delete(int id);

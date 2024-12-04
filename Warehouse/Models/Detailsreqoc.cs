@@ -19,6 +19,10 @@ namespace Warehouse.Models
         [Required]
         [Column("id_supplie")]
         public int IdSupplie { get; set; }
+        
+        [Required]
+        [Column("dateuse", TypeName = "date")]
+        public DateTime Dateuse { get; set; }
 
         [Required]
         [Column("quantity", TypeName = "DECIMAL(16,2)")]
