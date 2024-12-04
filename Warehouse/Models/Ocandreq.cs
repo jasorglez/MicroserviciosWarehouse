@@ -83,8 +83,8 @@ namespace Warehouse.Models
         [Column("id_provider")]
         public int? IdProvider { get; set; }
         
-        [Column("discount")]
-        public int? Discount { get; set; }
+        [Column("discount", TypeName = "DECIMAL(16,2)")]
+        public decimal? Discount { get; set; }
         
         [Column("iva_retention", TypeName = "DECIMAL(16,2)")]
         public decimal? IvaRetention { get; set; }
