@@ -15,7 +15,10 @@ namespace Warehouse.Models
         public int Id { get; set; }
 
         [Column("id_bussines")]        
-        public int IdBussines { get; set; }       
+        public int IdBussines { get; set; }
+
+        [Column("id_branch")]
+        public int IdBranch { get; set; }
 
         [Required]
         [StringLength(50)]
