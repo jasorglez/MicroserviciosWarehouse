@@ -44,6 +44,29 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<List<object>> Warehouses2fields (int idBusinnes)
+        {
+            try
+            {
+                return await _context.Warehouses
+                    .Where(w => (w.IdBussines == idBusinnes && w.Active == true))
+                    .Select(w => new
+                    {
+                        w.Id,
+                        w.IdBussines,
+                        w.Name,
+                        w.Active
+                    })
+                    .AsNoTracking()
+                    .ToListAsync<object>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBusinnes);
+                throw;
+            }
+        }
+
         public async Task Save(Warehouset wh)
         {
             try
@@ -121,6 +144,7 @@ namespace Warehouse.Service
     public interface IWarehouseService
     {
         Task<List<object>> GetWarehouses(int idBusinnes);
+        Task<List<object>> Warehouses2fields(int idBusinnes);
         Task Save(Warehouset wh);
         Task<bool> Update(int id, Warehouset warehousest);
         Task<bool> Delete(int id);

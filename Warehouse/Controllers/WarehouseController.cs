@@ -39,6 +39,25 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("2fields")]
+        public async Task<ActionResult<List<object>>> War2fields(int idBussines)
+        {
+            try
+            {
+                var warehouses = await _warehouseService.Warehouses2fields(idBussines);
+                if (warehouses == null || warehouses.Count == 0)
+                {
+                    return NotFound();
+                }
+                return Ok(warehouses);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBussines);
+                return StatusCode(500, "An error occurred while retrieving warehouses.");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Warehouset wh)
         {
