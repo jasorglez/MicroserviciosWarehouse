@@ -178,7 +178,7 @@ namespace Warehouse.Service
     public interface IOcandreqService
     {
         Task<List<object>> GetOrders(int idProject, string type);
-        Task<object> GetOrderById(int id);
+        Task<object?> GetOrderById(int id);
         Task Save(Ocandreq ocandreq);
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
         Task<bool> Delete(int id);

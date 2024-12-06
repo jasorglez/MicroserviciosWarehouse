@@ -17,6 +17,6 @@ namespace Warehouse
         public virtual DbSet<Material> Materials { get; set; }
         public virtual DbSet<Ocandreq> Ocandreqs { get; set; }
         public virtual DbSet<Warehouset> Warehouses { get; set; }
-        
+        public virtual DbSet<Inandout> Inandouts { get; set; }
     }
 }
