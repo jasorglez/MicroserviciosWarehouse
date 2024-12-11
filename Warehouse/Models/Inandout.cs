@@ -19,6 +19,10 @@ namespace Warehouse.Models
         [Column("id_project")]
         public int IdProject { get; set; }
         
+        [Required]
+        [Column("id_warehouse")]
+        public int IdWarehouse { get; set; }
+        
         [Column("date", TypeName = "Date")]
         public DateTime? Date { get; set; }
         

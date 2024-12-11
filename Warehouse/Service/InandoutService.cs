@@ -14,16 +14,17 @@ namespace Warehouse.Service
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<List<object>> GetInsAndOuts(int idProject, string type)
+    public async Task<List<object>> GetInsAndOuts(int idProject, int IdWarehouse, string type)
     {
         try
         {
             return await _context.Inandouts
-                .Where(i => i.IdProject == idProject && i.Type == type && i.Active == true)
+                .Where(i => i.IdProject == idProject && i.Type == type && IdWarehouse == i.IdWarehouse && i.Active == true)
                 .Select(i => new
                 {
                     i.Id,
                     i.IdProject,
+                    i.IdWarehouse,
                     i.Folio,
                     i.Date,
                     i.DeliveryDate,
@@ -59,6 +60,7 @@ namespace Warehouse.Service
                 {
                     i.Id,
                     i.IdProject,
+                    i.IdWarehouse,
                     i.Folio,
                     i.Date,
                     i.DeliveryDate,
@@ -140,7 +142,7 @@ namespace Warehouse.Service
 
 public interface IInandoutService
 {
-    Task<List<object>> GetInsAndOuts(int idProject, string type);
+    Task<List<object>> GetInsAndOuts(int idProject, int IdWarehouse, string type);
     Task<object?> GetInAndOutById(int id);
     Task Save(Inandout inandout);
     Task<Inandout?> Update(int id, Inandout inandout);
