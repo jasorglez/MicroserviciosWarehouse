@@ -42,7 +42,7 @@ namespace Warehouse.Service
                         s.StockMax,
                         s.Picture,
                         s.Active
-                    }).OrderByDescending(s => s.Date)
+                    }).OrderBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
             }
@@ -64,7 +64,7 @@ namespace Warehouse.Service
                         s.Id,                        
                         s.Description,
                         s.Active
-                    })
+                    }).OrderBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
             }
