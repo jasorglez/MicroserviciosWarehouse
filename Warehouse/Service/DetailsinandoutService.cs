@@ -20,15 +20,24 @@ namespace Warehouse.Service;
             {
                 return await _context.Detailsinandout
                     .Where(d => d.Active == true && d.IdInandout == idInandout)
-                    .Select(d => new
+                    .Join(_context.Materials,
+                        detail => detail.IdProduct,
+                        material => material.Id,
+                        (detail, material) => new { detail, material })
+                    .Join(_context.Catalogs,
+                        detailMaterial => detailMaterial.material.IdMedida,
+                        catalog => catalog.Id,
+                        (detailMaterial, catalog) => new
                         {
-                            d.Id,
-                            d.IdInandout,
-                            d.IdProduct,
-                            d.Quantity,
-                            d.Pending,
-                            d.Total,
-                            d.Active
+                            detailMaterial.detail.Id,
+                            detailMaterial.detail.IdInandout,
+                            detailMaterial.detail.IdProduct,
+                            MaterialDescription = detailMaterial.material.Description,
+                            MeasureDescription = catalog.Description,
+                            detailMaterial.detail.Quantity,
+                            detailMaterial.detail.Pending,
+                            detailMaterial.detail.Total,
+                            detailMaterial.detail.Active
                         })
                     .ToListAsync<object>();
             }
