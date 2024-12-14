@@ -30,10 +30,11 @@ namespace Warehouse.Service;
                         (detailMaterial, catalog) => new
                         {
                             detailMaterial.detail.Id,
+                            code = detailMaterial.material.Insumo,
                             detailMaterial.detail.IdInandout,
                             detailMaterial.detail.IdProduct,
-                            MaterialDescription = detailMaterial.material.Description,
-                            MeasureDescription = catalog.Description,
+                            description = detailMaterial.material.Description,
+                            measure = catalog.Description,
                             detailMaterial.detail.Quantity,
                             detailMaterial.detail.Pending,
                             detailMaterial.detail.Total,
