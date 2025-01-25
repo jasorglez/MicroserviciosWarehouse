@@ -49,7 +49,7 @@ namespace Warehouse.Controllers
             }
         }
 
-        [HttpGet("byNameOrCodeBar")]
+        [HttpGet("byNameOrBarcode")]
         public async Task<ActionResult<List<object>>> GetSuppliesByNameOrBarCode(string nameOrBarCode)
         {
             try
