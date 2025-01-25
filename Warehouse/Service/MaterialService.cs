@@ -76,12 +76,12 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<List<object>> GetSuppliesByNameOrBarCode(string nameOrBarCode)
+        public async Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode)
         {
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active && (s.Insumo.Contains(nameOrBarCode) || s.BarCode.Contains(nameOrBarCode) || s.Description.Contains(nameOrBarCode)))
+                    .Where(s => s.Active && idCompany == s.IdCompany && (s.Insumo.Contains(nameOrBarCode) || s.BarCode.Contains(nameOrBarCode) || s.Description.Contains(nameOrBarCode)))
                     .Select(s => new
                     {
                         s.Id,
@@ -168,7 +168,7 @@ namespace Warehouse.Service
     {
         Task<List<object>> GetSupplies(int idCompany);
         Task<List<object>> Get2Supplies(int idCompany);
-        Task<List<object>> GetSuppliesByNameOrBarCode(string nameOrBarCode);
+        Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
         Task Save(Material material);
         Task<Material?> Update(int id, Material material);
         Task<bool> Delete(int id);

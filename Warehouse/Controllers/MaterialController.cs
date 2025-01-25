@@ -50,11 +50,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet("byNameOrBarcode")]
-        public async Task<ActionResult<List<object>>> GetSuppliesByNameOrBarCode(string nameOrBarCode)
+        public async Task<ActionResult<List<object>>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode)
         {
             try
             {
-                var supplies = await _service.GetSuppliesByNameOrBarCode(nameOrBarCode);
+                var supplies = await _service.GetSuppliesByNameOrBarCode(idCompany, nameOrBarCode);
                 if (supplies == null || supplies.Count == 0)
                 {
                     return NotFound("No se encontraron productos con ese nombre o código de barras.");
