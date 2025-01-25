@@ -24,6 +24,10 @@ namespace Warehouse.Models
         [StringLength(50)]
         public string? Articulo { get; set; }
 
+        [Column("barcode", TypeName = "VARCHAR")]
+        [StringLength(50)]
+        public string? BarCode { get; set; }
+
         [Required]
         [Column("id_familia")]
         public int IdFamilia { get; set; }

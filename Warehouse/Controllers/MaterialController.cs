@@ -49,6 +49,25 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("byNameOrCodeBar")]
+        public async Task<ActionResult<List<object>>> GetSuppliesByNameOrBarCode(string nameOrBarCode)
+        {
+            try
+            {
+                var supplies = await _service.GetSuppliesByNameOrBarCode(nameOrBarCode);
+                if (supplies == null || supplies.Count == 0)
+                {
+                    return NotFound("No se encontraron productos con ese nombre o código de barras.");
+                }
+                return Ok(supplies);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company by name or code bar {NameOrCodeBar}", nameOrBarCode);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
 
         [HttpPost]
         public async Task<ActionResult> Save([FromBody] Material material)
