@@ -26,7 +26,8 @@ namespace Warehouse.Service
                         Id = cat.Id,
                         Description = cat.Description,
                         Type          = cat.Type,
-                        ValueAddition =cat.ValueAddition
+                        ValueAddition =cat.ValueAddition,
+                        ParentId = cat.ParentId
                     })
                     .AsNoTracking()
                     .ToListAsync();
