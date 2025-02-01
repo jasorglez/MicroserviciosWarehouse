@@ -15,46 +15,25 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<object>> GetWarehouses(int idBusinnes)
+        public async Task<List<object>> GetWarehouses(int idBranch)
         {
             try
             {
                 return await _context.Warehouses
-                    .Where(w => ( w.IdBussines == idBusinnes  && w.Active == true))
+                    .Where(w => (w.IdBranch == idBranch && w.Active == true))
                     .Select(w => new
                     {
                         w.Id,
-                        w.IdBussines,w.IdBranch,
+                        w.IdBranch,
                         w.Name,
                         w.Address,
-                        w.City,w.CodePostal,
+                        w.City,
+                        w.CodePostal,
                         w.Place,
                         w.State,
-                        w.Principal,                       
+                        w.Principal,
                         w.Phone,
-                        w.Leader, w.Active
-                    })
-                    .AsNoTracking()
-                    .ToListAsync<object>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBusinnes);
-                throw;
-            }
-        }
-
-        public async Task<List<object>> Warehouses2fields (int idBusinnes)
-        {
-            try
-            {
-                return await _context.Warehouses
-                    .Where(w => (w.IdBussines == idBusinnes && w.Active == true))
-                    .Select(w => new
-                    {
-                        w.Id,
-                        w.IdBussines,
-                        w.Name,
+                        w.Leader,
                         w.Active
                     })
                     .AsNoTracking()
@@ -62,12 +41,12 @@ namespace Warehouse.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdBussines}", idBusinnes);
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBranch);
                 throw;
             }
         }
 
-        public async Task<List<object>> Warehouses2Branches(int idBranch)
+        public async Task<List<object>> Warehouses2fields (int idBranch)
         {
             try
             {
@@ -89,7 +68,6 @@ namespace Warehouse.Service
                 throw;
             }
         }
-
         public async Task Save(Warehouset wh)
         {
             try
@@ -168,7 +146,6 @@ namespace Warehouse.Service
     {
         Task<List<object>> GetWarehouses(int idBusinnes);
         Task<List<object>> Warehouses2fields(int idBussines);
-        Task<List<object>> Warehouses2Branches(int idBranch);
         Task Save(Warehouset wh);
         Task<bool> Update(int id, Warehouset warehousest);
         Task<bool> Delete(int id);
