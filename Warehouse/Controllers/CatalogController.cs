@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Warehouse.Models;
 using Warehouse.Service;
 
 namespace Warehouse.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CatalogController : ControllerBase
