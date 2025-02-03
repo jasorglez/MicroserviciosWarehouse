@@ -38,6 +38,30 @@ namespace Warehouse.Service
                 throw;
             }
         }
+        
+        public async Task<List<object>> GetSubfamilyCatalogs(int parentId)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active == 1 && c.Type == "subfamily" && c.ParentId == parentId)
+                    .Select(c => new
+                    {
+                        c.Id,
+                        c.Description,
+                        c.ParentId,
+                        c.Type,
+                        c.Active
+                    })
+                    .AsNoTracking()
+                    .ToListAsync<object>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving subfamily catalogs");
+                throw;
+            }
+        }
 
         public async Task Save(Catalog cat)
         {
@@ -91,6 +115,7 @@ namespace Warehouse.Service
     public interface ICatalogService
     {
         Task<List<Catalog>> Get(string type);
+        Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);
         Task<bool> Delete(int id);
     }

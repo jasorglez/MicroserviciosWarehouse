@@ -30,6 +30,7 @@ namespace Warehouse.Service
                         s.Insumo,
                         s.Articulo,
                         s.IdFamilia,
+                        s.IdSubfamilia,
                         s.IdMedida,
                         s.IdUbication,
                         s.Description,

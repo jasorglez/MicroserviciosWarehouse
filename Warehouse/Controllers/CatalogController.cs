@@ -39,6 +39,25 @@ namespace Warehouse.Controllers
             }
 
         }
+        
+        [HttpGet("subfamily")]
+        public async Task<ActionResult<List<object>>> GetSubfamilyCatalogs(int parentId)
+        {
+            try
+            {
+                var catalogs = await _catalogService.GetSubfamilyCatalogs(parentId);
+                if (catalogs == null || catalogs.Count == 0)
+                {
+                    return NotFound();
+                }
+                return Ok(catalogs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving subfamily catalogs");
+                return StatusCode(500, "An error occurred while retrieving subfamily catalogs.");
+            }
+        }
 
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] Catalog cat)

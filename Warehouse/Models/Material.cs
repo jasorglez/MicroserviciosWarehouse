@@ -31,6 +31,9 @@ namespace Warehouse.Models
         [Required]
         [Column("id_familia")]
         public int IdFamilia { get; set; }
+        
+        [Column("id_subfamilia")]
+        public int? IdSubfamilia { get; set; }
 
         [Required]
         [Column("id_medida")]
