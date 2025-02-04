@@ -24,6 +24,32 @@ namespace Warehouse.Service
                     .Select(cat => new Catalog
                     {
                         Id = cat.Id,
+                        IdCompany = cat.IdCompany,
+                        Description = cat.Description,
+                        Type          = cat.Type,
+                        ValueAddition =cat.ValueAddition,
+                        ParentId = cat.ParentId
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalogs");
+                throw;
+            }
+        }
+        
+        public async Task<List<Catalog>> NewGet(int idCompany, string type)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active == 1 && c.IdCompany == idCompany && c.Type==type)
+                    .Select(cat => new Catalog
+                    {
+                        Id = cat.Id,
+                        IdCompany = cat.IdCompany,
                         Description = cat.Description,
                         Type          = cat.Type,
                         ValueAddition =cat.ValueAddition,
@@ -141,6 +167,7 @@ namespace Warehouse.Service
     public interface ICatalogService
     {
         Task<List<Catalog>> Get(string type);
+        Task<List<Catalog>> NewGet(int idCompany, string type);
         Task<List<object>> GetFamilyCatalogs(int idCompany);
 
         Task<List<object>> GetSubfamilyCatalogs(int parentId);

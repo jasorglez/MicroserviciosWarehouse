@@ -39,7 +39,26 @@ namespace Warehouse.Controllers
                 _logger.LogError(ex, "Error retrieving Catalog for Project");
                 return StatusCode(500, "An error occurred while retrieving Catalog.");
             }
-
+        }
+        
+        [HttpGet("getCatalogs")]
+        public async Task<ActionResult<List<object>>> NewGetWarByComp(int idCompany, string type)
+        {
+            try
+            {
+                var cat = await _catalogService.NewGet(idCompany, type);
+                if (cat == null || !cat.Any())
+                {
+                    _logger.LogWarning("No found Catalog the result is empty");
+                    return NotFound(new { Message = "No Catalog Found or the result is empty", catalog = new List<object>() });
+                }
+                return Ok(cat);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalog for Project");
+                return StatusCode(500, "An error occurred while retrieving Catalog.");
+            }
         }
         
         [HttpGet("family")]
