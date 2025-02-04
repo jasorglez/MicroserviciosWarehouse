@@ -10,6 +10,9 @@ namespace Warehouse.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
+        
+        [Column("id_company")]
+        public int? IdCompany { get; set; }
 
         [StringLength(100)]
         [Column("description")]

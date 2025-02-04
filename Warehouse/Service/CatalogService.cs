@@ -20,7 +20,7 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Catalogs
-                    .Where(c => c.Active ==1 && c.Type==type)
+                    .Where(c => c.Active == 1 && c.Type==type)
                     .Select(cat => new Catalog
                     {
                         Id = cat.Id,
@@ -39,6 +39,31 @@ namespace Warehouse.Service
             }
         }
         
+        public async Task<List<object>> GetFamilyCatalogs(int idCompany)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active == 1 && c.Type == "family" && c.IdCompany == idCompany)
+                    .Select(c => new
+                    {
+                        c.Id,
+                        c.IdCompany,
+                        c.Description,
+                        c.ParentId,
+                        c.Type,
+                        c.Active
+                    })
+                    .AsNoTracking()
+                    .ToListAsync<object>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving family catalogs");
+                throw;
+            }
+        }
+        
         public async Task<List<object>> GetSubfamilyCatalogs(int parentId)
         {
             try
@@ -48,6 +73,7 @@ namespace Warehouse.Service
                     .Select(c => new
                     {
                         c.Id,
+                        c.IdCompany,
                         c.Description,
                         c.ParentId,
                         c.Type,
@@ -115,6 +141,8 @@ namespace Warehouse.Service
     public interface ICatalogService
     {
         Task<List<Catalog>> Get(string type);
+        Task<List<object>> GetFamilyCatalogs(int idCompany);
+
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);
         Task<bool> Delete(int id);
