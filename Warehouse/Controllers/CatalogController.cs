@@ -21,8 +21,8 @@ namespace Warehouse.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        [HttpGet]
-        public async Task<ActionResult<List<object>>> GetWarByComp(string type, int idCompany)
+        [HttpGet("getCatalogs")]
+        public async Task<ActionResult<List<object>>> GetWarByComp(int idCompany, string type)
         {
             try
             {
