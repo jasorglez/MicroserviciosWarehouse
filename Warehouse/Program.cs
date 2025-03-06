@@ -16,7 +16,9 @@ builder.Services.AddCors(options =>
         builder =>
         {
             builder
-                .WithOrigins("http://localhost:4200", "http://localhost:8100", "https://localhost:7089", "https://smp25-beta.netlify.app") // Reemplaza esto con el origen de tu aplicacion Angular
+
+                .WithOrigins("http://localhost:4200", "https://be-app-five.vercel.app", "http://localhost:8100",
+                             "https://localhost:7089", "https://biapp.com.mx") // Reemplaza esto con el origen de tu aplicacin Angular
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -35,7 +37,9 @@ builder.Services.AddSwaggerGen(c =>
 {
  /*     c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 11:12 20.221.74.88" });
  */
-    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 04-01-25 22:33, Server 198.71.49.16" }); 
+
+    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 2025-03-03 13:00, Server 198.71.49.16" }); 
+
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

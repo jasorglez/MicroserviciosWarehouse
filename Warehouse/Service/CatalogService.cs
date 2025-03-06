@@ -26,9 +26,11 @@ namespace Warehouse.Service
                         Id             = cat.Id,
                         IdCompany      = cat.IdCompany,
                         Description    = cat.Description,
-                        Type           = cat.Type,
                         ValueAddition  = cat.ValueAddition,
                         ValueAddition2 = cat.ValueAddition2,
+                        Type = cat.Type,
+                        ParentId       = cat.ParentId,
+                        IdElection     = cat.IdElection,
                         Active         = cat.Active
                     })
                     .AsNoTracking()
@@ -37,6 +39,56 @@ namespace Warehouse.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving Catalogs");
+                throw;
+            }
+        }
+        
+        public async Task<List<object>> GetFamilyCatalogs(int idCompany)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active == 1 && c.Type == "family" && c.IdCompany == idCompany)
+                    .Select(c => new
+                    {
+                        c.Id,
+                        c.IdCompany,
+                        c.Description,
+                        c.ParentId,
+                        c.Type,
+                        c.Active
+                    })
+                    .AsNoTracking()
+                    .ToListAsync<object>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving family catalogs");
+                throw;
+            }
+        }
+        
+        public async Task<List<object>> GetSubfamilyCatalogs(int parentId)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active == 1 && c.Type == "subfamily" && c.ParentId == parentId)
+                    .Select(c => new
+                    {
+                        c.Id,
+                        c.IdCompany,
+                        c.Description,
+                        c.ParentId,
+                        c.Type,
+                        c.Active
+                    })
+                    .AsNoTracking()
+                    .ToListAsync<object>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving subfamily catalogs");
                 throw;
             }
         }

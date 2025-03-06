@@ -21,11 +21,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet()]
-        public async Task<ActionResult<List<object>>> GetWarByComp(int idBussines)
+        public async Task<ActionResult<List<object>>> GetWarByComp(int idBranch)
         {
             try
             {
-                var warehouses = await _warehouseService.GetWarehouses(idBussines);
+                var warehouses = await _warehouseService.GetWarehouses(idBranch);
                 if (warehouses == null || warehouses.Count == 0)
                 {
                     return NotFound();
@@ -34,36 +34,17 @@ namespace Warehouse.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBussines);
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBranch);
                 return StatusCode(500, "An error occurred while retrieving warehouses.");
             }
         }
 
         [HttpGet("2fields")]
-        public async Task<ActionResult<List<object>>> War2fields(int idBussines)
+        public async Task<ActionResult<List<object>>> War2fields(int idBranch)
         {
             try
             {
-                var warehouses = await _warehouseService.Warehouses2fields(idBussines);
-                if (warehouses == null || warehouses.Count == 0)
-                {
-                    return NotFound();
-                }
-                return Ok(warehouses);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdBussines}", idBussines);
-                return StatusCode(500, "An error occurred while retrieving warehouses.");
-            }
-        }
-        
-        [HttpGet("2branches")]
-        public async Task<ActionResult<List<object>>> War2Branches(int idBranch)
-        {
-            try
-            {
-                var warehouses = await _warehouseService.Warehouses2Branches(idBranch);
+                var warehouses = await _warehouseService.Warehouses2fields(idBranch);
                 if (warehouses == null || warehouses.Count == 0)
                 {
                     return NotFound();
@@ -83,7 +64,7 @@ namespace Warehouse.Controllers
             try
             {
                 await _warehouseService.Save(wh);
-                return CreatedAtAction(nameof(GetWarByComp), new { idCompany = wh.IdBussines  }, wh);
+                return CreatedAtAction(nameof(GetWarByComp), new { idBranch = wh.IdBranch  }, wh);
             }
             catch (Exception ex)
             {

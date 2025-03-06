@@ -10,9 +10,9 @@ namespace Warehouse.Models
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
-
+        
         [Column("id_company")]
-        public int IdCompany { get; set; } 
+        public int? IdCompany { get; set; }
 
         [StringLength(100)]
         [Column("description")]
@@ -32,6 +32,9 @@ namespace Warehouse.Models
         [StringLength(13)]
         [Column("type")]
         public string Type { get; set; } = "MEASURE";
+        
+        [Column("parent_id")]
+        public int? ParentId { get; set; }
 
         [Column("active")]
         public short Active { get; set; } = 1;

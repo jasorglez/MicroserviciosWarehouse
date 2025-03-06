@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Warehouse.Models;
 
@@ -29,6 +30,7 @@ namespace Warehouse.Service
                         s.Insumo,
                         s.Articulo,
                         s.IdFamilia,
+                        s.IdSubfamilia,
                         s.IdMedida,
                         s.IdUbication,
                         s.Description,
@@ -62,6 +64,30 @@ namespace Warehouse.Service
                     .Select(s => new
                     {
                         s.Id,                        
+                        s.Description,
+                        s.Active
+                    }).OrderBy(s => s.Description)
+                    .AsNoTracking()
+                    .ToListAsync<object>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Supplies");
+                throw;
+            }
+        }
+
+        public async Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode)
+        {
+            try
+            {
+                return await _context.Materials
+                    .Where(s => s.Active && idCompany == s.IdCompany && (s.Insumo.Contains(nameOrBarCode) || s.BarCode.Contains(nameOrBarCode) || s.Description.Contains(nameOrBarCode)))
+                    .Select(s => new
+                    {
+                        s.Id,
+                        s.BarCode,
+                        s.Insumo,
                         s.Description,
                         s.Active
                     }).OrderBy(s => s.Description)
@@ -143,6 +169,7 @@ namespace Warehouse.Service
     {
         Task<List<object>> GetSupplies(int idCompany);
         Task<List<object>> Get2Supplies(int idCompany);
+        Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
         Task Save(Material material);
         Task<Material?> Update(int id, Material material);
         Task<bool> Delete(int id);

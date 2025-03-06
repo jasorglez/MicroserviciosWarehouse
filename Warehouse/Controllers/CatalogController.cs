@@ -1,11 +1,13 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics.Contracts;
+using Microsoft.AspNetCore.Authorization;
 using Warehouse.Models;
 using Warehouse.Service;
 
 namespace Warehouse.Controllers
 {
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class CatalogController : ControllerBase
@@ -37,7 +39,64 @@ namespace Warehouse.Controllers
                 _logger.LogError(ex, "Error retrieving Catalog for Project");
                 return StatusCode(500, "An error occurred while retrieving Catalog.");
             }
-
+        }
+        
+        [HttpGet("getCatalogs")]
+        public async Task<ActionResult<List<object>>> NewGetWarByComp(int idCompany, string type)
+        {
+            try
+            {
+                var cat = await _catalogService.NewGet(idCompany, type);
+                if (cat == null || !cat.Any())
+                {
+                    _logger.LogWarning("No found Catalog the result is empty");
+                    return NotFound(new { Message = "No Catalog Found or the result is empty", catalog = new List<object>() });
+                }
+                return Ok(cat);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalog for Project");
+                return StatusCode(500, "An error occurred while retrieving Catalog.");
+            }
+        }
+        
+        [HttpGet("family")]
+        public async Task<ActionResult<List<object>>> GetFamilyCatalogs(int idCompany)
+        {
+            try
+            {
+                var catalogs = await _catalogService.GetFamilyCatalogs(idCompany);
+                if (catalogs == null || catalogs.Count == 0)
+                {
+                    return NotFound();
+                }
+                return Ok(catalogs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving family catalogs");
+                return StatusCode(500, "An error occurred while retrieving family catalogs.");
+            }
+        }
+        
+        [HttpGet("subfamily")]
+        public async Task<ActionResult<List<object>>> GetSubfamilyCatalogs(int parentId)
+        {
+            try
+            {
+                var catalogs = await _catalogService.GetSubfamilyCatalogs(parentId);
+                if (catalogs == null || catalogs.Count == 0)
+                {
+                    return NotFound();
+                }
+                return Ok(catalogs);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving subfamily catalogs");
+                return StatusCode(500, "An error occurred while retrieving subfamily catalogs.");
+            }
         }
 
         [HttpPost]
