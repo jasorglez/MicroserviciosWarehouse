@@ -138,12 +138,61 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<List<ProcessXPermission>> GetProcessXPermissions(int? idProcces = null)
+        {
+            try
+            {
+                var query = _context.ProcessXPermissions
+                    .AsNoTracking();
+
+                if (idProcces.HasValue)
+                {
+                    query = query.Where(p => p.IdProcces == idProcces);
+                }
+
+                return await query
+                    .Select(p => new ProcessXPermission
+                    {
+                        Id = p.Id,
+                        IdProcces = p.IdProcces,
+                        Select = p.Select,
+                        Active = p.Active
+                    })
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving ProcessXPermissions");
+                throw;
+            }
+        }
+
+        public async Task Savexpermission(ProcessXPermission perm)
+        {
+            try
+            {
+                _context.ProcessXPermissions.Add(perm);
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, "Database update error while saving Permission");
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving Permissions");
+                throw;
+            }
+        }
 
     }
 
     public interface ICatalogService
     {
         Task<List<Catalog>> GetType(string type, int idCompany);
+        Task<List<object>> GetFamilyCatalogs(int idCompany);
+        Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);
         Task<bool> Delete(int id);
     }
