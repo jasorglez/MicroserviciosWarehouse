@@ -139,7 +139,7 @@ namespace Warehouse.Service
         }
 
         public async Task<List<ProcessXPermission>> GetProcessXPermissions(int idProcces)
-        {
+        { //aqui paso soriano
             try
             {
                 var query = _context.ProcessXPermissions
@@ -150,9 +150,10 @@ namespace Warehouse.Service
                     .Select(p => new ProcessXPermission
                     {
                         Id = p.Id,
-                        IdProcces = p.IdProcces,
-                        Select = p.Select,
-                        Active = p.Active
+                        IdProcces   = p.IdProcces,
+                        Description = p.Description,
+                        Select      = p.Select,
+                        Active      = p.Active
                     })
                     .ToListAsync();
             }

@@ -1,9 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Warehouse.Models
 {
     [Table("processxpermission")]
@@ -16,10 +13,13 @@ namespace Warehouse.Models
         [Column("id_procces")]
         public int? IdProcces { get; set; }
 
+        [Column("description")]
+        public string? Description { get; set; }
+
         [Column("select")]
-        public int? Select { get; set; }
+        public bool? Select { get; set; } = false;
 
         [Column("active")]
-        public bool Active { get; set; } = true;
+        public bool? Active { get; set; } = true;
     }
 }

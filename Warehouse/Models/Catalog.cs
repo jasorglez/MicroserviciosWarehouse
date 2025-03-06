@@ -20,11 +20,11 @@ namespace Warehouse.Models
 
         [StringLength(25)]
         [Column("valueaddition")]
-        public string ValueAddition { get; set; } = "NA";
+        public string? ValueAddition { get; set; } = "NA";
 
         [StringLength(25)]
         [Column("valueaddition2")]
-        public string ValueAddition2 { get; set; } = "NA";
+        public string? ValueAddition2 { get; set; } = "NA";
 
         [Column("election")]
         public bool? IdElection { get; set; } = true;
