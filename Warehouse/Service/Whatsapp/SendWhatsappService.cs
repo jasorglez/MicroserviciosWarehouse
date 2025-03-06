@@ -5,17 +5,16 @@ using Twilio.Rest.Api.V2010.Account;
 
 namespace Warehouse.Service.Whatsapp
 {
-    public class SendWhatsappService
+    public class SendWhatsappService : ISendWhatsappService
     {
         private readonly string _accountSid;
         private readonly string _authToken;
         private readonly string _twilioPhoneNumber;
-       // private readonly ILogger<ReceiveWhatsAppService> _logger;
-
-        public SendWhatsappService(IConfiguration configuration)
+  
+        public SendWhatsappService(IConfiguration configuration, ILogger<SendWhatsappService> logger)
         {
             _accountSid = configuration["Twilio:AccountSid"];
-            _authToken  = configuration["Twilio:AuthToken"];
+            _authToken = configuration["Twilio:AuthToken"];
             _twilioPhoneNumber = configuration["Twilio:PhoneNumber"];
 
             if (string.IsNullOrEmpty(_accountSid) || string.IsNullOrEmpty(_authToken))
@@ -46,10 +45,10 @@ namespace Warehouse.Service.Whatsapp
 
     }
 
-
     public interface ISendWhatsappService
-    {
-        Task<MessagingResponse> SendWhatsAppMessage(string to, string message);
-    }
+        {
+            Task<MessagingResponse> SendWhatsAppMessage(string to, string message);
+        }
+   
 }
 

@@ -20,11 +20,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<object>>> GetWarByComp(string type)
+        public async Task<ActionResult<List<object>>> GetWarByComp(string type, int idCompany)
         {
             try
             {
-                var cat = await _catalogService.Get(type);
+                var cat = await _catalogService.GetType(type,idCompany);
                 if (cat == null || !cat.Any())
                 {
                     _logger.LogWarning("No found Catalog the result is empty");

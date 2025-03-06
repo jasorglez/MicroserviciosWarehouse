@@ -1,8 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Warehouse.Models;
 
-namespace Warehouse
-{
+namespace Warehouse;
+
     public partial class DbWarehouseContext : DbContext
     {
         public DbWarehouseContext()
@@ -13,10 +13,11 @@ namespace Warehouse
         { }
 
         public virtual DbSet<Catalog> Catalogs { get; set; }
+        public virtual DbSet<Configuration> Configurations { get; set; }
         public virtual DbSet<Detailsreqoc> Detailsreqoc { get; set; }
         public virtual DbSet<Material> Materials { get; set; }
         public virtual DbSet<Ocandreq> Ocandreqs { get; set; }
         public virtual DbSet<Warehouset> Warehouses { get; set; }
-        
+        public virtual DbSet<Inandout> Inandouts { get; set; }
+        public virtual DbSet<Detailsinandout> Detailsinandout { get; set; }
     }
-}

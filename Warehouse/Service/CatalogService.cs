@@ -15,18 +15,21 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<Catalog>> Get(string type)
+        public async Task<List<Catalog>> GetType(string type, int idCompany)
         {
             try
             {
                 return await _context.Catalogs
-                    .Where(c => c.Active ==1 && c.Type==type)
+                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany)
                     .Select(cat => new Catalog
                     {
-                        Id = cat.Id,
-                        Description = cat.Description,
-                        Type          = cat.Type,
-                        ValueAddition =cat.ValueAddition
+                        Id             = cat.Id,
+                        IdCompany      = cat.IdCompany,
+                        Description    = cat.Description,
+                        Type           = cat.Type,
+                        ValueAddition  = cat.ValueAddition,
+                        ValueAddition2 = cat.ValueAddition2,
+                        Active         = cat.Active
                     })
                     .AsNoTracking()
                     .ToListAsync();
@@ -57,7 +60,6 @@ namespace Warehouse.Service
             }
         }
 
-        
         public async Task<bool> Delete(int id)
         {
             var existingCt = await _context.Catalogs.FindAsync(id);
@@ -89,7 +91,7 @@ namespace Warehouse.Service
 
     public interface ICatalogService
     {
-        Task<List<Catalog>> Get(string type);
+        Task<List<Catalog>> GetType(string type, int idCompany);
         Task Save(Catalog cat);
         Task<bool> Delete(int id);
     }

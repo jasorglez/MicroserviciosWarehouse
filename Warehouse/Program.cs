@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using Warehouse;
 using Warehouse.Service;
+//using Warehouse.Service.Whatsapp;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,17 +16,17 @@ builder.Services.AddCors(options =>
         builder =>
         {
             builder
-                .WithOrigins("http://localhost:4200", "https://be-app-five.vercel.app", "http://localhost:8100",
-                             "https://localhost:7089", "https://smp25-beta.netlify.app") // Reemplaza esto con el origen de tu aplicacin Angular
+                .WithOrigins("http://localhost:4200", "http://localhost:8100", "https://localhost:7089", "https://smp25-beta.netlify.app") // Reemplaza esto con el origen de tu aplicacion Angular
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
         });
 });
 
+// Añadir HttpClient para Twilio
+//builder.Services.AddHttpClient();
 
 // Add services to the container.
-
 builder.Services.AddControllers();
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -35,11 +35,12 @@ builder.Services.AddSwaggerGen(c =>
 {
  /*     c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 11:12 20.221.74.88" });
  */
-    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 03-01-25 21:01, Server 198.71.49.16" }); 
+    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 04-01-25 22:33, Server 198.71.49.16" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
-        Description = "JWT Authorization header using the Bearer scheme. Ejemplo: \"Authorization: Bearer {token}\"",
+        Description = "JWT Authorization header using the Bearer scheme. Ejemplo: \"Authorization: Bearer {t" +
+        "oken}\"",
         Name = "Authorization",
         In = ParameterLocation.Header,
         Type = SecuritySchemeType.ApiKey,
@@ -54,14 +55,13 @@ builder.Services.AddSwaggerGen(c =>
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
+                    Id   = "Bearer"
                 }
             },
             new string[] {}
         }
     });
 });
-
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddDbContext<DbWarehouseContext>(options =>
@@ -71,9 +71,15 @@ builder.Services.AddDbContext<DbWarehouseContext>(options =>
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
+
 builder.Services.AddScoped<IOcandreqService, OcandreqService>();
+builder.Services.AddScoped<IInandoutService, InandoutService>();
 builder.Services.AddScoped<IDetailsreqocService, DetailsreqocService>();
 
+builder.Services.AddScoped<IDetailsinandoutService, DetailsinandoutService>();
+//builder.Services.AddScoped<ISendWhatsappService, SendWhatsappService>();
+builder.Services.AddScoped<IConfigurationService, ConfigurationService>();  
+//builder.Services.AddHostedService<MonitormessageService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -110,7 +116,7 @@ app.UseHttpsRedirection();
 
 app.UseCors("AllowWarehouseOrigin");
 
-app.UseAuthorization();
+//app.UseAuthorization();
 app.UseAuthorization();
 
 app.MapControllers();

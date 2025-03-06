@@ -53,7 +53,26 @@ namespace Warehouse.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBussines);
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBussines}", idBussines);
+                return StatusCode(500, "An error occurred while retrieving warehouses.");
+            }
+        }
+        
+        [HttpGet("2branches")]
+        public async Task<ActionResult<List<object>>> War2Branches(int idBranch)
+        {
+            try
+            {
+                var warehouses = await _warehouseService.Warehouses2Branches(idBranch);
+                if (warehouses == null || warehouses.Count == 0)
+                {
+                    return NotFound();
+                }
+                return Ok(warehouses);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving warehouses for company {IdBranch}", idBranch);
                 return StatusCode(500, "An error occurred while retrieving warehouses.");
             }
         }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Warehouse.Models;
 using Warehouse.Service.Whatsapp;
+using static Warehouse.Service.Whatsapp.SendWhatsappService;
 
 namespace Warehouse.Controllers
 {
