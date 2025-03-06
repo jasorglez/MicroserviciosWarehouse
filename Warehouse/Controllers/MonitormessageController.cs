@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Warehouse.Service.Whatsapp;
 
 namespace Warehouse.Controllers
 {
@@ -41,7 +40,7 @@ namespace Warehouse.Controllers
             {
                 await using var scope = _scopeFactory.CreateAsyncScope();
                 var context = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
-                var whatsappService = scope.ServiceProvider.GetRequiredService<ISendWhatsappService>();
+                //var whatsappService = scope.ServiceProvider.GetRequiredService<ISendWhatsappService>();
 
                 var productosBajos = await (from d in context.Detailsinandout
                                             join m in context.Inandouts on d.IdInandout equals m.Id
@@ -63,7 +62,7 @@ namespace Warehouse.Controllers
                     foreach (var producto in productosBajos)
                     {
                         var mensaje = $"⚡Producto {producto.Description} con existencia baja ({producto.Existencia} unidades) en el almacén {producto.Warehouse}.";
-                         await whatsappService.SendWhatsAppMessage("5212292063157", mensaje);
+                        // await whatsappService.SendWhatsAppMessage("5212292063157", mensaje);
                        // await whatsappService.SendWhatsAppMessage("5219241550400", mensaje);
                     }
 
