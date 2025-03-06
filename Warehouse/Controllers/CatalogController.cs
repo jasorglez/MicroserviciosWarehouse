@@ -40,8 +40,43 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while retrieving Catalog.");
             }
         }
-        
-  
+
+        [HttpGet("process-permissions")]
+        public async Task<ActionResult<List<ProcessXPermission>>> GetProcessPermissions(int idProcces)
+        {
+            try
+            {
+                var permissions = await _catalogService.GetProcessXPermissions(idProcces);
+                if (permissions == null || !permissions.Any())
+                {
+                    _logger.LogWarning("No ProcessXPermissions found for idProcces {idProcces}", idProcces);
+                    return NotFound(new { Message = "No ProcessXPermissions Found", Permissions = new List<ProcessXPermission>() });
+                }
+                return Ok(permissions);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving ProcessXPermissions for idProcces {idProcces}", idProcces);
+                return StatusCode(500, "An error occurred while retrieving ProcessXPermissions.");
+            }
+        }
+
+        [HttpPost("process-permissions")]
+        public async Task<ActionResult> SaveProcessPermission([FromBody] ProcessXPermission perm)
+        {
+            try
+            {
+                await _catalogService.Savexpermission(perm);
+                return Ok(new { Message = "New ProcessXPermission Created", Id = perm.Id, Permission = perm });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving ProcessXPermission");
+                return StatusCode(500, "An error occurred while saving the ProcessXPermission.");
+            }
+        }
+
+
         [HttpGet("family")]
         public async Task<ActionResult<List<object>>> GetFamilyCatalogs(int idCompany)
         {
@@ -61,6 +96,7 @@ namespace Warehouse.Controllers
             }
         }
         
+
         [HttpGet("subfamily")]
         public async Task<ActionResult<List<object>>> GetSubfamilyCatalogs(int parentId)
         {
@@ -79,6 +115,7 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while retrieving subfamily catalogs.");
             }
         }
+
 
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] Catalog cat)

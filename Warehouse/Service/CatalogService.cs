@@ -138,17 +138,13 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<List<ProcessXPermission>> GetProcessXPermissions(int? idProcces = null)
+        public async Task<List<ProcessXPermission>> GetProcessXPermissions(int idProcces)
         {
             try
             {
                 var query = _context.ProcessXPermissions
-                    .AsNoTracking();
-
-                if (idProcces.HasValue)
-                {
-                    query = query.Where(p => p.IdProcces == idProcces);
-                }
+                    .Where(p => p.IdProcces == idProcces)
+                    .AsNoTracking();           
 
                 return await query
                     .Select(p => new ProcessXPermission
@@ -195,5 +191,7 @@ namespace Warehouse.Service
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);
         Task<bool> Delete(int id);
+        Task<List<ProcessXPermission>> GetProcessXPermissions(int idProcces);
+        Task Savexpermission(ProcessXPermission perm);
     }
 }

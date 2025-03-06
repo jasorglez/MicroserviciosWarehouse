@@ -38,7 +38,7 @@ builder.Services.AddSwaggerGen(c =>
  /*     c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 11:12 20.221.74.88" });
  */
 
-    c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 2025-03-03 13:00, Server 198.71.49.16" }); 
+    c.SwaggerDoc("v2.20", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v2.20 Mod. 06-3-2025-03 14:00, Server 198.71.49.16" }); 
 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
@@ -110,7 +110,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1.99/swagger.json", "Microservicio Warehouse V1.99");
+        c.SwaggerEndpoint("/swagger/v2.20/swagger.json", "Microservicio Warehouse V2.20");
         c.RoutePrefix = "swagger";
     });
 }
