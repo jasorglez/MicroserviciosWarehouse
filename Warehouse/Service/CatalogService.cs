@@ -112,6 +112,27 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<bool> Update(int id, Catalog cat)
+        {
+            var existingConfig = await _context.Catalogs.FindAsync(id);
+            if (existingConfig == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                _context.Entry(existingConfig).CurrentValues.SetValues(cat);
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating configuration with ID {Id}.", id);
+                return false;
+            }
+        }
+
         public async Task<bool> Delete(int id)
         {
             var existingCt = await _context.Catalogs.FindAsync(id);
@@ -191,6 +212,7 @@ namespace Warehouse.Service
         Task<List<object>> GetFamilyCatalogs(int idCompany);
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);
+        Task<bool> Update(int id, Catalog cat);
         Task<bool> Delete(int id);
         Task<List<ProcessXPermission>> GetProcessXPermissions(int idProcces);
         Task Savexpermission(ProcessXPermission perm);

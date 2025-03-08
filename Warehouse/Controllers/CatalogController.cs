@@ -61,6 +61,25 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, [FromBody] Catalog cat)
+        {
+            try
+            {
+                var success = await _catalogService.Update(id, cat);
+                if (!success)
+                {
+                    return NotFound();
+                }
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating catalog with ID {Id}.", id);
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
         [HttpPost("process-permissions")]
         public async Task<ActionResult> SaveProcessPermission([FromBody] ProcessXPermission perm)
         {
