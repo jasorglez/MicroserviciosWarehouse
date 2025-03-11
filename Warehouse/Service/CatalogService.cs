@@ -204,6 +204,32 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<bool> UpdatexPermission(int id, ProcessXPermission perm)
+        {
+            try
+            {
+                var existingPermission = await _context.ProcessXPermissions.FindAsync(id);
+
+                if (existingPermission == null)
+                {
+                    return false; // Entity not found
+                }
+
+                // Update the properties (excluding Id)
+
+                existingPermission.IdProcces = perm.IdProcces;
+                existingPermission.Description = perm.Description;
+                existingPermission.Select = perm.Select;                            
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating configuration with ID {Id}.", id);
+                return false;
+            }
+        }
+
     }
 
     public interface ICatalogService
@@ -215,6 +241,7 @@ namespace Warehouse.Service
         Task<bool> Update(int id, Catalog cat);
         Task<bool> Delete(int id);
         Task<List<ProcessXPermission>> GetProcessXPermissions(int idProcces);
+        Task<bool> UpdatexPermission(int id, ProcessXPermission perm);
         Task Savexpermission(ProcessXPermission perm);
     }
 }

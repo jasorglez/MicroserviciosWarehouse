@@ -1,9 +1,12 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics.Contracts;
 using Microsoft.AspNetCore.Authorization;
 using Warehouse.Models;
 using Warehouse.Service;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Warehouse.Controllers
 {
@@ -26,7 +29,7 @@ namespace Warehouse.Controllers
         {
             try
             {
-                var cat = await _catalogService.GetType(type,idCompany);
+                var cat = await _catalogService.GetType(type, idCompany);
                 if (cat == null || !cat.Any())
                 {
                     _logger.LogWarning("No found Catalog the result is empty");
@@ -61,7 +64,7 @@ namespace Warehouse.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("update-catalog/{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Catalog cat)
         {
             try
@@ -76,6 +79,25 @@ namespace Warehouse.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating catalog with ID {Id}.", id);
+                return StatusCode(500, "Internal server error.");
+            }
+        }
+
+        [HttpPut("update-permission/{idPerm}")]
+        public async Task<IActionResult> UpdatePermiss(int idPerm, [FromBody] ProcessXPermission perm)
+        {
+            try
+            {
+                var success = await _catalogService.UpdatexPermission(idPerm, perm);
+                if (!success)
+                {
+                    return NotFound();
+                }
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating permission with ID {Id}.", idPerm);
                 return StatusCode(500, "Internal server error.");
             }
         }
@@ -95,7 +117,6 @@ namespace Warehouse.Controllers
             }
         }
 
-
         [HttpGet("family")]
         public async Task<ActionResult<List<object>>> GetFamilyCatalogs(int idCompany)
         {
@@ -114,7 +135,6 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while retrieving family catalogs.");
             }
         }
-        
 
         [HttpGet("subfamily")]
         public async Task<ActionResult<List<object>>> GetSubfamilyCatalogs(int parentId)
@@ -134,7 +154,6 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while retrieving subfamily catalogs.");
             }
         }
-
 
         [HttpPost]
         public async Task<ActionResult> Create([FromBody] Catalog cat)
@@ -157,7 +176,6 @@ namespace Warehouse.Controllers
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> Delete(int id)
         {
-
             try
             {
                 var success = await _catalogService.Delete(id);
@@ -172,10 +190,9 @@ namespace Warehouse.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating Catalogs with ID {Id}", id);
-                return StatusCode(500, "An error occurred while updating Catalogs");
+                _logger.LogError(ex, "Error deleting Catalog with ID {Id}", id);
+                return StatusCode(500, "An error occurred while deleting Catalog");
             }
         }
-
     }
 }
