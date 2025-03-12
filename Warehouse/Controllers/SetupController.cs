@@ -60,8 +60,8 @@ namespace Warehouse.Controllers
             return CreatedAtAction(nameof(GetSetupById), new { id = setup.Id }, setup);
         }
 
-        // PUT: api/Setup/{idCompany}
-        [HttpPut("{idCompany}")]
+        // PUT: api/Setup/company/{idCompany}
+        [HttpPut("company/{idCompany}")]
         public async Task<IActionResult> UpdateSetup(int idCompany, [FromBody] Setup setup)
         {
             if (setup == null)
@@ -79,8 +79,8 @@ namespace Warehouse.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Setup/{idCompany}
-        [HttpDelete("{idCompany}")]
+        // DELETE: api/Setup/company/{idCompany}
+        [HttpDelete("company/{idCompany}")]
         public async Task<IActionResult> DeleteSetup(int idCompany)
         {
             var result = await _setupService.Delete(idCompany);
