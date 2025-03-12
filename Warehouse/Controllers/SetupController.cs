@@ -60,34 +60,34 @@ namespace Warehouse.Controllers
             return CreatedAtAction(nameof(GetSetupById), new { id = setup.Id }, setup);
         }
 
-        // PUT: api/Setup/{id}
-        [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSetup(int id, [FromBody] Setup setup)
+        // PUT: api/Setup/{idCompany}
+        [HttpPut("{idCompany}")]
+        public async Task<IActionResult> UpdateSetup(int idCompany, [FromBody] Setup setup)
         {
-            if (setup == null || setup.Id != id)
+            if (setup == null)
             {
                 return BadRequest(new { message = "Invalid setup data or ID mismatch." });
             }
 
-            var result = await _setupService.Update(id, setup);
+            var result = await _setupService.Update(idCompany, setup);
 
             if (!result)
             {
-                return NotFound(new { message = $"Setup with ID {id} not found." });
+                return NotFound(new { message = $"Setup with ID Company {idCompany} not found." });
             }
 
             return NoContent();
         }
 
-        // DELETE: api/Setup/{id}
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSetup(int id)
+        // DELETE: api/Setup/{idCompany}
+        [HttpDelete("{idCompany}")]
+        public async Task<IActionResult> DeleteSetup(int idCompany)
         {
-            var result = await _setupService.Delete(id);
+            var result = await _setupService.Delete(idCompany);
 
             if (!result)
             {
-                return NotFound(new { message = $"Setup with ID {id} not found." });
+                return NotFound(new { message = $"Setup with ID {idCompany} not found." });
             }
 
             return NoContent();

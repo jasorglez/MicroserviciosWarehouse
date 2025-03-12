@@ -7,7 +7,6 @@ namespace Warehouse.Models
     public class Setup
     {
         [Key]
-        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         [Column("Id")]
         public int Id { get; set; }
 

@@ -60,34 +60,38 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<bool> Update(int id, Setup setup)
+        public async Task<bool> Update(int idCompany, Setup setup)
         {
-            var existingSetup = await _context.Setups.FindAsync(id);
+            var existingSetup = await _context.Setups
+                .FirstOrDefaultAsync(s => s.IdCompany == idCompany && s.Active);
+        
             if (existingSetup == null)
             {
                 return false;
             }
 
             try
-            {                
-                existingSetup.Description      = setup.Description ;
-                existingSetup.ProjectOrBranch  = setup.ProjectOrBranch;
+            {
+                existingSetup.Description = setup.Description;
+                existingSetup.ProjectOrBranch = setup.ProjectOrBranch;
                 await _context.SaveChangesAsync();
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating setup with ID {Id}.", id);
+                _logger.LogError(ex, "Error updating setup with ID {IdCompany}.", idCompany);
                 throw;
             }
         }
 
-        public async Task<bool> Delete(int id)
+        public async Task<bool> Delete(int idCompany)
         {
-            var existingSetup = await _context.Setups.FindAsync(id);
+            var existingSetup = await _context.Setups
+                .FirstOrDefaultAsync(s => s.IdCompany == idCompany && s.Active);
+        
             if (existingSetup == null)
             {
-                _logger.LogWarning("Attempted to delete non-existent setup with ID {Id}", id);
+                _logger.LogWarning("Attempted to delete non-existent setup with ID {IdCompany}", idCompany);
                 return false;
             }
 
@@ -99,7 +103,7 @@ namespace Warehouse.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error deleting setup with ID {Id}.", id);
+                _logger.LogError(ex, "Error deleting setup with ID {IdCompany}.", idCompany);
                 throw;
             }
         }
@@ -110,7 +114,7 @@ namespace Warehouse.Service
         Task<List<Setup>> GetAllSetups(int idCompany);
         Task<Setup?> GetSetupById(int id);
         Task Save(Setup setup);
-        Task<bool> Update(int id, Setup setup);
-        Task<bool> Delete(int id);
+        Task<bool> Update(int idCompany, Setup setup);
+        Task<bool> Delete(int idCompany);
     }
 }
