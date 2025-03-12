@@ -69,8 +69,12 @@ namespace Warehouse.Service
             }
 
             try
-            {
-                _context.Entry(existingSetup).CurrentValues.SetValues(setup);
+            {                
+                existingSetup.Description      = setup.Description ;
+                existingSetup.IdProject        = setup.IdProject;
+                existingSetup.IdBranch         = setup.IdBranch ;
+                existingSetup.IdFiltrarCompany = setup.IdFiltrarCompany ;   
+                existingSetup.IdBranch         = setup.IdBranch;
                 await _context.SaveChangesAsync();
                 return true;
             }
