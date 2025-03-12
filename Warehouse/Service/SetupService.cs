@@ -71,10 +71,7 @@ namespace Warehouse.Service
             try
             {                
                 existingSetup.Description      = setup.Description ;
-                existingSetup.IdProject        = setup.IdProject;
-                existingSetup.IdBranch         = setup.IdBranch ;
-                existingSetup.IdFiltrarCompany = setup.IdFiltrarCompany ;   
-                existingSetup.IdBranch         = setup.IdBranch;
+                existingSetup.ProjectOrBranch  = setup.ProjectOrBranch;
                 await _context.SaveChangesAsync();
                 return true;
             }

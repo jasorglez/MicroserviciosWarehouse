@@ -16,16 +16,10 @@ namespace Warehouse.Models
 
         [StringLength(50)]
         [Column("description")]
-        public string Description { get; set; } = "Default Description";
+        public string? Description { get; set; } = "Default Description";
 
-        [Column("idFiltrarProject")]
-        public bool? IdProject { get; set; } = false;
-
-        [Column("idFiltrarBranch")]
-        public bool? IdBranch { get; set; } = false;
-
-        [Column("idFiltrarCompany")]
-        public bool? IdFiltrarCompany { get; set; } = false;
+        [Column("project_or_branch")]
+        public bool? ProjectOrBranch { get; set; } = true;
 
         [Column("active")]
         public bool Active { get; set; } = true;
