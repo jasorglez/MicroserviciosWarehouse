@@ -28,7 +28,8 @@ namespace Warehouse.Service
                         Description    = cat.Description,
                         ValueAddition  = cat.ValueAddition,
                         ValueAddition2 = cat.ValueAddition2,
-                        Type = cat.Type,
+                        Picture        = cat.Picture,
+                        Type           = cat.Type,
                         ParentId       = cat.ParentId,
                         IdElection     = cat.IdElection,
                         Active         = cat.Active
@@ -42,7 +43,7 @@ namespace Warehouse.Service
                 throw;
             }
         }
-        
+
         public async Task<List<object>> GetFamilyCatalogs(int idCompany)
         {
             try

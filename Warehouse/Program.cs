@@ -38,7 +38,7 @@ builder.Services.AddSwaggerGen(c =>
  /*     c.SwaggerDoc("v1.99", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v1.99 Mod. 14-11-24 11:12 20.221.74.88" });
  */
 
-    c.SwaggerDoc("v2.20", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v2.20 Mod. 2025-03-12 16:22, SKG, Server 198.71.49.16" }); 
+    c.SwaggerDoc("v2.20", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v2.20 Mod. 2025-03-18 23:25, SKG, Server 198.71.49.16" }); 
 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
