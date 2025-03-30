@@ -26,10 +26,6 @@ namespace Warehouse.Models
         [Column("valueaddition2")]
         public string? ValueAddition2 { get; set; } = "NA";
 
-        [Column("picture")]
-        [StringLength(200)]
-        public string Picture { get; set; } = "https://firebasestorage.googleapis.com/v0/b/beapp-501d1.appspot.com/o/images%2FBI.jpg?alt=media&token=2b73d977-5f18-4ae4-91a1-e715bf535f83";
-
         [Column("election")]
         public bool? IdElection { get; set; } = true;
 

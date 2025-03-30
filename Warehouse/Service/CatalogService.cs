@@ -28,7 +28,6 @@ namespace Warehouse.Service
                         Description    = cat.Description,
                         ValueAddition  = cat.ValueAddition,
                         ValueAddition2 = cat.ValueAddition2,
-                        Picture        = cat.Picture,
                         Type           = cat.Type,
                         ParentId       = cat.ParentId,
                         IdElection     = cat.IdElection,
