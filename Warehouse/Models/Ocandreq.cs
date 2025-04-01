@@ -15,9 +15,12 @@ namespace Warehouse.Models
         [Column("folio", TypeName = "VARCHAR")]
         [StringLength(20)]
         public string Folio { get; set; } = string.Empty;
+        
+        [Column("type_reference")]
+        public string TypeReference { get; set; } // "project" o "branch"
 
-        [Column("id_project")]
-        public int? IdProject { get; set; }
+        [Column("id_reference")]
+        public int IdReference { get; set; }
         
         [Column("id_req")]
         public int? IdReq { get; set; }
@@ -106,5 +109,6 @@ namespace Warehouse.Models
 
         [Column("active")]
         public bool? Active { get; set; } = true;
+        
     }
 }

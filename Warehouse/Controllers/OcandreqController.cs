@@ -21,11 +21,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetOrders(int idProject, string type)
+        public async Task<IActionResult> GetOrders(string typeReference, int idReference, string type)
         {
             try
             {
-                var result = await _service.GetOrders(idProject, type);
+                var result = await _service.GetOrders(typeReference, idReference, type);
                 return Ok(result);
             }
             catch (Exception ex)

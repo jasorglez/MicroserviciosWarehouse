@@ -15,17 +15,18 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<object>> GetOrders(int idProject, string type)
+        public async Task<List<object>> GetOrders(string typeReference, int idReference, string type)
         {
             try
             {
                 return await _context.Ocandreqs
-                    .Where(o => o.Active == true && idProject == o.IdProject && type == o.Type)
+                    .Where(o => o.Active == true && typeReference == o.TypeReference && idReference == o.IdReference && type == o.Type)
                     .Select(o => new
                     {
                         o.Id,
                         o.Folio,
-                        o.IdProject,
+                        o.TypeReference,
+                        o.IdReference,
                         o.IdReq,
                         o.DateCreate,
                         o.IdDepartament,
@@ -76,7 +77,8 @@ namespace Warehouse.Service
                     {
                         o.Id,
                         o.Folio,
-                        o.IdProject,
+                        o.TypeReference,
+                        o.IdReference,
                         o.IdReq,
                         o.DateCreate,
                         o.IdDepartament,
@@ -177,7 +179,7 @@ namespace Warehouse.Service
 
     public interface IOcandreqService
     {
-        Task<List<object>> GetOrders(int idProject, string type);
+        Task<List<object>> GetOrders(string TypeReference, int idReference, string type);
         Task<object?> GetOrderById(int id);
         Task Save(Ocandreq ocandreq);
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
