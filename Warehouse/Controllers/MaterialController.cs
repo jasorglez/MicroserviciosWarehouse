@@ -22,11 +22,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet("{idCompany}")]
-        public async Task<ActionResult<List<object>>> GetSupplies(int idCompany)
+        public async Task<ActionResult<List<object>>> GetSupplies(int idCompany, string typematerial)
         {
             try
             {
-                return await _service.GetSupplies(idCompany);
+                return await _service.GetSupplies(idCompany, typematerial);
             }
             catch (Exception ex)
             {

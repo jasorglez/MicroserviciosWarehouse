@@ -17,12 +17,12 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<List<object>> GetSupplies(int idCompany)
+        public async Task<List<object>> GetSupplies(int idCompany, string typematerial)
         {
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active && idCompany==s.IdCompany)
+                    .Where(s => s.Active && idCompany==s.IdCompany && s.TypeMaterial==typematerial)
                     .Select(s => new
                     {
                         s.Id,
@@ -42,11 +42,12 @@ namespace Warehouse.Service
                         s.VentaDLL,
                         s.StockMin,
                         s.StockMax,
-                        s.Picture,
+                        s.Picture,s.Vigente,
                         s.Active
-                    }).OrderBy(s => s.Description)
-                    .AsNoTracking()
-                    .ToListAsync<object>();
+                    }).OrderByDescending(s => s.Vigente)
+                      .ThenBy(s => s.Description)
+                      .AsNoTracking()
+                      .ToListAsync<object>();
             }
             catch (Exception ex)
             {
@@ -167,7 +168,7 @@ namespace Warehouse.Service
 
     public interface IMaterialService
     {
-        Task<List<object>> GetSupplies(int idCompany);
+        Task<List<object>> GetSupplies(int idCompany, string typematerial);
         Task<List<object>> Get2Supplies(int idCompany);
         Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
         Task Save(Material material);
