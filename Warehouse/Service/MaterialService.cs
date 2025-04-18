@@ -27,7 +27,7 @@ namespace Warehouse.Service
                     {
                         s.Id,
                         s.IdCompany,
-                        s.Insumo,
+                        s.Insumo, s.BarCode,
                         s.Articulo,
                         s.IdFamilia,
                         s.IdSubfamilia,
@@ -43,7 +43,7 @@ namespace Warehouse.Service
                         s.StockMin,
                         s.StockMax,
                         s.Picture,s.Vigente,
-                        s.Active
+                        s.TypeMaterial,s.Active
                     }).OrderByDescending(s => s.Vigente)
                       .ThenBy(s => s.Description)
                       .AsNoTracking()
@@ -65,9 +65,10 @@ namespace Warehouse.Service
                     .Select(s => new
                     {
                         s.Id,                        
-                        s.Description,
+                        s.Description,s.Vigente,
                         s.Active
-                    }).OrderBy(s => s.Description)
+                    }).OrderByDescending(s => s.Vigente)
+                      .ThenBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
             }
@@ -83,7 +84,8 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active && idCompany == s.IdCompany && (s.Insumo.Contains(nameOrBarCode) || s.BarCode.Contains(nameOrBarCode) || s.Description.Contains(nameOrBarCode)))
+                    .Where(s => s.Active && idCompany == s.IdCompany && 
+                    (s.Insumo.Contains(nameOrBarCode) || s.BarCode.Contains(nameOrBarCode) || s.Description.Contains(nameOrBarCode)))
                     .Select(s => new
                     {
                         s.Id,
