@@ -81,6 +81,13 @@ namespace Warehouse.Models
         [StringLength(250)]
         public string Picture { get; set; } = string.Empty;
 
+        [Column("typematerial", TypeName = "CHAR")]
+        [StringLength(10)]
+        public string TypeMaterial { get; set; } = string.Empty;
+
+        [Column("vigente")]
+        public bool Vigente { get; set; }
+
         [Required]
         [Column("active")]
         public bool Active { get; set; }
