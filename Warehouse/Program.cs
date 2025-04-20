@@ -128,6 +128,6 @@ app.MapControllers();
 // Middleware de Prometheus para exponer métricas
 app.UseHttpMetrics(); // Esto mide las solicitudes HTTP automáticamente
 
-app.MapMetrics(); // Esto habilita el endpoint /metrics
+app.MapMetrics("/metricsWarehouse"); // Esto habilita el endpoint /metrics
 
 app.Run();
