@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Prometheus;
 using System.Text;
 using Warehouse;
 using Warehouse.Service;
@@ -123,5 +124,10 @@ app.UseCors("AllowWarehouseOrigin");
 app.UseAuthorization();
 
 app.MapControllers();
+
+// Middleware de Prometheus para exponer métricas
+app.UseHttpMetrics(); // Esto mide las solicitudes HTTP automáticamente
+
+app.MapMetrics("/metricsWarehouse"); // Esto habilita el endpoint /metrics
 
 app.Run();
