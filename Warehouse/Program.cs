@@ -18,7 +18,7 @@ builder.Services.AddCors(options =>
         {
             builder
 
-                .WithOrigins("http://localhost:4200", "https://be-app-five.vercel.app", "http://localhost:8100",
+                .WithOrigins( "https://be-app-five.vercel.app", "http://localhost:8100","https://bi2.com.mx",
                              "https://localhost:7089", "https://biapp.com.mx", "https://localhost:4200", "https://www.bi2.com.mx") // Reemplaza esto con el origen de tu aplicacin Angular
                 .AllowAnyMethod()
                 .AllowAnyHeader()
