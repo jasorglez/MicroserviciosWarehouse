@@ -23,4 +23,5 @@ namespace Warehouse;
         public virtual DbSet<Setup> Setups { get; set; }
         public virtual DbSet<TablesXModules> TablesXModules { get; set; }
         public virtual DbSet<Warehouset> Warehouses { get; set; }
+        public virtual DbSet<PricesXProductsPresentation>  PricesXProductsPresentation { get; set; }
 }

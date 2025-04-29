@@ -85,6 +85,8 @@ builder.Services.AddScoped<IConfigurationService, ConfigurationService>();
 builder.Services.AddScoped<ISetupService, SetupService>();  
 builder.Services.AddScoped<ITablesXModulesService, TablesXModulesService>();
 
+builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
+
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
