@@ -17,10 +17,7 @@ public class PricesXProductsPresentation
     [Required]
     [Column("id_catalogs")]
     public int IdCatalogs { get; set; }
-
-    [Required]
-    [Column("id_measures")]
-    public int IdMeasures { get; set; }
+    
     
     [StringLength(80)]
     [Column("description", TypeName = "NVARCHAR")]
@@ -33,4 +30,10 @@ public class PricesXProductsPresentation
     [Required]
     [Column("active")]
     public bool Active { get; set; }
+    
+    [ForeignKey("IdMaterials")]
+    public virtual Material Material { get; set; }
+
+    [ForeignKey("IdCatalogs")]
+    public virtual Catalog Catalog { get; set; }
 }

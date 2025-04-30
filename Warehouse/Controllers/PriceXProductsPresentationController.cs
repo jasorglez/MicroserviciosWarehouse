@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Warehouse.Models;
+using Warehouse.Models.DTOs;
 using Warehouse.Service;
 
 namespace Warehouse.Controllers;
@@ -19,22 +20,24 @@ public class PriceXProductsPresentationController : ControllerBase
     }
     
     
-    [HttpGet()]
-    public async Task<ActionResult<List<object>>> GetPrices()
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<PricesXProductsPresentationsDTO>>> GetPrices()
     {
         try
         {
             var pricesProducts = await _pricesXProductsPresentationService.GetPrices();
-            if (pricesProducts.Count == 0)
+
+            if (!pricesProducts.Any())
             {
-                return NotFound();
+                return NotFound("No prices found.");
             }
+
             return Ok(pricesProducts);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving warehouses for company ");
-            return StatusCode(500, "An error occurred while retrieving warehouses.");
+            _logger.LogError(ex, "Error retrieving prices for products presentation.");
+            return StatusCode(500, "An error occurred while retrieving prices.");
         }
     }
     
@@ -43,59 +46,74 @@ public class PriceXProductsPresentationController : ControllerBase
     {
         try
         {
+            // Llama al servicio para obtener el precio por ID
             var pricesProduct = await _pricesXProductsPresentationService.GetPricesById(idPrice);
+
+            // Si no se encuentra el producto, devuelve NotFound (404)
             if (pricesProduct == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Price Product not found." });
             }
+
+            // Si se encuentra, retorna Ok(200) con el DTO de la respuesta
             return Ok(pricesProduct);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving warehouses for company ");
-            return StatusCode(500, "An error occurred while retrieving warehouses.");
+            // Si hay un error en la ejecución, logea el error y retorna un 500
+            _logger.LogError(ex, "Error retrieving price product by ID.");
+            return StatusCode(500, "An error occurred while retrieving the price product.");
         }
     }
     
     
     [HttpPost]
-    public async Task<IActionResult> Post([FromBody] PricesXProductsPresentation wh)
+    public async Task<IActionResult> Post([FromBody] CreatePriceXProductsPresentationDTO dto)
     {
         try
         {
-            await _pricesXProductsPresentationService.Save(wh);
-            return CreatedAtAction(nameof(GetPricesById), new { idPrice = wh.Id  }, wh);
+            var entity = new PricesXProductsPresentation()
+            {
+                IdMaterials = dto.IdMaterials,
+                IdCatalogs = dto.IdCatalogs,
+                Description = dto.Description,
+                Price = dto.Price,
+                Active = dto.Active
+            };
+
+            await _pricesXProductsPresentationService.Save(entity);
+
+            return CreatedAtAction(nameof(GetPricesById), new { idPrice = entity.Id }, entity);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving warehouse");
-            return StatusCode(500, "An error occurred while saving the warehouse.");
+            _logger.LogError(ex, "Error saving price product");
+            return StatusCode(500, "An error occurred while saving the price product.");
         }
     }
     
     [HttpPut("{id}")]
-    public async Task<IActionResult> Put(int id, [FromBody] PricesXProductsPresentation pricesXProductsPresentation)
+    public async Task<IActionResult> Update(int id, [FromBody] CreatePriceXProductsPresentationDTO dto)
     {
         try
         {
-            var success = await _pricesXProductsPresentationService.Update(id, pricesXProductsPresentation);
+            var success = await _pricesXProductsPresentationService.Update(id, dto);
             if (!success)
             {
                 return NotFound();
             }
-            
+
             return NoContent();
-            
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating warehouse with ID {Id}", id);
-            return StatusCode(500, "An error occurred while updating the warehouse.");
+            _logger.LogError(ex, "Error updating PricesXProductsPresentation with ID {Id}", id);
+            return StatusCode(500, "An error occurred while updating the price record.");
         }
     }
 
     [HttpDelete("{id}")]
-    public async Task<ActionResult> Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
         try
         {
@@ -104,12 +122,13 @@ public class PriceXProductsPresentationController : ControllerBase
             {
                 return NotFound();
             }
-            return Ok();
+
+            return NoContent(); // 204 No Content es más apropiado para DELETE
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error deleting Warehouse with ID {Id}", id);
-            return StatusCode(500, "Internal server error");
+            _logger.LogError(ex, "Error disabling PricesXProductsPresentation with ID {Id}", id);
+            return StatusCode(500, "Internal server error while disabling the price record.");
         }
     }
     

@@ -24,4 +24,24 @@ namespace Warehouse;
         public virtual DbSet<TablesXModules> TablesXModules { get; set; }
         public virtual DbSet<Warehouset> Warehouses { get; set; }
         public virtual DbSet<PricesXProductsPresentation>  PricesXProductsPresentation { get; set; }
-}
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+
+        {
+            base.OnModelCreating(modelBuilder);
+            
+            // Configurar la relación entre PricesXProducts y Catalog
+            modelBuilder.Entity<PricesXProductsPresentation>()
+                .HasOne(p => p.Catalog)
+                .WithMany(c => c.PricesWithCatalog)
+                .HasForeignKey(p => p.IdCatalogs)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Configurar la relación entre PricesXProducts y Material
+            modelBuilder.Entity<PricesXProductsPresentation>()
+                .HasOne(p => p.Material)
+                .WithMany(m => m.PricesWithMaterial)
+                .HasForeignKey(p => p.IdMaterials)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+        }
+    }

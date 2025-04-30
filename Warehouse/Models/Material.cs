@@ -91,5 +91,8 @@ namespace Warehouse.Models
         [Required]
         [Column("active")]
         public bool Active { get; set; }
+        
+        // Propiedad de navegación para la relación inversa con PricesXProductsPresentation
+        public virtual ICollection<PricesXProductsPresentation> PricesWithMaterial { get; set; } = new List<PricesXProductsPresentation>();
     }
 }

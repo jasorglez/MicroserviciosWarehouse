@@ -38,5 +38,8 @@ namespace Warehouse.Models
 
         [Column("active")]
         public short Active { get; set; } = 1;
+        
+        // Propiedad de navegación para la relación inversa con PricesXProductsPresentation
+        public virtual ICollection<PricesXProductsPresentation> PricesWithCatalog { get; set; }
     }
 }

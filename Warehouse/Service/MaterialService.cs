@@ -22,12 +22,14 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active && idCompany==s.IdCompany && s.TypeMaterial==typematerial)
+                    .Where(s => s.Active && s.IdCompany == idCompany && s.TypeMaterial == typematerial)
+                    .Include(m => m.PricesWithMaterial)
                     .Select(s => new
                     {
                         s.Id,
                         s.IdCompany,
-                        s.Insumo, s.BarCode,
+                        s.Insumo,
+                        s.BarCode,
                         s.Articulo,
                         s.IdFamilia,
                         s.IdSubfamilia,
@@ -42,12 +44,23 @@ namespace Warehouse.Service
                         s.VentaDLL,
                         s.StockMin,
                         s.StockMax,
-                        s.Picture,s.Vigente,
-                        s.TypeMaterial,s.Active
-                    }).OrderByDescending(s => s.Vigente)
-                      .ThenBy(s => s.Description)
-                      .AsNoTracking()
-                      .ToListAsync<object>();
+                        s.Picture,
+                        s.Vigente,
+                        s.TypeMaterial,
+                        s.Active,
+                        PricePresentatios = s.PricesWithMaterial.Select(p => new
+                        {
+                            p.Id,
+                            p.IdCatalogs,
+                            p.Description,
+                            p.Price,
+                            p.Active
+                        }).ToList()
+                    })
+                    .OrderByDescending(s => s.Vigente)
+                    .ThenBy(s => s.Description)
+                    .AsNoTracking()
+                    .ToListAsync<object>();
             }
             catch (Exception ex)
             {
@@ -62,11 +75,20 @@ namespace Warehouse.Service
             {
                 return await _context.Materials
                     .Where(s => s.Active && idCompany == s.IdCompany)
+                    .Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
                         s.Id,                        
                         s.Description,s.Vigente,
+                        s.Active,
+                        PricePresentatios = s.PricesWithMaterial.Select(s => new
+                        {
+                        s.Id,
+                        s.IdCatalogs,
+                        s.Description,
+                        s.Price,
                         s.Active
+                    }).ToList()
                     }).OrderByDescending(s => s.Vigente)
                       .ThenBy(s => s.Description)
                     .AsNoTracking()
@@ -86,13 +108,22 @@ namespace Warehouse.Service
                 return await _context.Materials
                     .Where(s => s.Active && idCompany == s.IdCompany && 
                     (s.Insumo.Contains(nameOrBarCode) || s.BarCode.Contains(nameOrBarCode) || s.Description.Contains(nameOrBarCode)))
+                    .Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
                         s.Id,
                         s.BarCode,
                         s.Insumo,
                         s.Description,
-                        s.Active
+                        s.Active,
+                        PricePresentatios = s.PricesWithMaterial.Select(s => new
+                        {
+                            s.Id,
+                            s.IdCatalogs,
+                            s.Description,
+                            s.Price,
+                            s.Active
+                        }).ToList()
                     }).OrderBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();

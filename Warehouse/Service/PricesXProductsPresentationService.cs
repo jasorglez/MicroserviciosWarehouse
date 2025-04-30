@@ -1,114 +1,126 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Warehouse.Models;
+using Warehouse.Models.DTOs;
 
 namespace Warehouse.Service;
 
 public class PricesXProductsPresentationService : IPricesXProductsPresentationService
 {
-    private readonly DbWarehouseContext _context;        
+    private readonly DbWarehouseContext _context;
     private readonly ILogger<PricesXProductsPresentationService> _logger;
 
-    public PricesXProductsPresentationService(DbWarehouseContext dbContext, ILogger<PricesXProductsPresentationService> logger)
+    public PricesXProductsPresentationService(DbWarehouseContext dbContext,
+        ILogger<PricesXProductsPresentationService> logger)
     {
-        _context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));;
-        _logger = logger  ?? throw new ArgumentNullException(nameof(logger));
+        _context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+        ;
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
 
-    public async Task<List<object>> GetPrices()
+    public async Task<IEnumerable<PricesXProductsPresentationsDTO>> GetPrices()
     {
-        try
-        {
-            return await _context.PricesXProductsPresentation
-                .Select(w => new
+        return await _context.PricesXProductsPresentation
+            .Where(p => p.Active == true)
+            .Include(p => p.Catalog)
+            .Select(p => new PricesXProductsPresentationsDTO
+            {
+                Id = p.Id,
+                IdMaterials = p.IdMaterials,
+                IdCatalogs = p.IdCatalogs,
+                Description = p.Description,
+                Price = p.Price,
+                Active = p.Active,
+                Catalog = new CatalogDTO
                 {
-                    w.Id,
-                    w.IdCatalogs,
-                    w.IdMaterials,
-                    w.IdMeasures,
-                    w.Description,
-                    w.Price,
-                    w.Active
-                })
-                .AsNoTracking()
-                .ToListAsync<object>();
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving prices by products");
-            throw;
-        }
+                    Id = p.Catalog.Id,
+                    IdCompany = p.Catalog.IdCompany,
+                    Description = p.Catalog.Description,
+                    ValueAddition = p.Catalog.ValueAddition ?? "No disponible",
+                    ValueAddition2 = p.Catalog.ValueAddition2 ?? "No disponible",
+                    Type = p.Catalog.Type ?? string.Empty,
+                    IdElection = p.Catalog.IdElection ?? true,
+                    Active = p.Catalog.Active
+                }
+            })
+            .AsNoTracking()
+            .ToListAsync();
     }
 
-    public async Task<object> GetPricesById(int idPrice)
+    public async Task<PricesXProductsPresentationsDTO> GetPricesById(int idPrice)
     {
-        try
+        var priceProduct = await _context.PricesXProductsPresentation
+            .Where(p => p.Id == idPrice && p.Active)
+            .Include(p => p.Catalog)
+            .FirstOrDefaultAsync();
+
+        if (priceProduct == null)
         {
-            return await _context.PricesXProductsPresentation
-                .Where(w => (w.Id == idPrice))
-                .Select(w => new
-                {
-                    w.Id,
-                    w.IdCatalogs,
-                    w.IdMaterials,
-                    w.IdMeasures,
-                    w.Description,
-                    w.Price,
-                    w.Active
-                })
-                .AsNoTracking()
-                .ToListAsync<object>();
+            return null;
         }
-        catch (Exception ex)
+
+        return new PricesXProductsPresentationsDTO()
         {
-            _logger.LogError(ex, "Error retrieving prices by products");
-            throw;
-        }
+            Id = priceProduct.Id,
+            IdMaterials = priceProduct.IdMaterials,
+            IdCatalogs = priceProduct.IdCatalogs,
+            Description = priceProduct.Description,
+            Price = priceProduct.Price,
+            Active = priceProduct.Active,
+            Catalog = new CatalogDTO
+            {
+                Id = priceProduct.Catalog.Id,
+                IdCompany = priceProduct.Catalog.IdCompany,
+                Description = priceProduct.Catalog.Description,
+                ValueAddition = priceProduct.Catalog.ValueAddition,
+                ValueAddition2 = priceProduct.Catalog.ValueAddition2,
+                Type = priceProduct.Catalog.Type,
+                IdElection = priceProduct.Catalog.IdElection,
+                Active = priceProduct.Catalog.Active
+            }
+        };
     }
 
-    public async Task Save(PricesXProductsPresentation wh)
+    public async Task Save(PricesXProductsPresentation priceProduct)
     {
+        if (priceProduct.Price <= 0)
+            throw new ArgumentException("El precio debe ser mayor a cero.");
+
+        var materialExists = await _context.Materials.AnyAsync(m => m.Id == priceProduct.IdMaterials && m.Active);
+        if (!materialExists)
+            throw new ArgumentException("El material asociado no existe o está inactivo.");
+
         try
         {
-            _context.PricesXProductsPresentation.Add(wh);
-            await _context.SaveChangesAsync();                
+            _context.PricesXProductsPresentation.Add(priceProduct);
+            await _context.SaveChangesAsync();
         }
         catch (DbUpdateException dbEx)
         {
-            _logger.LogError(dbEx, "Database update error while saving warehouse");
+            _logger.LogError(dbEx, "Database update error while saving PricesXProductsPresentation entity");
             throw;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error saving warehouse");
+            _logger.LogError(ex, "Unexpected error while saving PricesXProductsPresentation entity");
             throw;
         }
     }
 
-    public async Task<bool> Update(int id, PricesXProductsPresentation pricesXProductsPresentation)
+    public async Task<bool> Update(int id, CreatePriceXProductsPresentationDTO dto)
     {
-        var existingWarehouse = await _context.PricesXProductsPresentation.FindAsync(id);
-        if (existingWarehouse == null)
-        {
+        var existing = await _context.PricesXProductsPresentation.FindAsync(id);
+        if (existing == null)
             return false;
-        }
 
-        try
-        {
-            _context.Entry(existingWarehouse).CurrentValues.SetValues(pricesXProductsPresentation);
-            await _context.SaveChangesAsync();                
-            return true;
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            _logger.LogError(ex, "Concurrency error while updating warehouse with ID {Id}", id);
-            return false;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error updating warehouse with ID {Id}", id);
-            throw;
-        }
+        existing.IdMaterials = dto.IdMaterials;
+        existing.IdCatalogs = dto.IdCatalogs;
+        existing.Description = dto.Description;
+        existing.Price = dto.Price;
+        existing.Active = dto.Active;
+
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     public async Task<bool> Delete(int idPrice)
@@ -116,7 +128,7 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
         var existing = await _context.PricesXProductsPresentation.FindAsync(idPrice);
         if (existing == null)
         {
-            _logger.LogWarning("Attempted to update non-existent Warehouses With ID {Id}", idPrice);
+            _logger.LogWarning("Attempted to disable non-existent PricesXProductsPresentation with ID {Id}", idPrice);
             return false;
         }
 
@@ -128,7 +140,7 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while updating Catalog", idPrice);
+            _logger.LogError(ex, "Error occurred while disabling PricesXProductsPresentation with ID {Id}", idPrice);
             throw;
         }
     }
@@ -136,9 +148,9 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
 
 public interface IPricesXProductsPresentationService
 {
-    Task<List<object>> GetPrices();
-    Task<object> GetPricesById(int idPrice);
-    Task Save(PricesXProductsPresentation wh);
-    Task<bool> Update(int id, PricesXProductsPresentation pricesXProductsPresentation);
+    Task<IEnumerable<PricesXProductsPresentationsDTO>> GetPrices();
+    Task<PricesXProductsPresentationsDTO> GetPricesById(int idPrice);
+    Task Save(PricesXProductsPresentation pricesXProductsPresentation);
+    Task<bool> Update(int id, CreatePriceXProductsPresentationDTO dto);
     Task<bool> Delete(int idPrice);
 }

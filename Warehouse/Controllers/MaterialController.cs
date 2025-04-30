@@ -4,6 +4,7 @@ using Warehouse.Models;
 using Warehouse.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
+using Warehouse.Models.DTOs;
 
 namespace Warehouse.Controllers
 {
@@ -70,11 +71,37 @@ namespace Warehouse.Controllers
 
 
         [HttpPost]
-        public async Task<ActionResult> Save([FromBody] Material material)
+        public async Task<ActionResult> Save([FromBody] CreateMaterialDTO material)
         {
+         
+            var materialDB = new Material
+            {
+                IdCompany = material.IdCompany,
+                Insumo = material.Insumo,
+                Articulo = material.Articulo,
+                BarCode = material.BarCode,
+                IdFamilia = material.IdFamilia,
+                IdSubfamilia = material.IdSubfamilia,
+                IdMedida = material.IdMedida,
+                IdUbication = material.IdUbication,
+                Description = material.Description,
+                Date = material.Date,
+                AplicaResg = material.AplicaResg,
+                CostoMN = material.CostoMN,
+                CostoDLL = material.CostoDLL,
+                VentaMN = material.VentaMN,
+                VentaDLL = material.VentaDLL,
+                StockMin = material.StockMin,
+                StockMax = material.StockMax,
+                Picture = material.Picture,
+                TypeMaterial = material.TypeMaterial,
+                Vigente = material.Vigente,
+                Active = material.Active
+            };
+            
             try
             {
-                await _service.Save(material);
+                await _service.Save(materialDB);
                 return Ok();
             }
             catch (Exception ex)
@@ -85,11 +112,36 @@ namespace Warehouse.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Material>> Update(int id, [FromBody] Material material)
+        public async Task<ActionResult<Material>> Update(int id, [FromBody] CreateMaterialDTO material)
         {
+            var materialDB = new Material
+            {
+                IdCompany = material.IdCompany,
+                Insumo = material.Insumo,
+                Articulo = material.Articulo,
+                BarCode = material.BarCode,
+                IdFamilia = material.IdFamilia,
+                IdSubfamilia = material.IdSubfamilia,
+                IdMedida = material.IdMedida,
+                IdUbication = material.IdUbication,
+                Description = material.Description,
+                Date = material.Date,
+                AplicaResg = material.AplicaResg,
+                CostoMN = material.CostoMN,
+                CostoDLL = material.CostoDLL,
+                VentaMN = material.VentaMN,
+                VentaDLL = material.VentaDLL,
+                StockMin = material.StockMin,
+                StockMax = material.StockMax,
+                Picture = material.Picture,
+                TypeMaterial = material.TypeMaterial,
+                Vigente = material.Vigente,
+                Active = material.Active
+            };
+            
             try
             {
-                var result = await _service.Update(id, material);
+                var result = await _service.Update(id, materialDB);
                 if (result == null)
                     return NotFound();
                 return Ok(result);
