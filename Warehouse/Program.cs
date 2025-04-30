@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using Prometheus;
 using System.Text;
+using System.Text.Json.Serialization;
 using Warehouse;
 using Warehouse.Service;
 //using Warehouse.Service.Whatsapp;
@@ -30,7 +31,7 @@ builder.Services.AddCors(options =>
 //builder.Services.AddHttpClient();
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(x => x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles);
 
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -84,6 +85,8 @@ builder.Services.AddScoped<IDetailsinandoutService, DetailsinandoutService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();  
 builder.Services.AddScoped<ISetupService, SetupService>();  
 builder.Services.AddScoped<ITablesXModulesService, TablesXModulesService>();
+
+builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 
 builder.Services.AddHttpContextAccessor();
 
