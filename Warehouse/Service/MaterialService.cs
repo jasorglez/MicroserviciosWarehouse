@@ -48,13 +48,13 @@ namespace Warehouse.Service
                         s.Vigente,
                         s.TypeMaterial,
                         s.Active,
-                        PricePresentatios = s.PricesWithMaterial.Select(p => new
+                        PricePresentations = s.PricesWithMaterial.Select(s => new
                         {
-                            p.Id,
-                            p.IdCatalogs,
-                            p.Description,
-                            p.Price,
-                            p.Active
+                            s.Id,
+                            s.IdCatalogs,
+                            s.Description,
+                            s.Price,
+                            s.Active
                         }).ToList()
                     })
                     .OrderByDescending(s => s.Vigente)
@@ -81,7 +81,7 @@ namespace Warehouse.Service
                         s.Id,                        
                         s.Description,s.Vigente,
                         s.Active,
-                        PricePresentatios = s.PricesWithMaterial.Select(s => new
+                        PricePresentations = s.PricesWithMaterial.Select(s => new
                         {
                         s.Id,
                         s.IdCatalogs,
@@ -116,7 +116,7 @@ namespace Warehouse.Service
                         s.Insumo,
                         s.Description,
                         s.Active,
-                        PricePresentatios = s.PricesWithMaterial.Select(s => new
+                        PricePresentations = s.PricesWithMaterial.Select(s => new
                         {
                             s.Id,
                             s.IdCatalogs,
