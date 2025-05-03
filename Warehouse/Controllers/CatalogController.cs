@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Warehouse.Models.DTOs;
 
 namespace Warehouse.Controllers
 {
@@ -43,6 +44,25 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while retrieving Catalog.");
             }
         }
+        [HttpGet("getCatalogsElection")]
+        public async Task<ActionResult<List<object>>> GetWarByCompElection(int idCompany, string type)
+        {
+            try
+            {
+                var cat = await _catalogService.GetTypeIdElection(type, idCompany);
+                if (cat == null || !cat.Any())
+                {
+                    _logger.LogWarning("No found Catalog the result is empty");
+                    return NotFound(new { Message = "No Catalog Found or the result is empty", catalog = new List<object>() });
+                }
+                return Ok(cat);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalog for Project");
+                return StatusCode(500, "An error occurred while retrieving Catalog.");
+            }
+        }
 
         [HttpGet("process-permissions")]
         public async Task<ActionResult<List<ProcessXPermission>>> GetProcessPermissions(int idProcces)
@@ -65,11 +85,23 @@ namespace Warehouse.Controllers
         }
 
         [HttpPut("update-catalog/{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] Catalog cat)
+        public async Task<IActionResult> Update(int id, [FromBody] CatalogDTO cat)
         {
             try
             {
-                var success = await _catalogService.Update(id, cat);
+                var catalogDB = new  Catalog
+                {
+                    Id = cat.Id,
+                    IdCompany = cat.IdCompany,
+                    Description = cat.Description,
+                    ValueAddition = cat.ValueAddition,
+                    ValueAddition2 = cat.ValueAddition2,
+                    Type = cat.Type,
+                    IdElection = cat.IdElection,
+                    Active = cat.Active   
+                }; 
+                
+                var success = await _catalogService.Update(id, catalogDB);
                 if (!success)
                 {
                     return NotFound();
@@ -156,11 +188,21 @@ namespace Warehouse.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult> Create([FromBody] Catalog cat)
+        public async Task<ActionResult> Create([FromBody] CatalogDTO cat)
         {
             try
             {
-                await _catalogService.Save(cat);
+                var catalogDB = new  Catalog
+                {
+                    IdCompany = cat.IdCompany,
+                    Description = cat.Description,
+                    ValueAddition = cat.ValueAddition,
+                    ValueAddition2 = cat.ValueAddition2,
+                    Type = cat.Type,
+                    IdElection = cat.IdElection,
+                    Active = cat.Active   
+                }; 
+                await _catalogService.Save(catalogDB);
                 return Ok(new { Message = "Record New with Id", id = cat.Id, Catalog = cat });
             }
             catch (Exception ex)
