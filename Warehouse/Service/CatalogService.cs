@@ -33,7 +33,8 @@ namespace Warehouse.Service
                         IdElection     = cat.IdElection,
                         Active         = cat.Active
                     })
-                    .OrderBy(cat => cat.Description)
+                    .OrderByDescending(cat => cat.IdElection)
+                    .ThenBy(cat => cat.Description)
                     .AsNoTracking()
                     .ToListAsync();
             }
@@ -43,6 +44,36 @@ namespace Warehouse.Service
                 throw;
             }
         }
+        public async Task<List<Catalog>> GetTypeIdElection(string type, int idCompany)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany && c.IdElection == true)
+                    .Select(cat => new Catalog
+                    {
+                        Id             = cat.Id,
+                        IdCompany      = cat.IdCompany,
+                        Description    = cat.Description,
+                        ValueAddition  = cat.ValueAddition,
+                        ValueAddition2 = cat.ValueAddition2,
+                        Type           = cat.Type,
+                        ParentId       = cat.ParentId,
+                        IdElection     = cat.IdElection,
+                        Active         = cat.Active
+                    })
+                    .OrderByDescending(cat => cat.IdElection)
+                    .ThenBy(cat => cat.Description)
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalogs");
+                throw;
+            }
+        }
+        
 
         public async Task<List<object>> GetFamilyCatalogs(int idCompany)
         {
@@ -236,6 +267,7 @@ namespace Warehouse.Service
     public interface ICatalogService
     {
         Task<List<Catalog>> GetType(string type, int idCompany);
+        Task<List<Catalog>> GetTypeIdElection(string type, int idCompany);
         Task<List<object>> GetFamilyCatalogs(int idCompany);
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);
