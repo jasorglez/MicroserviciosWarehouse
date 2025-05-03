@@ -33,6 +33,7 @@ namespace Warehouse.Service
                         IdElection     = cat.IdElection,
                         Active         = cat.Active
                     })
+                    .OrderBy(cat => cat.Description)
                     .AsNoTracking()
                     .ToListAsync();
             }
