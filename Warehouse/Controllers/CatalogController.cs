@@ -44,12 +44,12 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while retrieving Catalog.");
             }
         }
-        [HttpGet("getCatalogsElection")]
-        public async Task<ActionResult<List<object>>> GetWarByCompElection(int idCompany, string type)
+        [HttpGet("getCatalogsVigente")]
+        public async Task<ActionResult<List<object>>> GetWarByCompVigente(int idCompany, string type)
         {
             try
             {
-                var cat = await _catalogService.GetTypeIdElection(type, idCompany);
+                var cat = await _catalogService.GetTypeVigente(type, idCompany);
                 if (cat == null || !cat.Any())
                 {
                     _logger.LogWarning("No found Catalog the result is empty");
@@ -97,7 +97,7 @@ namespace Warehouse.Controllers
                     ValueAddition = cat.ValueAddition,
                     ValueAddition2 = cat.ValueAddition2,
                     Type = cat.Type,
-                    IdElection = cat.IdElection,
+                    Vigente = cat.Vigente,
                     Active = cat.Active   
                 }; 
                 
@@ -199,7 +199,7 @@ namespace Warehouse.Controllers
                     ValueAddition = cat.ValueAddition,
                     ValueAddition2 = cat.ValueAddition2,
                     Type = cat.Type,
-                    IdElection = cat.IdElection,
+                    Vigente = cat.Vigente,
                     Active = cat.Active   
                 }; 
                 await _catalogService.Save(catalogDB);

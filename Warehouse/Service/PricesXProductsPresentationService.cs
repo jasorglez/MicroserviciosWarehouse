@@ -39,7 +39,7 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
                     ValueAddition = p.Catalog.ValueAddition ?? "No disponible",
                     ValueAddition2 = p.Catalog.ValueAddition2 ?? "No disponible",
                     Type = p.Catalog.Type ?? string.Empty,
-                    IdElection = p.Catalog.IdElection ?? true,
+                    Vigente = p.Catalog.Vigente ?? true,
                     Active = p.Catalog.Active
                 }
             })
@@ -75,7 +75,7 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
                 ValueAddition = priceProduct.Catalog.ValueAddition,
                 ValueAddition2 = priceProduct.Catalog.ValueAddition2,
                 Type = priceProduct.Catalog.Type,
-                IdElection = priceProduct.Catalog.IdElection,
+                Vigente = priceProduct.Catalog.Vigente,
                 Active = priceProduct.Catalog.Active
             }
         };

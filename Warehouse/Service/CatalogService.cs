@@ -30,10 +30,10 @@ namespace Warehouse.Service
                         ValueAddition2 = cat.ValueAddition2,
                         Type           = cat.Type,
                         ParentId       = cat.ParentId,
-                        IdElection     = cat.IdElection,
+                        Vigente        = cat.Vigente,
                         Active         = cat.Active
                     })
-                    .OrderByDescending(cat => cat.IdElection)
+                    .OrderByDescending(cat => cat.Vigente)
                     .ThenBy(cat => cat.Description)
                     .AsNoTracking()
                     .ToListAsync();
@@ -44,12 +44,12 @@ namespace Warehouse.Service
                 throw;
             }
         }
-        public async Task<List<Catalog>> GetTypeIdElection(string type, int idCompany)
+        public async Task<List<Catalog>> GetTypeVigente(string type, int idCompany)
         {
             try
             {
                 return await _context.Catalogs
-                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany && c.IdElection == true)
+                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany && c.Vigente == true)
                     .Select(cat => new Catalog
                     {
                         Id             = cat.Id,
@@ -59,10 +59,10 @@ namespace Warehouse.Service
                         ValueAddition2 = cat.ValueAddition2,
                         Type           = cat.Type,
                         ParentId       = cat.ParentId,
-                        IdElection     = cat.IdElection,
+                        Vigente     = cat.Vigente,
                         Active         = cat.Active
                     })
-                    .OrderByDescending(cat => cat.IdElection)
+                    .OrderByDescending(cat => cat.Vigente)
                     .ThenBy(cat => cat.Description)
                     .AsNoTracking()
                     .ToListAsync();
@@ -267,7 +267,7 @@ namespace Warehouse.Service
     public interface ICatalogService
     {
         Task<List<Catalog>> GetType(string type, int idCompany);
-        Task<List<Catalog>> GetTypeIdElection(string type, int idCompany);
+        Task<List<Catalog>> GetTypeVigente(string type, int idCompany);
         Task<List<object>> GetFamilyCatalogs(int idCompany);
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);

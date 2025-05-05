@@ -8,6 +8,6 @@ public class CatalogDTO
     public string? ValueAddition { get; set; } = string.Empty;
     public string? ValueAddition2 { get; set; } = string.Empty;
     public string Type { get; set; } = string.Empty;
-    public bool? IdElection { get; set; }
+    public bool? Vigente { get; set; }
     public short Active { get; set; } = 1;
 }
