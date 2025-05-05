@@ -26,8 +26,8 @@ namespace Warehouse.Models
         [Column("valueaddition2")]
         public string? ValueAddition2 { get; set; } = "NA";
 
-        [Column("election")]
-        public bool? IdElection { get; set; }
+        [Column("vigente")]
+        public bool? Vigente { get; set; }
 
         [StringLength(13)]
         [Column("type")]
