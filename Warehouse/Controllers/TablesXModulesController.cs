@@ -21,9 +21,23 @@ namespace Warehouse.Controllers
 
         // GET: api/TablesXModules
         [HttpGet]
-        public async Task<IActionResult> GetAllTablesXModules(string table)
+        public async Task<IActionResult> GetAllTablesXModules([FromQuery] string table, [FromQuery] string selectedSection)
         {
-            var tablesXModules = await _tablesXModulesService.GetAllTablesXModules(table);
+            var tablesXModules = await _tablesXModulesService.GetAllTablesXModules(table, selectedSection);
+
+            if (tablesXModules == null || !tablesXModules.Any())
+            {
+                return NotFound(new { message = "No tablesxmodules records found." });
+            }
+
+            return Ok(tablesXModules);
+        }
+
+
+         [HttpGet("secions")]
+        public async Task<IActionResult> GetTablesXModulesSections(string table)
+        {
+            var tablesXModules = await _tablesXModulesService.GetTablesXModulesSections(table);
 
             if (tablesXModules == null || !tablesXModules.Any())
             {

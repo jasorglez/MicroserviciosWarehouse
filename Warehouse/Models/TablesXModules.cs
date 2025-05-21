@@ -19,10 +19,15 @@ namespace Warehouse.Models
         [StringLength(30)] // Limits the length of the string to 30 characters
         [Column("namespanish")] // Maps to the "namespanish" column in the table
         public string NameSpanish { get; set; }
+        
 
         [StringLength(30)] // Limits the length of the string to 30 characters
         [Column("table")] // Maps to the "table" column in the table
         public string Table { get; set; }
+
+        [StringLength(30)] // Limits the length of the string to 30 characters
+        [Column("sections")] // Maps to the "namespanish" column in the table
+        public string Sections { get; set; }
 
         [Column("active")] // Maps to the "active" column in the table
         public bool Active { get; set; } = true; // Default value is true (1 in SQL)
