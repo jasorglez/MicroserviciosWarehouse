@@ -16,13 +16,13 @@ namespace Warehouse.Service
         }
 
         // Get all active tablesxmodules
-        public async Task<List<TablesXModules>> GetAllTablesXModules(string table)
+        public async Task<List<TablesXModules>> GetAllTablesXModules(string table, string selectedSection)
         {
             try
             {
                 return await _context.TablesXModules
-                    .Where(t => t.Table == table && t.Active) // Filter by active records
-                    .AsNoTracking() // Improve performance for read-only operations
+                    .Where(t => t.Table == table && t.Active && t.Sections == selectedSection)
+                    .AsNoTracking()
                     .ToListAsync();
             }
             catch (Exception ex)
@@ -31,6 +31,25 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+         public async Task<List<TablesXModules>> GetTablesXModulesSections(string table)
+            {
+                try
+                {
+                    return await _context.TablesXModules
+                        .Where(t => t.Table == table && t.Active)
+                        .GroupBy(t => t.Sections)
+                        .Select(g => g.First()) // o .FirstOrDefault()
+                        .AsNoTracking()
+                        .ToListAsync();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error retrieving tablesxmodules.");
+                    throw;
+                }
+            }
+
 
         // Get a specific tablesxmodules record by ID
         public async Task<TablesXModules?> GetTablesXModulesById(int id)
@@ -78,6 +97,7 @@ namespace Warehouse.Service
                 existingRecord.Name = tablesXModules.Name;
                 existingRecord.NameSpanish = tablesXModules.NameSpanish;
                 existingRecord.Table = tablesXModules.Table;
+                existingRecord.Sections = tablesXModules.Sections;
                 existingRecord.Active = tablesXModules.Active;
 
                 await _context.SaveChangesAsync();
@@ -117,7 +137,8 @@ namespace Warehouse.Service
     // Interface for the service
     public interface ITablesXModulesService
     {
-        Task<List<TablesXModules>> GetAllTablesXModules(string table);
+        Task<List<TablesXModules>> GetAllTablesXModules(string table, string selectedSection);
+        Task<List<TablesXModules>> GetTablesXModulesSections(string table);
         Task<TablesXModules?> GetTablesXModulesById(int id);
         Task Save(TablesXModules tablesXModules);
         Task<bool> Update(int id, TablesXModules tablesXModules);
