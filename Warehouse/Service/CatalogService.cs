@@ -88,6 +88,7 @@ namespace Warehouse.Service
                         c.Description,
                         c.ParentId,
                         c.Type,
+                        c.Vigente,
                         c.Active
                     })
                     .AsNoTracking()
@@ -113,6 +114,7 @@ namespace Warehouse.Service
                         c.Description,
                         c.ParentId,
                         c.Type,
+                        c.Vigente,
                         c.Active
                     })
                     .OrderBy(c => c.Description)
