@@ -115,6 +115,7 @@ namespace Warehouse.Service
                         c.Type,
                         c.Active
                     })
+                    .OrderBy(c => c.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
             }
