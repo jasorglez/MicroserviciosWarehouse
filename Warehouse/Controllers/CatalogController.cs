@@ -96,6 +96,7 @@ namespace Warehouse.Controllers
                     Description = cat.Description,
                     ValueAddition = cat.ValueAddition,
                     ValueAddition2 = cat.ValueAddition2,
+                    ParentId = cat.ParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
                     Active = cat.Active   
@@ -198,6 +199,7 @@ namespace Warehouse.Controllers
                     Description = cat.Description,
                     ValueAddition = cat.ValueAddition,
                     ValueAddition2 = cat.ValueAddition2,
+                    ParentId = cat.ParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
                     Active = cat.Active   

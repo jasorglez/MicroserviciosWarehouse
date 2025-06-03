@@ -1,12 +1,11 @@
-﻿
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 
 namespace Warehouse.Models
 {
-    [Table("materials")]
-    public class Material
+    [Table("materialsByBranchVW")]
+    public class MaterialsByBranchVW
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
