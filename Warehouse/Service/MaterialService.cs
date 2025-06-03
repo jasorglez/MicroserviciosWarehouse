@@ -21,7 +21,7 @@ namespace Warehouse.Service
         {
             try
             {
-                return await _context.material
+                return await _context.Materials
                     .Where(s => s.Active && s.IdCompany == idCompany && s.TypeMaterial == typematerial)
                     .Include(m => m.PricesWithMaterial)
                     .Select(s => new
