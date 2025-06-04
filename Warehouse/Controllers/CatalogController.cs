@@ -89,16 +89,19 @@ namespace Warehouse.Controllers
         {
             try
             {
-                var catalogDB = new  Catalog
+                var catalogDB = new Catalog
                 {
                     Id = cat.Id,
                     IdCompany = cat.IdCompany,
                     Description = cat.Description,
                     ValueAddition = cat.ValueAddition,
                     ValueAddition2 = cat.ValueAddition2,
+                    ValueAdditionBit= cat.ValueAdditionBit,
+                    ParentId = cat.ParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
                     Active = cat.Active   
+                    
                 }; 
                 
                 var success = await _catalogService.Update(id, catalogDB);
@@ -198,6 +201,8 @@ namespace Warehouse.Controllers
                     Description = cat.Description,
                     ValueAddition = cat.ValueAddition,
                     ValueAddition2 = cat.ValueAddition2,
+                    ValueAdditionBit= cat.ValueAdditionBit,
+                    ParentId = cat.ParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
                     Active = cat.Active   

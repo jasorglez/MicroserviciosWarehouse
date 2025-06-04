@@ -26,6 +26,9 @@ namespace Warehouse.Models
         [Column("valueaddition2")]
         public string? ValueAddition2 { get; set; } = "NA";
 
+        [Column("valueadditionbit")]
+        public bool? ValueAdditionBit { get; set; }
+
         [Column("vigente")]
         public bool? Vigente { get; set; }
 

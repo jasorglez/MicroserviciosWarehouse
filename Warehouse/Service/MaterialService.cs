@@ -28,6 +28,8 @@ namespace Warehouse.Service
                     {
                         s.Id,
                         s.IdCompany,
+                        s.IdBranch,
+                        s.IdCustomer,
                         s.Insumo,
                         s.BarCode,
                         s.Articulo,
