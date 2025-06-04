@@ -28,10 +28,12 @@ namespace Warehouse.Service
                         Description    = cat.Description,
                         ValueAddition  = cat.ValueAddition,
                         ValueAddition2 = cat.ValueAddition2,
+                        ValueAdditionBit= cat.ValueAdditionBit,
                         Type           = cat.Type,
                         ParentId       = cat.ParentId,
                         Vigente        = cat.Vigente,
                         Active         = cat.Active
+                        
                     })
                     .OrderByDescending(cat => cat.Vigente)
                     .ThenBy(cat => cat.Description)
@@ -57,10 +59,12 @@ namespace Warehouse.Service
                         Description    = cat.Description,
                         ValueAddition  = cat.ValueAddition,
                         ValueAddition2 = cat.ValueAddition2,
+                        ValueAdditionBit = cat.ValueAdditionBit,
                         Type           = cat.Type,
                         ParentId       = cat.ParentId,
                         Vigente     = cat.Vigente,
                         Active         = cat.Active
+                        
                     })
                     .OrderByDescending(cat => cat.Vigente)
                     .ThenBy(cat => cat.Description)

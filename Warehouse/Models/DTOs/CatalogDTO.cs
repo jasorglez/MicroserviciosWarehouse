@@ -7,6 +7,7 @@ public class CatalogDTO
     public string Description { get; set; } = string.Empty;
     public string? ValueAddition { get; set; } = string.Empty;
     public string? ValueAddition2 { get; set; } = string.Empty;
+    public bool? ValueAdditionBit { get; set; }
     public int? ParentId { get; set; }
     public string Type { get; set; } = string.Empty;
     public bool? Vigente { get; set; }
