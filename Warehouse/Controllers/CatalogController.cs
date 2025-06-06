@@ -98,6 +98,7 @@ namespace Warehouse.Controllers
                     ValueAddition2 = cat.ValueAddition2,
                     ValueAdditionBit= cat.ValueAdditionBit,
                     ParentId = cat.ParentId,
+                    SubParentId = cat.SubParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
                     Active = cat.Active   
@@ -203,6 +204,7 @@ namespace Warehouse.Controllers
                     ValueAddition2 = cat.ValueAddition2,
                     ValueAdditionBit= cat.ValueAdditionBit,
                     ParentId = cat.ParentId,
+                    SubParentId = cat.SubParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
                     Active = cat.Active   

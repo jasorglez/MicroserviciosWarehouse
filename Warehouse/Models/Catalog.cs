@@ -39,6 +39,9 @@ namespace Warehouse.Models
         [Column("parent_id")]
         public int? ParentId { get; set; }
 
+        [Column("subparent_id")]
+        public int? SubParentId { get; set; }
+
         [Column("active")]
         public short Active { get; set; } = 1;
         

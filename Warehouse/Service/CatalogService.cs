@@ -31,6 +31,7 @@ namespace Warehouse.Service
                         ValueAdditionBit= cat.ValueAdditionBit,
                         Type           = cat.Type,
                         ParentId       = cat.ParentId,
+                        SubParentId    = cat.SubParentId,
                         Vigente        = cat.Vigente,
                         Active         = cat.Active
                         
@@ -62,7 +63,8 @@ namespace Warehouse.Service
                         ValueAdditionBit = cat.ValueAdditionBit,
                         Type           = cat.Type,
                         ParentId       = cat.ParentId,
-                        Vigente     = cat.Vigente,
+                        SubParentId    = cat.SubParentId,
+                        Vigente        = cat.Vigente,
                         Active         = cat.Active
                         
                     })
@@ -117,6 +119,7 @@ namespace Warehouse.Service
                         c.IdCompany,
                         c.Description,
                         c.ParentId,
+                        c.SubParentId,
                         c.Type,
                         c.Vigente,
                         c.Active

@@ -9,6 +9,7 @@ public class CatalogDTO
     public string? ValueAddition2 { get; set; } = string.Empty;
     public bool? ValueAdditionBit { get; set; }
     public int? ParentId { get; set; }
+    public int? SubParentId { get; set; }
     public string Type { get; set; } = string.Empty;
     public bool? Vigente { get; set; }
     public short Active { get; set; } = 1;
