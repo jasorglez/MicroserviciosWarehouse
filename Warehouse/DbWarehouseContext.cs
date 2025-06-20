@@ -23,6 +23,8 @@ namespace Warehouse;
         public virtual DbSet<Setup> Setups { get; set; }
         public virtual DbSet<TablesXModules> TablesXModules { get; set; }
         public virtual DbSet<Warehouset> Warehouses { get; set; }
+        public virtual DbSet<RawMaterial> RawMaterial { get; set; }
+        public virtual DbSet<RawMaterialDetails> RawMaterialDetails { get; set; }
         public virtual DbSet<PricesXProductsPresentation>  PricesXProductsPresentation { get; set; }
         public virtual DbSet<MaterialsByBranchVW> MaterialsByBranchVW { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
