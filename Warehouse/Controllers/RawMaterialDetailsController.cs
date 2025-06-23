@@ -35,6 +35,25 @@ public class RawMaterialDetailsController : ControllerBase
         }
     }
     
+    [HttpGet("{id}")]
+    public async Task<ActionResult<RawMaterialDetails>> GetRawMaterialDetailsById(int id)
+    {
+        try
+        {
+            var rawMaterialDetails = await _service.GetRawMaterialDetailsByIdAsync(id);
+            if (rawMaterialDetails == null)
+            {
+                return NotFound($"Raw material details with ID {id} not found.");
+            }
+            return Ok(rawMaterialDetails);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving raw material details with ID {Id}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+    
     [HttpPost]
     public async Task<ActionResult<RawMaterialDetails>> CreateRawMaterialDetails([FromBody] RawMaterialDetails rawMaterialDetails)
     {
@@ -78,7 +97,7 @@ public class RawMaterialDetailsController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
-    
+
     [HttpDelete("{id}")]
     public async Task<ActionResult> DeleteRawMaterialDetails(int id)
     {
@@ -89,30 +108,12 @@ public class RawMaterialDetailsController : ControllerBase
             {
                 return NotFound($"Raw material details with ID {id} not found.");
             }
+
             return NoContent();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting raw material details with ID {Id}", id);
-            return StatusCode(500, "Internal server error");
-        }
-    }
-    
-    [HttpGet("{id}")]
-    public async Task<ActionResult<RawMaterialDetails>> GetRawMaterialDetailsById(int id)
-    {
-        try
-        {
-            var rawMaterialDetails = await _service.GetRawMaterialDetailsByIdAsync(id);
-            if (rawMaterialDetails == null)
-            {
-                return NotFound($"Raw material details with ID {id} not found.");
-            }
-            return Ok(rawMaterialDetails);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving raw material details with ID {Id}", id);
             return StatusCode(500, "Internal server error");
         }
     }

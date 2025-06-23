@@ -14,14 +14,39 @@ public class RawMaterialDetailsService : IRawMaterialDetailsService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     
-    public async Task<List<RawMaterialDetails>> GetRawMaterialDetailsAsync(int idRawMaterial)
+    public async Task<List<object>> GetRawMaterialDetailsAsync(int idRawMaterial)
     {
         try
         {
             return await _context.RawMaterialDetails
                 .Where(rmd => rmd.IdRawMaterial == idRawMaterial)
-                .OrderByDescending(rmd => rmd.Id)
-                .ToListAsync();
+                .Join(
+                    _context.Materials,
+                    rmd => rmd.IdMaterial,
+                    m => m.Id,
+                    (rmd, m) => new { rmd, MaterialDetalle = m })
+                .Join(
+                    _context.RawMaterial,
+                    x => x.rmd.IdRawMaterial,
+                    rm => rm.Id,
+                    (x, rm) => new { x.rmd, x.MaterialDetalle, rm })
+                .Join(
+                    _context.Materials,
+                    x => x.rm.IdMaterial,
+                    m => m.Id,
+                    (x, m) => new
+                    {
+                        x.rmd.Id,
+                        x.rmd.IdRawMaterial,
+                        x.rmd.IdMaterial,
+                        ArticuloDetalle = x.MaterialDetalle.Description,
+                        ArticuloMateriaPrima = m.Description,
+                        x.rmd.Cost,
+                        x.rmd.Quantity,
+                        x.rmd.TotalCost
+                    })
+                .OrderByDescending(x => x.Id)
+                .ToListAsync<object>();
         }
         catch (Exception ex)
         {
@@ -30,6 +55,45 @@ public class RawMaterialDetailsService : IRawMaterialDetailsService
         }
     }
     
+    public async Task<object?> GetRawMaterialDetailsByIdAsync(int id)
+    {
+        try
+        {
+            return await _context.RawMaterialDetails
+                .Where(rmd => rmd.Id == id)
+                .Join(
+                    _context.Materials,
+                    rmd => rmd.IdMaterial,
+                    m => m.Id,
+                    (rmd, m) => new { rmd, MaterialDetalle = m })
+                .Join(
+                    _context.RawMaterial,
+                    x => x.rmd.IdRawMaterial,
+                    rm => rm.Id,
+                    (x, rm) => new { x.rmd, x.MaterialDetalle, rm })
+                .Join(
+                    _context.Materials,
+                    x => x.rm.IdMaterial,
+                    m => m.Id,
+                    (x, m) => new
+                    {
+                        x.rmd.Id,
+                        x.rmd.IdRawMaterial,
+                        x.rmd.IdMaterial,
+                        ArticuloDetalle = x.MaterialDetalle.Description,
+                        ArticuloMateriaPrima = m.Description,
+                        x.rmd.Cost,
+                        x.rmd.Quantity,
+                        x.rmd.TotalCost
+                    })
+                .FirstOrDefaultAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving raw material details with ID {Id}", id);
+            throw;
+        }
+    }
     public async Task<RawMaterialDetails> CreateRawMaterialDetailsAsync(RawMaterialDetails rawMaterialDetails)
     {
         if (rawMaterialDetails == null)
@@ -93,26 +157,13 @@ public class RawMaterialDetailsService : IRawMaterialDetailsService
             throw;
         }
     }
-    
-    public async Task<RawMaterialDetails?> GetRawMaterialDetailsByIdAsync(int id)
-    {
-        try
-        {
-            return await _context.RawMaterialDetails.FindAsync(id);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error retrieving raw material details with ID {Id}", id);
-            throw;
-        }
-    }
 }
 
 public interface IRawMaterialDetailsService
 {
-    Task<List<RawMaterialDetails>> GetRawMaterialDetailsAsync(int idRawMaterial);
+    Task<List<object>> GetRawMaterialDetailsAsync(int idRawMaterial);
+    Task<object?> GetRawMaterialDetailsByIdAsync(int id);
     Task<RawMaterialDetails> CreateRawMaterialDetailsAsync(RawMaterialDetails rawMaterialDetails);
     Task<RawMaterialDetails> UpdateRawMaterialDetailsAsync(int id, RawMaterialDetails rawMaterialDetails);
     Task<bool> DeleteRawMaterialDetailsAsync(int id);
-    Task<RawMaterialDetails?> GetRawMaterialDetailsByIdAsync(int id);
 }

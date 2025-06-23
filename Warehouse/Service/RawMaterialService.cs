@@ -28,7 +28,7 @@ public class RawMaterialService : IRawMaterialService
                     {
                         rm.Id,
                         rm.IdMaterial,
-                        m.Articulo,
+                        m.Description,
                         rm.FechaCambio,
                         rm.Active
                     })
