@@ -14,14 +14,26 @@ public class RawMaterialService : IRawMaterialService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     
-    public async Task<List<RawMaterial>> GetRawMaterialsAsync(int idCompany)
+    public async Task<List<object>> GetRawMaterialsAsync(int idCompany)
     {
         try
         {
             return await _context.RawMaterial
                 .Where(rm => rm.Active && rm.IdCompany == idCompany)
+                .Join(
+                    _context.Materials,
+                    rm => rm.IdMaterial,
+                    m => m.Id,
+                    (rm, m) => new
+                    {
+                        rm.Id,
+                        rm.IdMaterial,
+                        m.Articulo,
+                        rm.FechaCambio,
+                        rm.Active
+                    })
                 .OrderByDescending(rm => rm.FechaCambio)
-                .ToListAsync();
+                .ToListAsync<object>();
         }
         catch (Exception ex)
         {
@@ -30,14 +42,26 @@ public class RawMaterialService : IRawMaterialService
         }
     }
     
-    public async Task<List<RawMaterial>> GetRawMaterialByIdAsync(int id)
+    public async Task<List<object>> GetRawMaterialByIdAsync(int id)
     {
         try
         {
             return await _context.RawMaterial
                 .Where(rm => rm.Active && rm.Id == id)
+                .Join(
+                    _context.Materials,
+                    rm => rm.IdMaterial,
+                    m => m.Id,
+                    (rm, m) => new
+                    {
+                        rm.Id,
+                        rm.IdMaterial,
+                        m.Articulo,
+                        rm.FechaCambio,
+                        rm.Active
+                    })
                 .AsNoTracking()
-                .ToListAsync();
+                .ToListAsync<object>();
         }
         catch (Exception ex)
         {
@@ -113,8 +137,8 @@ public class RawMaterialService : IRawMaterialService
 
 public interface IRawMaterialService
 {
-    Task<List<RawMaterial>> GetRawMaterialsAsync(int idCompany);
-    Task<List<RawMaterial>> GetRawMaterialByIdAsync(int id);
+    Task<List<object>> GetRawMaterialsAsync(int idCompany);
+    Task<List<object>> GetRawMaterialByIdAsync(int id);
     Task<RawMaterial> CreateRawMaterialAsync(RawMaterial rawMaterial);
     Task<RawMaterial> UpdateRawMaterialAsync(int id, RawMaterial rawMaterial);
     Task<bool> DeleteRawMaterialAsync(int id);
