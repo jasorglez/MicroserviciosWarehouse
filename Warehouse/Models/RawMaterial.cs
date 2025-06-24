@@ -16,9 +16,26 @@ public class RawMaterial
     
     [Column("id_material")]
     public int IdMaterial { get; set; }
-
+    
+    [Column("costo")]
+    public decimal Costo { get; set; } = 0;
+    
+    [Column("cantidad")]
+    public decimal Cantidad { get; set; } = 0;
+    
+    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+    [Column("costo_total")]
+    public decimal CostoTotal { get; set; } = 0;
+    
     [Column("merma")]
     public decimal Merma { get; set; } = 0;
+    
+    [Column("porcentaje_merma")]
+    public decimal PorcentajeMerma { get; set; } = 0;
+    
+    [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+    [Column("costo_final")]
+    public decimal CostoFinal { get; set; } = 0;
     
     [Column("fecha_cambio")]
     public DateOnly FechaCambio { get; set; }

@@ -19,7 +19,7 @@ public class RawMaterialDetailsService : IRawMaterialDetailsService
         try
         {
             return await _context.RawMaterialDetails
-                .Where(rmd => rmd.IdRawMaterial == idRawMaterial)
+                .Where(rmd => rmd.IdRawMaterial == idRawMaterial && rmd.Active)
                 .Join(
                     _context.Materials,
                     rmd => rmd.IdMaterial,
@@ -41,9 +41,11 @@ public class RawMaterialDetailsService : IRawMaterialDetailsService
                         x.rmd.IdMaterial,
                         ArticuloDetalle = x.MaterialDetalle.Description,
                         ArticuloMateriaPrima = m.Description,
-                        x.rmd.Cost,
-                        x.rmd.Quantity,
-                        x.rmd.TotalCost
+                        x.rmd.Costo,
+                        x.rmd.Cantidad,
+                        x.rmd.CostoTotal,
+                        x.rmd.FechaCambio,
+                        x.rmd.Active
                     })
                 .OrderByDescending(x => x.Id)
                 .ToListAsync<object>();
@@ -60,7 +62,7 @@ public class RawMaterialDetailsService : IRawMaterialDetailsService
         try
         {
             return await _context.RawMaterialDetails
-                .Where(rmd => rmd.Id == id)
+                .Where(rmd => rmd.Id == id && rmd.Active)
                 .Join(
                     _context.Materials,
                     rmd => rmd.IdMaterial,
@@ -82,9 +84,11 @@ public class RawMaterialDetailsService : IRawMaterialDetailsService
                         x.rmd.IdMaterial,
                         ArticuloDetalle = x.MaterialDetalle.Description,
                         ArticuloMateriaPrima = m.Description,
-                        x.rmd.Cost,
-                        x.rmd.Quantity,
-                        x.rmd.TotalCost
+                        x.rmd.Costo,
+                        x.rmd.Cantidad,
+                        x.rmd.CostoTotal,
+                        x.rmd.FechaCambio,
+                        x.rmd.Active
                     })
                 .FirstOrDefaultAsync();
         }

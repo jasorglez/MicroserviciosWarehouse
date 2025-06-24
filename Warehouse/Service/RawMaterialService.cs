@@ -29,6 +29,12 @@ public class RawMaterialService : IRawMaterialService
                         rm.Id,
                         rm.IdMaterial,
                         m.Description,
+                        rm.Costo,
+                        rm.Cantidad,
+                        rm.CostoTotal,
+                        rm.Merma,
+                        rm.PorcentajeMerma,
+                        rm.CostoFinal,
                         rm.FechaCambio,
                         rm.Active
                     })
@@ -56,7 +62,13 @@ public class RawMaterialService : IRawMaterialService
                     {
                         rm.Id,
                         rm.IdMaterial,
-                        m.Articulo,
+                        m.Description,
+                        rm.Costo,
+                        rm.Cantidad,
+                        rm.CostoTotal,
+                        rm.Merma,
+                        rm.PorcentajeMerma,
+                        rm.CostoFinal,
                         rm.FechaCambio,
                         rm.Active
                     })

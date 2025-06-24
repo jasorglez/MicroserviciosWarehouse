@@ -17,16 +17,21 @@ public class RawMaterialDetails
     [Column("id_material")]
     public int IdMaterial { get; set; }
     
-    [Column("cost")]
-    public decimal Cost { get; set; } = 0;
+    [Column("costo")]
+    public decimal Costo { get; set; } = 0;
     
-    [Column("quantity")]
-    public decimal Quantity { get; set; } = 0;
+    [Column("cantidad")]
+    public decimal Cantidad { get; set; } = 0;
     
     [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
-    [Column("total_cost")]
-    public decimal TotalCost { get; set; } = 0;
+    [Column("costo_total")]
+    public decimal? CostoTotal { get; set; } = 0;
     
+    [Column("fecha_cambio")]
+    public DateOnly? FechaCambio { get; set; }
+    
+    [Column("active")]
+    public bool Active { get; set; } = true;
     
     
     
