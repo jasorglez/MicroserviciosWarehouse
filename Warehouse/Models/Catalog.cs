@@ -42,6 +42,9 @@ namespace Warehouse.Models
         [Column("subparent_id")]
         public int? SubParentId { get; set; }
 
+        [Column("price")]
+        public decimal? Price { get; set; }
+
         [Column("active")]
         public short Active { get; set; } = 1;
         

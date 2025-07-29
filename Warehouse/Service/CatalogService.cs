@@ -33,6 +33,7 @@ namespace Warehouse.Service
                         ParentId = cat.ParentId,
                         SubParentId = cat.SubParentId,
                         Vigente = cat.Vigente,
+                        Price = cat.Price,
                         Active = cat.Active
 
                     })
@@ -66,6 +67,7 @@ namespace Warehouse.Service
                         ParentId = cat.ParentId,
                         SubParentId = cat.SubParentId,
                         Vigente = cat.Vigente,
+                        Price = cat.Price,
                         Active = cat.Active
 
                     })
@@ -98,6 +100,7 @@ namespace Warehouse.Service
                         ParentId       = cat.ParentId,
                         SubParentId    = cat.SubParentId,
                         Vigente        = cat.Vigente,
+                        Price          = cat.Price,
                         Active         = cat.Active
                         
                     })
@@ -128,6 +131,7 @@ namespace Warehouse.Service
                         c.ParentId,
                         c.Type,
                         c.Vigente,
+                        c.Price,
                         c.Active
                     })
                     .AsNoTracking()
@@ -155,6 +159,7 @@ namespace Warehouse.Service
                         c.SubParentId,
                         c.Type,
                         c.Vigente,
+                        c.Price,
                         c.Active
                     })
                     .OrderBy(c => c.Description)

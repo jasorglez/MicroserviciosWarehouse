@@ -121,6 +121,7 @@ namespace Warehouse.Controllers
                     SubParentId = cat.SubParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
+                    Price = cat.Price,
                     Active = cat.Active   
                     
                 }; 
@@ -227,8 +228,9 @@ namespace Warehouse.Controllers
                     SubParentId = cat.SubParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
-                    Active = cat.Active   
-                }; 
+                    Price = cat.Price,
+                    Active = cat.Active
+                };
                 await _catalogService.Save(catalogDB);
                 return Ok(new { Message = "Record New with Id", id = cat.Id, Catalog = cat });
             }
