@@ -116,6 +116,7 @@ namespace Warehouse.Controllers
         {
             var materialDB = new Material
             {
+                Id = id, // Assign the ID from the route parameter
                 IdCompany = material.IdCompany,
                 Insumo = material.Insumo,
                 Articulo = material.Articulo,

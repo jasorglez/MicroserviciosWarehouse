@@ -163,7 +163,31 @@ namespace Warehouse.Service
 
             try
             {
-                _context.Entry(existingItem).CurrentValues.SetValues(material);
+                // Preserve the original ID and update only the necessary fields
+                existingItem.IdCompany = material.IdCompany;
+                existingItem.IdBranch = material.IdBranch;
+                existingItem.IdCustomer = material.IdCustomer;
+                existingItem.Insumo = material.Insumo;
+                existingItem.Articulo = material.Articulo;
+                existingItem.BarCode = material.BarCode;
+                existingItem.IdFamilia = material.IdFamilia;
+                existingItem.IdSubfamilia = material.IdSubfamilia;
+                existingItem.IdMedida = material.IdMedida;
+                existingItem.IdUbication = material.IdUbication;
+                existingItem.Description = material.Description;
+                existingItem.Date = material.Date;
+                existingItem.AplicaResg = material.AplicaResg;
+                existingItem.CostoMN = material.CostoMN;
+                existingItem.CostoDLL = material.CostoDLL;
+                existingItem.VentaMN = material.VentaMN;
+                existingItem.VentaDLL = material.VentaDLL;
+                existingItem.StockMin = material.StockMin;
+                existingItem.StockMax = material.StockMax;
+                existingItem.Picture = material.Picture;
+                existingItem.TypeMaterial = material.TypeMaterial;
+                existingItem.Vigente = material.Vigente;
+                existingItem.Active = material.Active;
+                
                 await _context.SaveChangesAsync();
                 return existingItem;
             }
