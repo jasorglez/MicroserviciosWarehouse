@@ -193,6 +193,7 @@ namespace Warehouse.Service
             }
         }
 
+
         public async Task<Catalog> Update(int id, Catalog cat)
         {
             var existingCat = await _context.Catalogs.FindAsync(id);
@@ -204,26 +205,54 @@ namespace Warehouse.Service
 
             try
             {
-                 existingCat.IdCompany        = cat.IdCompany;
-                 existingCat.Description      = cat.Description;
-                 existingCat.ValueAddition    = cat.ValueAddition;
-                 existingCat.ValueAddition2   = cat.ValueAddition2;
-                 existingCat.ValueAdditionBit = cat.ValueAdditionBit;
-                 existingCat.ParentId         = cat.ParentId;
-                 existingCat.SubParentId      = cat.SubParentId;
-                 existingCat.Type             = cat.Type;
-                 existingCat.Vigente          = cat.Vigente;
-                 existingCat.Active           = cat.Active;
+                // Solo actualizar campos que tengan valores válidos (no nulos o vacíos)
 
-                  await _context.SaveChangesAsync();
+                // Campos nullable - usar HasValue
+                if (cat.IdCompany.HasValue)
+                    existingCat.IdCompany = cat.IdCompany;
+
+                if (cat.ValueAdditionBit.HasValue)
+                    existingCat.ValueAdditionBit = cat.ValueAdditionBit;
+
+                if (cat.Vigente.HasValue)
+                    existingCat.Vigente = cat.Vigente;
+
+                if (cat.ParentId.HasValue)
+                    existingCat.ParentId = cat.ParentId;
+
+                if (cat.SubParentId.HasValue)
+                    existingCat.SubParentId = cat.SubParentId;
+
+                if (cat.Price.HasValue)
+                    existingCat.Price = cat.Price;
+
+                // Strings - verificar que no estén vacíos
+                if (!string.IsNullOrWhiteSpace(cat.Description))
+                    existingCat.Description = cat.Description;
+
+                if (!string.IsNullOrWhiteSpace(cat.ValueAddition))
+                    existingCat.ValueAddition = cat.ValueAddition;
+
+                if (!string.IsNullOrWhiteSpace(cat.ValueAddition2))
+                    existingCat.ValueAddition2 = cat.ValueAddition2;
+
+                if (!string.IsNullOrWhiteSpace(cat.Type))
+                    existingCat.Type = cat.Type;
+
+                // Active - short no nullable, siempre actualizar
+                // O puedes verificar: if (cat.Active != 0)
+                existingCat.Active = cat.Active;
+
+                await _context.SaveChangesAsync();
                 return existingCat;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating configuration with ID {Id}.", id);
+                _logger.LogError(ex, "Error updating catalog with ID {Id}.", id);
                 return null;
             }
         }
+
 
         public async Task<bool> Delete(int id)
         {
