@@ -104,7 +104,7 @@ namespace Warehouse.Controllers
             }
         }
 
-        [HttpPut("update-catalog/{id}")]
+        [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Catalog cat)
         {
              if (!ModelState.IsValid)
