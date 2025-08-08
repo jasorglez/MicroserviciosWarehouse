@@ -107,7 +107,6 @@ namespace Warehouse.Controllers
         [HttpPut("update-catalog/{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Catalog cat)
         {
-<<<<<<< HEAD
              if (!ModelState.IsValid)
               {
                  return BadRequest(ModelState);
@@ -115,40 +114,13 @@ namespace Warehouse.Controllers
               try
               {
                    var success = await _catalogService.Update(id, cat);
-                    if (!success)
+                    if (success==null)
                     {
                         return NotFound($"Catalog with ID {id} not found");
                     }
                     return Ok(success);
               }              
-=======
-            try
-            {
-                var catalogDB = new Catalog
-                {
-                    Id = cat.Id,
-                    IdCompany = cat.IdCompany,
-                    Description = cat.Description,
-                    ValueAddition = cat.ValueAddition,
-                    ValueAddition2 = cat.ValueAddition2,
-                    ValueAdditionBit= cat.ValueAdditionBit,
-                    ParentId = cat.ParentId,
-                    SubParentId = cat.SubParentId,
-                    Type = cat.Type,
-                    Vigente = cat.Vigente,
-                    Price = cat.Price,
-                    Active = cat.Active   
-                    
-                }; 
-                
-                var success = await _catalogService.Update(id, catalogDB);
-                if (!success)
-                {
-                    return NotFound();
-                }
-                return NoContent();
-            }
->>>>>>> 2b30ac3779f5a771d5d3ec0581eb09cc40d3aca4
+
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating catalog with ID {Id}.", id);

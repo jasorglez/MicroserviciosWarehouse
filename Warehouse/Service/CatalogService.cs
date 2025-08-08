@@ -193,27 +193,27 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<bool> Update(int id, Catalog cat)
+        public async Task<Catalog> Update(int id, Catalog cat)
         {
             var existingCat = await _context.Catalogs.FindAsync(id);
             if (existingCat == null)
             {
-                return false;
+                _logger.LogWarning("Attempted to update non-existent Catalog with ID {Id}", id);
+                return null;
             }
 
             try
             {
-                existingCat.Id = cat.Id;
-                existingCat.IdCompany = cat.IdCompany;
-                existingCat.Description = cat.Description;
-                existingCat.ValueAddition = cat.ValueAddition;
-                existingCat.ValueAddition2 = cat.ValueAddition2;
-                existingCat.ValueAdditionBit = cat.ValueAdditionBit;
-                existingCat.ParentId = cat.ParentId;
-                existingCat.SubParentId = cat.SubParentId;
-                existingCat.Type = cat.Type;
-                existingCat.Vigente = cat.Vigente;
-                existingCat.Active = cat.Active;
+                 existingCat.IdCompany        = cat.IdCompany;
+                 existingCat.Description      = cat.Description;
+                 existingCat.ValueAddition    = cat.ValueAddition;
+                 existingCat.ValueAddition2   = cat.ValueAddition2;
+                 existingCat.ValueAdditionBit = cat.ValueAdditionBit;
+                 existingCat.ParentId         = cat.ParentId;
+                 existingCat.SubParentId      = cat.SubParentId;
+                 existingCat.Type             = cat.Type;
+                 existingCat.Vigente          = cat.Vigente;
+                 existingCat.Active           = cat.Active;
 
                   await _context.SaveChangesAsync();
                 return existingCat;
@@ -221,7 +221,7 @@ namespace Warehouse.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating configuration with ID {Id}.", id);
-                return false;
+                return null;
             }
         }
 
@@ -332,7 +332,7 @@ namespace Warehouse.Service
         Task<List<object>> GetFamilyCatalogs(int idCompany);
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);
-        Task<bool> Update(int id, Catalog cat);
+        Task<Catalog> Update(int id, Catalog cat);
         Task<bool> Delete(int id);
         Task<List<ProcessXPermission>> GetProcessXPermissions(int idProcces);
         Task<bool> UpdatexPermission(int id, ProcessXPermission perm);
