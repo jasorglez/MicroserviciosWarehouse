@@ -25,6 +25,26 @@ namespace Warehouse.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        [HttpGet("getCatalogsAll")]
+        public async Task<ActionResult<List<object>>> GetWarByComp(int idCompany)
+        {
+            try
+            {
+                var cat = await _catalogService.GetTypeAll(idCompany);
+                if (cat == null || !cat.Any())
+                {
+                    _logger.LogWarning("No found Catalog the result is empty");
+                    return NotFound(new { Message = "No Catalog Found or the result is empty", catalog = new List<object>() });
+                }
+                return Ok(cat);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalog for Project");
+                return StatusCode(500, "An error occurred while retrieving Catalog.");
+            }
+        }
+
         [HttpGet("getCatalogs")]
         public async Task<ActionResult<List<object>>> GetWarByComp(int idCompany, string type)
         {
@@ -87,6 +107,7 @@ namespace Warehouse.Controllers
         [HttpPut("update-catalog/{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] Catalog cat)
         {
+<<<<<<< HEAD
              if (!ModelState.IsValid)
               {
                  return BadRequest(ModelState);
@@ -100,6 +121,34 @@ namespace Warehouse.Controllers
                     }
                     return Ok(success);
               }              
+=======
+            try
+            {
+                var catalogDB = new Catalog
+                {
+                    Id = cat.Id,
+                    IdCompany = cat.IdCompany,
+                    Description = cat.Description,
+                    ValueAddition = cat.ValueAddition,
+                    ValueAddition2 = cat.ValueAddition2,
+                    ValueAdditionBit= cat.ValueAdditionBit,
+                    ParentId = cat.ParentId,
+                    SubParentId = cat.SubParentId,
+                    Type = cat.Type,
+                    Vigente = cat.Vigente,
+                    Price = cat.Price,
+                    Active = cat.Active   
+                    
+                }; 
+                
+                var success = await _catalogService.Update(id, catalogDB);
+                if (!success)
+                {
+                    return NotFound();
+                }
+                return NoContent();
+            }
+>>>>>>> 2b30ac3779f5a771d5d3ec0581eb09cc40d3aca4
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating catalog with ID {Id}.", id);
@@ -195,8 +244,9 @@ namespace Warehouse.Controllers
                     SubParentId = cat.SubParentId,
                     Type = cat.Type,
                     Vigente = cat.Vigente,
-                    Active = cat.Active   
-                }; 
+                    Price = cat.Price,
+                    Active = cat.Active
+                };
                 await _catalogService.Save(catalogDB);
                 return Ok(new { Message = "Record New with Id", id = cat.Id, Catalog = cat });
             }

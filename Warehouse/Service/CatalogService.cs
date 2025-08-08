@@ -15,27 +15,62 @@ namespace Warehouse.Service
             _context = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
+        
+        public async Task<List<Catalog>> GetTypeAll(int idCompany)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active == 1 && c.IdCompany == idCompany)
+                    .Select(cat => new Catalog
+                    {
+                        Id = cat.Id,
+                        IdCompany = cat.IdCompany,
+                        Description = cat.Description,
+                        ValueAddition = cat.ValueAddition,
+                        ValueAddition2 = cat.ValueAddition2,
+                        ValueAdditionBit = cat.ValueAdditionBit,
+                        Type = cat.Type,
+                        ParentId = cat.ParentId,
+                        SubParentId = cat.SubParentId,
+                        Vigente = cat.Vigente,
+                        Price = cat.Price,
+                        Active = cat.Active
+
+                    })
+                    .OrderByDescending(cat => cat.Vigente)
+                    .ThenBy(cat => cat.Description)
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalogs");
+                throw;
+            }
+        }
 
         public async Task<List<Catalog>> GetType(string type, int idCompany)
         {
             try
             {
                 return await _context.Catalogs
-                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany)
+                    .Where(c => c.Active == 1 && c.Type == type && c.IdCompany == idCompany)
                     .Select(cat => new Catalog
                     {
-                        Id             = cat.Id,
-                        IdCompany      = cat.IdCompany,
-                        Description    = cat.Description,
-                        ValueAddition  = cat.ValueAddition,
+                        Id = cat.Id,
+                        IdCompany = cat.IdCompany,
+                        Description = cat.Description,
+                        ValueAddition = cat.ValueAddition,
                         ValueAddition2 = cat.ValueAddition2,
-                        ValueAdditionBit= cat.ValueAdditionBit,
-                        Type           = cat.Type,
-                        ParentId       = cat.ParentId,
-                        SubParentId    = cat.SubParentId,
-                        Vigente        = cat.Vigente,
-                        Active         = cat.Active
-                        
+                        ValueAdditionBit = cat.ValueAdditionBit,
+                        Type = cat.Type,
+                        ParentId = cat.ParentId,
+                        SubParentId = cat.SubParentId,
+                        Vigente = cat.Vigente,
+                        Price = cat.Price,
+                        Active = cat.Active
+
                     })
                     .OrderByDescending(cat => cat.Vigente)
                     .ThenBy(cat => cat.Description)
@@ -66,6 +101,7 @@ namespace Warehouse.Service
                         ParentId       = cat.ParentId,
                         SubParentId    = cat.SubParentId,
                         Vigente        = cat.Vigente,
+                        Price          = cat.Price,
                         Active         = cat.Active
                         
                     })
@@ -96,6 +132,7 @@ namespace Warehouse.Service
                         c.ParentId,
                         c.Type,
                         c.Vigente,
+                        c.Price,
                         c.Active
                     })
                     .AsNoTracking()
@@ -123,6 +160,7 @@ namespace Warehouse.Service
                         c.SubParentId,
                         c.Type,
                         c.Vigente,
+                        c.Price,
                         c.Active
                     })
                     .OrderBy(c => c.Description)
@@ -289,6 +327,7 @@ namespace Warehouse.Service
     public interface ICatalogService
     {
         Task<List<Catalog>> GetType(string type, int idCompany);
+        Task<List<Catalog>> GetTypeAll(int idCompany);
         Task<List<Catalog>> GetTypeVigente(string type, int idCompany);
         Task<List<object>> GetFamilyCatalogs(int idCompany);
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
