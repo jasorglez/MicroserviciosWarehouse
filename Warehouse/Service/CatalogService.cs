@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System;
 using System.Diagnostics.Contracts;
 using Warehouse.Models;
 
@@ -156,17 +157,28 @@ namespace Warehouse.Service
 
         public async Task<bool> Update(int id, Catalog cat)
         {
-            var existingConfig = await _context.Catalogs.FindAsync(id);
-            if (existingConfig == null)
+            var existingCat = await _context.Catalogs.FindAsync(id);
+            if (existingCat == null)
             {
                 return false;
             }
 
             try
             {
-                _context.Entry(existingConfig).CurrentValues.SetValues(cat);
-                await _context.SaveChangesAsync();
-                return true;
+                existingCat.Id = cat.Id;
+                existingCat.IdCompany = cat.IdCompany;
+                existingCat.Description = cat.Description;
+                existingCat.ValueAddition = cat.ValueAddition;
+                existingCat.ValueAddition2 = cat.ValueAddition2;
+                existingCat.ValueAdditionBit = cat.ValueAdditionBit;
+                existingCat.ParentId = cat.ParentId;
+                existingCat.SubParentId = cat.SubParentId;
+                existingCat.Type = cat.Type;
+                existingCat.Vigente = cat.Vigente;
+                existingCat.Active = cat.Active;
+
+                  await _context.SaveChangesAsync();
+                return existingCat;
             }
             catch (Exception ex)
             {
