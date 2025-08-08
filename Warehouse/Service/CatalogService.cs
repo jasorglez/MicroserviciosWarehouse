@@ -207,9 +207,6 @@ namespace Warehouse.Service
             {
                 // Solo actualizar campos que tengan valores válidos (no nulos o vacíos)
 
-                // Campos nullable - usar HasValue
-                if (cat.IdCompany.HasValue)
-                    existingCat.IdCompany = cat.IdCompany;
 
                 if (cat.ValueAdditionBit.HasValue)
                     existingCat.ValueAdditionBit = cat.ValueAdditionBit;
@@ -236,8 +233,6 @@ namespace Warehouse.Service
                 if (!string.IsNullOrWhiteSpace(cat.ValueAddition2))
                     existingCat.ValueAddition2 = cat.ValueAddition2;
 
-                if (!string.IsNullOrWhiteSpace(cat.Type))
-                    existingCat.Type = cat.Type;
 
                 // Active - short no nullable, siempre actualizar
                 // O puedes verificar: if (cat.Active != 0)
