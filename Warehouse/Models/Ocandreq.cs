@@ -107,6 +107,10 @@ namespace Warehouse.Models
         [Column("id_solicit")]
         public int? IdSolicit { get; set; }
 
+
+        [Column("close")]
+        public bool Close { get; set; } = false;
+
         [Column("active")]
         public bool? Active { get; set; } = true;
         
