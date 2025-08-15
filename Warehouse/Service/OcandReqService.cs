@@ -102,6 +102,7 @@ namespace Warehouse.Service
                         o.City,
                         o.Phone,
                         o.Discount,
+                        o.Close,
                         o.Active
                     })
             .AsNoTracking()
