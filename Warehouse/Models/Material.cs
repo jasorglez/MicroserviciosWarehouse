@@ -34,20 +34,20 @@ namespace Warehouse.Models
         [StringLength(50)]
         public string? BarCode { get; set; }
 
-        [Required]
         [Column("id_familia")]
-        public int IdFamilia { get; set; }
-        
+        public int? IdFamilia { get; set; }
+
         [Column("id_subfamilia")]
         public int? IdSubfamilia { get; set; }
 
-        [Required]
         [Column("id_medida")]
-        public int IdMedida { get; set; }
+        public int? IdMedida { get; set; }
 
-        [Required]
         [Column("id_ubication")]
-        public int IdUbication { get; set; }
+        public int? IdUbication { get; set; }
+
+        [Column("id_typematerial")]
+        public int? IdTypeMaterial { get; set; }
 
         [Column("description", TypeName = "VARCHAR(MAX)")]
         public string? Description { get; set; }
@@ -58,47 +58,70 @@ namespace Warehouse.Models
         [Column("aplicaResg")]
         public bool? AplicaResg { get; set; }
 
-        [Required]
         [Column("costoMN", TypeName = "DECIMAL(16,2)")]
-        public decimal CostoMN { get; set; }
+        public decimal? CostoMN { get; set; }
 
-        [Required]
         [Column("costoDLL", TypeName = "DECIMAL(16,2)")]
-        public decimal CostoDLL { get; set; }
+        public decimal? CostoDLL { get; set; }
 
-        [Required]
         [Column("ventaMN", TypeName = "DECIMAL(16,2)")]
-        public decimal VentaMN { get; set; }
+        public decimal? VentaMN { get; set; }
 
-        [Required]
         [Column("ventaDLL", TypeName = "DECIMAL(16,2)")]
-        public decimal VentaDLL { get; set; }
+        public decimal? VentaDLL { get; set; }
 
-        [Required]
         [Column("stockmin")]
-        public int StockMin { get; set; }
+        public int? StockMin { get; set; }
 
-        [Required]
         [Column("stockmax")]
-        public int StockMax { get; set; }
+        public int? StockMax { get; set; }
 
-        [Required]
         [Column("picture", TypeName = "NVARCHAR")]
         [StringLength(250)]
-        public string Picture { get; set; } = string.Empty;
+        public string? Picture { get; set; }
+
+        [Column("presentation")]
+        public int? Presentation { get; set; }
+
+        [Column("stock")]
+        public int? Stock { get; set; }
+
+        [Column("sellingprice")]
+        public int? SellingPrice { get; set; }
+
+        [Column("stockrequest")]
+        public int? StockRequest { get; set; }
+
+        [Column("category")]
+        public int? Category { get; set; }
+
+        [Column("barcodeZ", TypeName = "NCHAR")]
+        [StringLength(250)]
+        public string? BarcodeZ { get; set; }
+
+        [Column("listprice", TypeName = "NCHAR")]
+        [StringLength(10)]
+        public string? ListPrice { get; set; }
+
+        [Column("packagequantity", TypeName = "NCHAR")]
+        [StringLength(10)]
+        public string? PackageQuantity { get; set; }
+
+        [Column("packageprice", TypeName = "NCHAR")]
+        [StringLength(10)]
+        public string? PackagePrice { get; set; }
+
+        [Column("requestquantity")]
+        public int? RequestQuantity { get; set; }
 
         [Column("typematerial", TypeName = "CHAR")]
         [StringLength(10)]
-        public string TypeMaterial { get; set; } = string.Empty;
+        public string? TypeMaterial { get; set; }
 
         [Column("vigente")]
-        public bool Vigente { get; set; }
+        public bool? Vigente { get; set; }
 
-        [Required]
         [Column("active")]
-        public bool Active { get; set; }
-        
-        // Propiedad de navegación para la relación inversa con PricesXProductsPresentation
-        public virtual ICollection<PricesXProductsPresentation> PricesWithMaterial { get; set; } = new List<PricesXProductsPresentation>();
+        public bool? Active { get; set; }
     }
 }

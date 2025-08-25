@@ -22,16 +22,16 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
     {
         return await _context.PricesXProductsPresentation
             .Where(p => p.Active == true)
-            .Include(p => p.Catalog)
+           // .Include(p => p.Catalog)
             .Select(p => new PricesXProductsPresentationsDTO
             {
                 Id = p.Id,
                 IdMaterials = p.IdMaterials,
                 IdCatalogs = p.IdCatalogs,
                 Description = p.Description,
-                Price = p.Price,
+               // Price = p.Price,
                 Active = p.Active,
-                Catalog = new CatalogDTO
+             /*   Catalog = new CatalogDTO
                 {
                     Id = p.Catalog.Id,
                     IdCompany = p.Catalog.IdCompany,
@@ -41,7 +41,7 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
                     Type = p.Catalog.Type ?? string.Empty,
                     Vigente = p.Catalog.Vigente ?? true,
                     Active = p.Catalog.Active
-                }
+                }*/
             })
             .AsNoTracking()
             .ToListAsync();
@@ -51,7 +51,7 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
     {
         var priceProduct = await _context.PricesXProductsPresentation
             .Where(p => p.Id == idPrice && p.Active)
-            .Include(p => p.Catalog)
+          //  .Include(p => p.Catalog)
             .FirstOrDefaultAsync();
 
         if (priceProduct == null)
@@ -65,9 +65,9 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
             IdMaterials = priceProduct.IdMaterials,
             IdCatalogs = priceProduct.IdCatalogs,
             Description = priceProduct.Description,
-            Price = priceProduct.Price,
+         //   Price = priceProduct.Price,
             Active = priceProduct.Active,
-            Catalog = new CatalogDTO
+           /* Catalog = new CatalogDTO
             {
                 Id = priceProduct.Catalog.Id,
                 IdCompany = priceProduct.Catalog.IdCompany,
@@ -77,7 +77,7 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
                 Type = priceProduct.Catalog.Type,
                 Vigente = priceProduct.Catalog.Vigente,
                 Active = priceProduct.Catalog.Active
-            }
+            }*/
         };
     }
 
@@ -86,7 +86,7 @@ public class PricesXProductsPresentationService : IPricesXProductsPresentationSe
         if (priceProduct.Price <= 0)
             throw new ArgumentException("El precio debe ser mayor a cero.");
 
-        var materialExists = await _context.Materials.AnyAsync(m => m.Id == priceProduct.IdMaterials && m.Active);
+        var materialExists = await _context.Materials.AnyAsync(m => m.Id == priceProduct.IdMaterials && m.Active==true);
         if (!materialExists)
             throw new ArgumentException("El material asociado no existe o está inactivo.");
 

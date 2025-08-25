@@ -22,12 +22,10 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active && s.IdCompany == idCompany && s.TypeMaterial == typematerial)
-                    .Include(m => m.PricesWithMaterial)
+                    .Where(s => s.Active == true && s.IdCompany == idCompany && s.TypeMaterial == typematerial)         
                     .Select(s => new
                     {
-                        s.Id,
-                        
+                        s.Id,                        
                         s.IdCompany,
                         s.IdBranch,
                         s.IdCustomer,
@@ -50,15 +48,8 @@ namespace Warehouse.Service
                         s.Picture,
                         s.Vigente,
                         s.TypeMaterial,
-                        s.Active,
-                        PricePresentations = s.PricesWithMaterial.Select(s => new
-                        {
-                            s.Id,
-                            s.IdCatalogs,
-                            s.Description,
-                            s.Price,
-                            s.Active
-                        }).ToList()
+                        s.Active
+                       
                     })
                     .OrderByDescending(s => s.Vigente)
                     .ThenBy(s => s.Description)
@@ -77,21 +68,21 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active && idCompany == s.IdCompany)
-                    .Include(s => s.PricesWithMaterial)
+                    .Where(s => s.Active == true && idCompany == s.IdCompany)
+                    //.Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
                         s.Id,                        
                         s.Description,s.Vigente,
                         s.Active,
-                        PricePresentations = s.PricesWithMaterial.Select(s => new
+                        /*PricePresentations = s.PricesWithMaterial.Select(s => new
                         {
                         s.Id,
                         s.IdCatalogs,
                         s.Description,
                         s.Price,
                         s.Active
-                    }).ToList()
+                    }).ToList()*/
                     }).OrderByDescending(s => s.Vigente)
                       .ThenBy(s => s.Description)
                     .AsNoTracking()
@@ -109,9 +100,9 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active && idCompany == s.IdCompany && 
+                    .Where(s => s.Active == true && idCompany == s.IdCompany && 
                     (s.Insumo.Contains(nameOrBarCode) || s.BarCode.Contains(nameOrBarCode) || s.Description.Contains(nameOrBarCode)))
-                    .Include(s => s.PricesWithMaterial)
+                 //   .Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
                         s.Id,
@@ -119,14 +110,14 @@ namespace Warehouse.Service
                         s.Insumo,
                         s.Description,
                         s.Active,
-                        PricePresentations = s.PricesWithMaterial.Select(s => new
+                    /*    PricePresentations = s.PricesWithMaterial.Select(s => new
                         {
                             s.Id,
                             s.IdCatalogs,
                             s.Description,
                             s.Price,
                             s.Active
-                        }).ToList()
+                        }).ToList()*/
                     }).OrderBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
