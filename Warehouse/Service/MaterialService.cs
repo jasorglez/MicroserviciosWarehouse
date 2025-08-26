@@ -178,6 +178,11 @@ namespace Warehouse.Service
                 existingItem.StockMin = material.StockMin;
                 existingItem.StockMax = material.StockMax;
                 existingItem.Picture = material.Picture;
+                existingItem.DescriptionPackage = material.DescriptionPackage;
+                existingItem.PackageQuantity = material.PackageQuantity;
+                existingItem.Measure = material.Measure;
+                existingItem.WeightOrVolumes = material.WeightOrVolumes;
+                existingItem.Expiration = material.Expiration;                
                 existingItem.TypeMaterial = material.TypeMaterial;
                 existingItem.Vigente = material.Vigente;
                 existingItem.Active = material.Active;
