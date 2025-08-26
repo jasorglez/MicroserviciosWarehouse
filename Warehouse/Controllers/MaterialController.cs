@@ -70,86 +70,56 @@ namespace Warehouse.Controllers
         }
 
 
+
         [HttpPost]
-        public async Task<ActionResult> Save([FromBody] CreateMaterialDTO material)
-        {
-         
-            var materialDB = new Material
+        public async Task<IActionResult> CreateMaterial([FromBody] Material material)
             {
-                IdCompany = material.IdCompany,
-                Insumo = material.Insumo,
-                Articulo = material.Articulo,
-                BarCode = material.BarCode,
-                IdFamilia = material.IdFamilia,
-                IdSubfamilia = material.IdSubfamilia,
-                IdMedida = material.IdMedida,
-                IdUbication = material.IdUbication,
-                Description = material.Description,
-                Date = material.Date,
-                AplicaResg = material.AplicaResg,
-                CostoMN = material.CostoMN,
-                CostoDLL = material.CostoDLL,
-                VentaMN = material.VentaMN,
-                VentaDLL = material.VentaDLL,
-                StockMin = material.StockMin,
-                StockMax = material.StockMax,
-                Picture = material.Picture,
-                TypeMaterial = material.TypeMaterial,
-                Vigente = material.Vigente,
-                Active = material.Active
-            };
-            
-            try
-            {
-                await _service.Save(materialDB);
-                return Ok();
+                try
+                {
+                    if (!ModelState.IsValid)
+                    {
+                        return BadRequest(ModelState);
+                    }
+
+                    if (material == null)
+                    {
+                        return BadRequest("Material data is required");
+                    }
+
+                    await _service.Save(material);
+
+                    return CreatedAtAction(nameof(CreateMaterial), new { id = material.Id }, material);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error creating material");
+                    return StatusCode(500, "Internal server error");
+                }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error saving material");
-                return StatusCode(500, "Internal server error");
-            }
-        }
+        
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<Material>> Update(int id, [FromBody] CreateMaterialDTO material)
+        public async Task<ActionResult<Material>> Update(int id, [FromBody] Material material)
         {
-            var materialDB = new Material
-            {
-                Id = id, // Assign the ID from the route parameter
-                IdCompany = material.IdCompany,
-                Insumo = material.Insumo,
-                Articulo = material.Articulo,
-                BarCode = material.BarCode,
-                IdFamilia = material.IdFamilia,
-                IdSubfamilia = material.IdSubfamilia,
-                IdMedida = material.IdMedida,
-                IdUbication = material.IdUbication,
-                Description = material.Description,
-                Date = material.Date,
-                AplicaResg = material.AplicaResg,
-                CostoMN = material.CostoMN,
-                CostoDLL = material.CostoDLL,
-                VentaMN = material.VentaMN,
-                VentaDLL = material.VentaDLL,
-                StockMin = material.StockMin,
-                StockMax = material.StockMax,
-                Picture = material.Picture,
-                TypeMaterial = material.TypeMaterial,
-                Vigente = material.Vigente,
-                Active = material.Active
-            };
-            
             try
             {
-                var result = await _service.Update(id, materialDB);
-                if (result == null)
-                    return NotFound();
-                return Ok(result);
+                if (!ModelState.IsValid)
+                {
+                    return BadRequest(ModelState);
+                }
+
+                if (material == null)
+                {
+                    return BadRequest("Material data is required");
+                }
+
+                var updateMat = await _service.Update(id,material);
+
+                return Ok(updateMat);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error updating material with ID {Id}", id);
+                _logger.LogError(ex, "Error Update Material");
                 return StatusCode(500, "Internal server error");
             }
         }
