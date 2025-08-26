@@ -32,6 +32,7 @@ namespace Warehouse.Service
                         s.Insumo,
                         s.BarCode,
                         s.Articulo,
+                        s.IdCategory,
                         s.IdFamilia,
                         s.IdSubfamilia,
                         s.IdMedida,
@@ -43,11 +44,12 @@ namespace Warehouse.Service
                         s.CostoDLL,
                         s.VentaMN,
                         s.VentaDLL,
-                        s.StockMin,
-                        s.StockMax,
-                        s.Picture,
-                        s.Vigente,
-                        s.TypeMaterial,
+                        s.StockMin, s.StockMax, s.Picture,
+                        s.Vigente,  s.TypeMaterial,
+                        s.DescriptionPackage,
+                        s.PackageQuantity, s.Measure,
+                        s.WeightOrVolumes,s.Expiration,
+
                         s.Active
                        
                     })
@@ -161,6 +163,7 @@ namespace Warehouse.Service
                 existingItem.Insumo = material.Insumo;
                 existingItem.Articulo = material.Articulo;
                 existingItem.BarCode = material.BarCode;
+                existingItem.IdCategory = material.IdCategory;
                 existingItem.IdFamilia = material.IdFamilia;
                 existingItem.IdSubfamilia = material.IdSubfamilia;
                 existingItem.IdMedida = material.IdMedida;
