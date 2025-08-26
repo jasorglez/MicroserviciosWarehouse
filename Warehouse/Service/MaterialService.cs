@@ -135,12 +135,47 @@ namespace Warehouse.Service
         {
             try
             {
-                _context.Materials.Add(material);
+                // Crear una nueva instancia con los campos necesarios
+                var newMaterial = new Material
+                {
+                    // Asignar campos del material recibido
+                    IdCompany = material.IdCompany,
+                    IdBranch = material.IdBranch,
+                    IdCustomer = material.IdCustomer,
+                    Insumo = material.Insumo,
+                    Articulo = material.Articulo,
+                    BarCode = material.BarCode,
+                    IdCategory = material.IdCategory,
+                    IdFamilia = material.IdFamilia,
+                    IdSubfamilia = material.IdSubfamilia,
+                    IdMedida = material.IdMedida,
+                    IdUbication = material.IdUbication,
+                    Description = material.Description,
+                    Date = material.Date ?? DateTime.UtcNow, // Valor por defecto si es null
+                    AplicaResg = material.AplicaResg,
+                    CostoMN = material.CostoMN,
+                    CostoDLL = material.CostoDLL,
+                    VentaMN = material.VentaMN,
+                    VentaDLL = material.VentaDLL,
+                    StockMin = material.StockMin,
+                    StockMax = material.StockMax,
+                    Picture = material.Picture,
+                    DescriptionPackage = material.DescriptionPackage,
+                    PackageQuantity = material.PackageQuantity,
+                    Measure = material.Measure,
+                    WeightOrVolumes = material.WeightOrVolumes,
+                    Expiration = material.Expiration,
+                    TypeMaterial = material.TypeMaterial,
+                    Vigente = material.Vigente ?? true, // Valor por defecto si es null
+                    Active = material.Active ?? true // Valor por defecto si es null
+                };
+
+                _context.Materials.Add(newMaterial);
                 await _context.SaveChangesAsync();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error saving Supply");
+                _logger.LogError(ex, "Error saving Material");
                 throw;
             }
         }
