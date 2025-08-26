@@ -36,12 +36,12 @@ namespace Warehouse.Models
         [Required]
         [Column("delivery", TypeName = "VARCHAR")]
         [StringLength(80)]
-        public string Delivery { get; set; } = string.Empty;
+        public string? Delivery { get; set; } = string.Empty;
 
         [Required]
         [Column("deliverytime", TypeName = "VARCHAR")]
         [StringLength(20)]
-        public string DeliveryTime { get; set; } = string.Empty;
+        public string? DeliveryTime { get; set; } = string.Empty;
 
         [Required]
         [Column("typeoc", TypeName = "VARCHAR")]
@@ -50,7 +50,7 @@ namespace Warehouse.Models
 
         [Required]
         [Column("datesupply", TypeName = "DATE")]
-        public DateTime DateSupply { get; set; }
+        public DateTime? DateSupply { get; set; }
 
         [Required]
         [Column("id_payment")]
