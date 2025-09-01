@@ -17,6 +17,64 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        public async Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany)
+        {
+            try
+            {
+                return await _context.MaterialsxProvExists
+                    .Where(m => m.IdCompany == idCompany)
+                    .OrderBy(m => m.Description)
+                    .Select(m => new MaterialsxProvExist
+                    {
+                        Id = m.Id,
+                        IdCompany = m.IdCompany,
+                        IdBranch = m.IdBranch,
+                        TypeOcorReq = m.TypeOcorReq,
+                        IdCustomer = m.IdCustomer,
+                        TypeMaterial = m.TypeMaterial,
+                        Insumo = m.Insumo,
+                        Barcode = m.Barcode,
+                        Company = m.Company,
+                        Articulo = m.Articulo,
+                        IdCategory = m.IdCategory,
+                        IdFamilia = m.IdFamilia,
+                        IdSubfamilia = m.IdSubfamilia,
+                        Description = m.Description,
+                        Folio = m.Folio,
+                        Price = m.Price,
+                        Quantity = m.Quantity,
+                        IdMedida = m.IdMedida,
+                        IdUbication = m.IdUbication,
+                        Date = m.Date,
+                        AplicaResg = m.AplicaResg,
+                        Vigente = m.Vigente,
+                        StockMax = m.StockMax,
+                        StockMin = m.StockMin,
+                        CostoMN = m.CostoMN,
+                        CostoDLL = m.CostoDLL,
+                        VentaMN = m.VentaMN,
+                        VentaDLL = m.VentaDLL,
+                        Picture = m.Picture,
+                        DescriptionPackage = m.DescriptionPackage,
+                        PackageQuantity = m.PackageQuantity,
+                        Measure = m.Measure,
+                        WeightOrVolumes = m.WeightOrVolumes,
+                        Expiration = m.Expiration,
+                        FolioOcorReq = m.FolioOcorReq,
+                        FechaOc = m.FechaOc,
+                        InOrOutQuantity = m.InOrOutQuantity,
+                        Pending = m.Pending                        
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Materials view");
+                throw;
+            }
+        }
+
         public async Task<List<object>> GetSupplies(int idCompany, string typematerial)
         {
             try
@@ -264,6 +322,7 @@ namespace Warehouse.Service
     {
         Task<List<object>> GetSupplies(int idCompany, string typematerial);
         Task<List<object>> Get2Supplies(int idCompany);
+        Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany);
         Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
         Task Save(Material material);
         Task<Material?> Update(int id, Material material);
@@ -271,3 +330,5 @@ namespace Warehouse.Service
     }
 
 }
+
+    

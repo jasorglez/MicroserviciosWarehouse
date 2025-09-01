@@ -27,6 +27,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<RawMaterialDetails> RawMaterialDetails { get; set; }
     public virtual DbSet<PricesXProductsPresentation> PricesXProductsPresentation { get; set; }
     public virtual DbSet<MaterialsByBranchVW> MaterialsByBranchVW { get; set; }
+    public virtual DbSet<MaterialsxProvExist> MaterialsxProvExists { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
     {
@@ -35,6 +36,13 @@ public partial class DbWarehouseContext : DbContext
                 entity.HasNoKey();
                 entity.ToView("materialsByBranchVW"); // 👈 nombre de la vista en la DB
             });
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<MaterialsxProvExist>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("MaterialsxProvExist"); // 👈 nombre de la vista en la DB
+        });
         base.OnModelCreating(modelBuilder);
 
 

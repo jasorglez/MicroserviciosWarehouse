@@ -22,6 +22,7 @@ namespace Warehouse.Controllers
             _logger = logger;
         }
 
+
         [HttpGet("{idCompany}")]
         public async Task<ActionResult<List<object>>> GetSupplies(int idCompany, string typematerial)
         {
@@ -49,6 +50,22 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        
+        [HttpGet("materialsview/{company}")]
+        public async Task<ActionResult<List<MaterialsxProvExist>>> GetMaterialsView(int company)
+        {
+            try
+            {
+                return await _service.GetMaterialsView(company);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {company}", company);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
 
         [HttpGet("byNameOrBarcode")]
         public async Task<ActionResult<List<object>>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode)
