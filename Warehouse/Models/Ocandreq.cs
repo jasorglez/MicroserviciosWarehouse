@@ -1,6 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace Warehouse.Models
 {
@@ -50,6 +51,7 @@ namespace Warehouse.Models
 
         [Required]
         [Column("datesupply", TypeName = "DATE")]
+        [JsonPropertyName("dateSupply")]
         public DateTime? DateSupply { get; set; }
 
         [Required]
