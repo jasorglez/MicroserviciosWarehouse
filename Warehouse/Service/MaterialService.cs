@@ -27,10 +27,53 @@ namespace Warehouse.Service
                     .AsNoTracking()
                     .ToListAsync();
 
-                // Log temporal para verificar
+                // Aplicar valores por defecto después de cargar desde BD
                 foreach (var item in result)
                 {
-                    _logger.LogInformation($"ID: {item.Id}, Company: '{item.Company}', Articulo: '{item.Articulo}'");
+                    // Strings - aplicar valores por defecto si son null o vacíos
+                    item.TypeOcorReq = string.IsNullOrEmpty(item.TypeOcorReq) ? "N/A" : item.TypeOcorReq;
+                    item.Insumo = string.IsNullOrEmpty(item.Insumo) ? "N/A" : item.Insumo;
+                    item.Barcode = string.IsNullOrEmpty(item.Barcode) ? "N/A" : item.Barcode;
+                    item.Company = string.IsNullOrEmpty(item.Company) ? "N/A" : item.Company;
+                    item.Articulo = string.IsNullOrEmpty(item.Articulo) ? "Sin especificar" : item.Articulo;
+                    item.Description = string.IsNullOrEmpty(item.Description) ? "Sin descripción" : item.Description;
+                    item.Folio = string.IsNullOrEmpty(item.Folio) ? "N/A" : item.Folio;
+                    item.Picture = string.IsNullOrEmpty(item.Picture) ? "sin-imagen.jpg" : item.Picture;
+                    item.DescriptionPackage = string.IsNullOrEmpty(item.DescriptionPackage) ? "N/A" : item.DescriptionPackage;
+                    item.Measure = string.IsNullOrEmpty(item.Measure) ? "Unidad" : item.Measure;
+                    item.FolioOcorReq = string.IsNullOrEmpty(item.FolioOcorReq) ? "N/A" : item.FolioOcorReq;
+
+                    // Decimales - asignar 0 si son null
+                    item.Price ??= 0;
+                    item.Quantity ??= 0;
+                    item.CostoMN ??= 0;
+                    item.CostoDLL ??= 0;
+                    item.VentaMN ??= 0;
+                    item.VentaDLL ??= 0;
+                    item.PackageQuantity ??= 1;
+                    item.WeightOrVolumes ??= 0;
+                    item.InOrOutQuantity ??= 0;
+                    item.Pending ??= 0;
+
+                    // Enteros - asignar 0 si son null
+                    item.IdBranch ??= 0;
+                    item.IdCustomer ??= 0;
+                    item.IdCategory ??= 0;
+                    item.IdFamilia ??= 0;
+                    item.IdSubfamilia ??= 0;
+                    item.IdMedida ??= 0;
+                    item.IdUbication ??= 0;
+                    item.StockMin ??= 0;
+                    item.StockMax ??= 0;
+                    item.Expiration ??= 0;
+
+                    // Booleans - asignar false si son null
+                    item.AplicaResg ??= false;
+                    item.Vigente ??= true; // Este probablemente debería ser true por defecto
+
+                    // DateTime - puedes asignar fecha actual o una fecha por defecto
+                    // item.Date ??= DateTime.Now; // Solo si lo necesitas
+                    // item.FechaOc ??= DateTime.Now; // Solo si lo necesitas
                 }
 
                 return result;

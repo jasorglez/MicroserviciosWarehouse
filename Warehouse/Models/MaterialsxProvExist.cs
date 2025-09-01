@@ -60,6 +60,7 @@ namespace Warehouse.Models
 
         [Column("folio")]
         [StringLength(20)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public string? Folio { get; set; }
 
         [Column("price", TypeName = "decimal(18,4)")]
@@ -124,15 +125,18 @@ namespace Warehouse.Models
 
         [Column("folioOcorReq")]
         [StringLength(100)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
         public string? FolioOcorReq { get; set; }
 
         [Column("fechaOc")]
         public DateTime? FechaOc { get; set; }
 
         [Column("inoroutquantity", TypeName = "decimal(18,4)")]
-        public decimal? InOrOutQuantity { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public decimal? InOrOutQuantity { get; set; } = 0;
 
         [Column("pending", TypeName = "decimal(18,4)")]
-        public decimal? Pending { get; set; }
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public decimal? Pending { get; set; } = 0;
     }
 }
