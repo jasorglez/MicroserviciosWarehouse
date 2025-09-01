@@ -21,52 +21,19 @@ namespace Warehouse.Service
         {
             try
             {
-                return await _context.MaterialsxProvExists
+                var result = await _context.MaterialsxProvExists
                     .Where(m => m.IdCompany == idCompany)
                     .OrderBy(m => m.Description)
-                    .Select(m => new MaterialsxProvExist
-                    {
-                        Id = m.Id,
-                        IdCompany = m.IdCompany,
-                        IdBranch = m.IdBranch,
-                        TypeOcorReq = m.TypeOcorReq,
-                        IdCustomer = m.IdCustomer,
-                        TypeMaterial = m.TypeMaterial,
-                        Insumo = m.Insumo,
-                        Barcode = m.Barcode,
-                        Company = m.Company,
-                        Articulo = m.Articulo,
-                        IdCategory = m.IdCategory,
-                        IdFamilia = m.IdFamilia,
-                        IdSubfamilia = m.IdSubfamilia,
-                        Description = m.Description,
-                        Folio = m.Folio,
-                        Price = m.Price,
-                        Quantity = m.Quantity,
-                        IdMedida = m.IdMedida,
-                        IdUbication = m.IdUbication,
-                        Date = m.Date,
-                        AplicaResg = m.AplicaResg,
-                        Vigente = m.Vigente,
-                        StockMax = m.StockMax,
-                        StockMin = m.StockMin,
-                        CostoMN = m.CostoMN,
-                        CostoDLL = m.CostoDLL,
-                        VentaMN = m.VentaMN,
-                        VentaDLL = m.VentaDLL,
-                        Picture = m.Picture,
-                        DescriptionPackage = m.DescriptionPackage,
-                        PackageQuantity = m.PackageQuantity,
-                        Measure = m.Measure,
-                        WeightOrVolumes = m.WeightOrVolumes,
-                        Expiration = m.Expiration,
-                        FolioOcorReq = m.FolioOcorReq,
-                        FechaOc = m.FechaOc,
-                        InOrOutQuantity = m.InOrOutQuantity,
-                        Pending = m.Pending                        
-                    })
                     .AsNoTracking()
                     .ToListAsync();
+
+                // Log temporal para verificar
+                foreach (var item in result)
+                {
+                    _logger.LogInformation($"ID: {item.Id}, Company: '{item.Company}', Articulo: '{item.Articulo}'");
+                }
+
+                return result;
             }
             catch (Exception ex)
             {

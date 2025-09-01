@@ -1,6 +1,7 @@
 ﻿
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace Warehouse.Models
 {
@@ -24,23 +25,24 @@ namespace Warehouse.Models
         public int? IdCustomer { get; set; }
 
         [Column("typematerial")]
-        [StringLength(100)]
+        [StringLength(10)]
         public string TypeMaterial { get; set; }
 
         [Column("insumo")]
-        [StringLength(255)]
+        [StringLength(35)]
         public string? Insumo { get; set; }
 
         [Column("barcode")]
-        [StringLength(100)]
+        [StringLength(50)]
         public string? Barcode { get; set; }
 
         [Column("company")]
-        [StringLength(255)]
-        public string? Company { get; set; }
+        [StringLength(150)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.Never)]
+        public string? Company { get; set; } = "NA";
 
         [Column("articulo")]
-        [StringLength(255)]
+        [StringLength(50)]
         public string? Articulo { get; set; }
 
         [Column("id_category")]
@@ -57,7 +59,7 @@ namespace Warehouse.Models
         public string? Description { get; set; }
 
         [Column("folio")]
-        [StringLength(100)]
+        [StringLength(20)]
         public string? Folio { get; set; }
 
         [Column("price", TypeName = "decimal(18,4)")]
