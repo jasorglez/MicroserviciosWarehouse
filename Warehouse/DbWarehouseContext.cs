@@ -28,6 +28,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<PricesXProductsPresentation> PricesXProductsPresentation { get; set; }
     public virtual DbSet<MaterialsByBranchVW> MaterialsByBranchVW { get; set; }
     public virtual DbSet<MaterialsxProvExist> MaterialsxProvExists { get; set; }
+    public virtual DbSet<ProveedorXTabla> ProveedorXTablas { get; set; }    
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
     {

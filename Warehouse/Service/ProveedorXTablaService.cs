@@ -1,0 +1,101 @@
+﻿
+using Microsoft.EntityFrameworkCore;
+using Warehouse.Models;
+using System.Threading.Tasks;
+
+namespace Warehouse.Service
+{
+   
+
+    public class ProveedorXTablaService : IProveedorXTablaService
+    {
+        private readonly DbWarehouseContext _context;
+        private readonly ILogger<ProveedorXTablaService> _logger;
+
+        public ProveedorXTablaService(DbWarehouseContext context, ILogger<ProveedorXTablaService> logger)
+        {
+            _context = context ?? throw new ArgumentNullException(nameof(context));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<List<ProveedorXTabla>> GetAll(int idProveedor, string Type)
+        {
+            return await _context.ProveedorXTablas
+                .Where(p =>  p.IdTabla == idProveedor && p.Type== Type && p.Active )
+                .ToListAsync();
+        }
+
+        public async Task<ProveedorXTabla?> GetById(int id)
+        {
+            return await _context.ProveedorXTablas
+                .FirstOrDefaultAsync(p => p.Id == id && p.Active);
+        }
+
+        public async Task<List<ProveedorXTabla>> GetByType(string type)
+        {
+            return await _context.ProveedorXTablas
+                .Where(p => p.Type == type && p.Active)
+                .ToListAsync();
+        }
+
+        public async Task<ProveedorXTabla> Create(ProveedorXTabla proveedor)
+        {
+            _context.ProveedorXTablas.Add(proveedor);
+            await _context.SaveChangesAsync();
+            return proveedor;
+        }
+
+        public async Task<ProveedorXTabla?> Update(int id, ProveedorXTabla proveedor)
+        {
+            var existing = await _context.ProveedorXTablas.FindAsync(id);
+            if (existing == null) return null;
+
+            // Actualizar propiedades
+            existing.IdTabla = proveedor.IdTabla;
+            existing.Campo1 = proveedor.Campo1;
+            existing.Campo2 = proveedor.Campo2;
+            existing.Campo3 = proveedor.Campo3;
+            existing.Campo4 = proveedor.Campo4;
+            existing.Campo5 = proveedor.Campo5;
+            existing.Campo6 = proveedor.Campo6;
+            existing.Campo7 = proveedor.Campo7;
+            existing.Type = proveedor.Type;
+
+            await _context.SaveChangesAsync();
+            return existing;
+        }
+
+        public async Task<bool> Delete(int id)
+        {
+            var proveedor = await _context.ProveedorXTablas.FindAsync(id);
+            if (proveedor == null) return false;
+
+            _context.ProveedorXTablas.Remove(proveedor);
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> ToggleActive(int id)
+        {
+            var proveedor = await _context.ProveedorXTablas.FindAsync(id);
+            if (proveedor == null) return false;
+
+            proveedor.Active = !proveedor.Active;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+    }
+
+
+    public interface IProveedorXTablaService
+    {
+        Task<List<ProveedorXTabla>> GetAll(int idProveedor, string Type);
+        Task<ProveedorXTabla?> GetById(int id);
+        Task<List<ProveedorXTabla>> GetByType(string type);
+        Task<ProveedorXTabla> Create(ProveedorXTabla proveedor);
+        Task<ProveedorXTabla?> Update(int id, ProveedorXTabla proveedor);
+        Task<bool> Delete(int id);
+        Task<bool> ToggleActive(int id);
+    }
+
+}
