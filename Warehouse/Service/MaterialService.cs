@@ -17,6 +17,24 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        public async Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany)
+        {
+            try
+            {
+                var result = await _context.ProveedoresxtypeViews
+                    .Where(m => m.IdRoot == idCompany)
+                    .OrderBy(m => m.Company)
+                    .AsNoTracking()
+                    .ToListAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Materials view");
+                throw;
+            }
+        }
+
         public async Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany)
         {
             try
@@ -330,6 +348,7 @@ namespace Warehouse.Service
 
     public interface IMaterialService
     {
+        Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany);
         Task<List<object>> GetSupplies(int idCompany, string typematerial);
         Task<List<object>> Get2Supplies(int idCompany);
         Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany);

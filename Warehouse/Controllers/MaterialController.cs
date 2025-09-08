@@ -37,6 +37,20 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("matprov/{idCompany}")]
+        public async Task<ActionResult<List<ProveedoresxtypeView>>> GetMat(int idCompany)
+        {
+            try
+            {
+                return await _service.MaterialsxProvView(idCompany);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {IdCompany}", idCompany);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("2fields")]
         public async Task<ActionResult<List<object>>> Supplies(int idCompany)
         {
