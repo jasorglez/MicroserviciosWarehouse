@@ -83,6 +83,42 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<Catalog>> GetTypexCat(string type)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active == 1 && c.Type == type)
+                    .Select(cat => new Catalog
+                    {
+                        Id = cat.Id,
+                        IdCompany = cat.IdCompany,
+                        Description = cat.Description,
+                        ValueAddition = cat.ValueAddition,
+                        ValueAddition2 = cat.ValueAddition2,
+                        ValueAdditionBit = cat.ValueAdditionBit,
+                        Type = cat.Type,
+                        ParentId = cat.ParentId,
+                        SubParentId = cat.SubParentId,
+                        Vigente = cat.Vigente,
+                        Price = cat.Price,
+                        Active = cat.Active
+
+                    })
+                    .OrderByDescending(cat => cat.Vigente)
+                    .ThenBy(cat => cat.Description)
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalogs");
+                throw;
+            }
+        }
+
+
         public async Task<List<Catalog>> GetTypeVigente(string type, int idCompany)
         {
             try
@@ -350,6 +386,7 @@ namespace Warehouse.Service
 
     public interface ICatalogService
     {
+        Task<List<Catalog>> GetTypexCat(string type);
         Task<List<Catalog>> GetType(string type, int idCompany);
         Task<List<Catalog>> GetTypeAll(int idCompany);
         Task<List<Catalog>> GetTypeVigente(string type, int idCompany);

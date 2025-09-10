@@ -18,7 +18,7 @@ namespace Warehouse.Models
         public string Folio { get; set; } = string.Empty;
         
         [Column("type_reference")]
-        public string TypeReference { get; set; } // "project" o "branch"
+        public string? TypeReference { get; set; } // "project" o "branch"
 
         [Column("id_reference")]
         public int IdReference { get; set; }
