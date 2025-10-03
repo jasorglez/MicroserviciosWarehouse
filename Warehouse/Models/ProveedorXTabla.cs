@@ -50,6 +50,10 @@ namespace Warehouse.Models
         [DefaultValue(false)]
         public bool Campo7 { get; set; } = false;
 
+        [Column("campo8")]
+        [DefaultValue(false)]
+        public DateTime? Campo8 { get; set; }
+
         [Column("type")]
         [StringLength(10)]
         public string? Type { get; set; }

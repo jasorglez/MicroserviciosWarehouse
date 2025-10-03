@@ -59,6 +59,7 @@ namespace Warehouse.Service
             existing.Campo5 = proveedor.Campo5;
             existing.Campo6 = proveedor.Campo6;
             existing.Campo7 = proveedor.Campo7;
+            existing.Campo8 = proveedor.Campo8;
             existing.Type = proveedor.Type;
 
             await _context.SaveChangesAsync();
