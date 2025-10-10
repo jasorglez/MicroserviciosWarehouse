@@ -54,6 +54,14 @@ namespace Warehouse.Controllers
             return Ok(updated);
         }
 
+        [HttpPut("abonoTabla/{id}/{table}")]
+        public async Task<ActionResult<ProveedorXTabla>> UpdateAbonoTabla(int id, int table)
+        {
+            var updated = await _service.UpdateAbonoTabla(id, table);
+            if (updated == null) return NotFound();
+            return Ok(updated);
+        }
+
         [HttpDelete("{id}")]
         public async Task<ActionResult> Delete(int id)
         {

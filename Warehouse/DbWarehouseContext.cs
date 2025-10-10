@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Warehouse.Models;
+using Warehouse.Models.Delison;
 
 namespace Warehouse;
 
@@ -28,8 +29,10 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<PricesXProductsPresentation> PricesXProductsPresentation { get; set; }
     public virtual DbSet<MaterialsByBranchVW> MaterialsByBranchVW { get; set; }
     public virtual DbSet<MaterialsxProvExist> MaterialsxProvExists { get; set; }
-    public virtual DbSet<ProveedorXTabla> ProveedorXTablas { get; set; }    
-    public virtual DbSet<ProveedoresxtypeView> ProveedoresxtypeViews { get; set; }  
+    public virtual DbSet<ProveedorXTabla> ProveedorXTablas { get; set; }
+    public virtual DbSet<ProveedoresxtypeView> ProveedoresxtypeViews { get; set; }
+    public virtual DbSet<MaterialsDelison> MaterialsDelison { get; set; }
+    public virtual DbSet<CreditProveedores> CreditProveedores { get; set; }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
     {
@@ -51,6 +54,13 @@ public partial class DbWarehouseContext : DbContext
         {
             entity.HasNoKey();
             entity.ToView("MaterialsxProvExist"); // 👈 nombre de la vista en la DB
+        });
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<CreditProveedores>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("creditproveedores"); // 👈 nombre de la vista en la DB
         });
         base.OnModelCreating(modelBuilder);
 
