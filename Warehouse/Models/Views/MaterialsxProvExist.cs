@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 
-namespace Warehouse.Models
+namespace Warehouse.Models.Views
 {
     [Table("materialsxprovexist", Schema = "dbo")]
     public class MaterialsxProvExist
@@ -81,10 +81,10 @@ namespace Warehouse.Models
         [Column("aplicaResg")]
         public bool? AplicaResg { get; set; }
 
-        [Column("costoMN",TypeName = "decimal(18,4)")]
+        [Column("costoMN", TypeName = "decimal(18,4)")]
         public decimal? CostoMN { get; set; }
 
-        [Column("costoDLL",TypeName = "decimal(18,4)")]
+        [Column("costoDLL", TypeName = "decimal(18,4)")]
         public decimal? CostoDLL { get; set; }
 
         [Column("ventaMN", TypeName = "decimal(18,4)")]
@@ -93,7 +93,7 @@ namespace Warehouse.Models
         [Column("ventaDLL", TypeName = "decimal(18,4)")]
         public decimal? VentaDLL { get; set; }
 
-        [Column("stockmin" )]
+        [Column("stockmin")]
         public int? StockMin { get; set; }
 
         [Column("stockmax")]

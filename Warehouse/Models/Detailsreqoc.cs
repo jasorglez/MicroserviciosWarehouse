@@ -30,11 +30,12 @@ namespace Warehouse.Models
 
         [Required]
         [Column("price", TypeName = "DECIMAL(16,2)")]
-        public decimal Price { get; set; }
+        public decimal Price { get; set; }               
 
-        [Required]
-        [Column("total", TypeName = "DECIMAL(16,2)")]
-        public decimal Total { get; set; }
+        // Propiedad de solo lectura para calcular el total en el código si es necesario
+        [NotMapped]
+        public decimal Total => Quantity * Price;
+    
 
         [Column("type", TypeName = "VARCHAR")]
         [StringLength(6)]

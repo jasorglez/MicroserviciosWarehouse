@@ -50,6 +50,12 @@ namespace Warehouse.Models
         [DefaultValue(false)]
         public bool Campo7 { get; set; } = false;
 
+        [Column("campo8")]
+        public DateTime? Campo8 { get; set; }
+
+        [Column("campo9", TypeName = "DECIMAL(16,2)")]
+        public decimal Campo9 { get; set; } 
+
         [Column("type")]
         [StringLength(10)]
         public string? Type { get; set; }

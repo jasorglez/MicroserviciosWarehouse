@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 
-namespace Warehouse.Models
+namespace Warehouse.Models.Views
 {
     public class ProveedoresxtypeView
     {
@@ -45,7 +45,7 @@ namespace Warehouse.Models
 
         [Column("id_root")]
         public int IdRoot { get; set; }
-        
+
         [Column("vigente")]
         public bool? Vigente { get; set; }
 

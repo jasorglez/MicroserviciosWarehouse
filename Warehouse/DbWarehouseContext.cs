@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Warehouse.Models;
+using Warehouse.Models.Views;
 
 namespace Warehouse;
 
@@ -29,10 +30,19 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialsByBranchVW> MaterialsByBranchVW { get; set; }
     public virtual DbSet<MaterialsxProvExist> MaterialsxProvExists { get; set; }
     public virtual DbSet<ProveedorXTabla> ProveedorXTablas { get; set; }    
-    public virtual DbSet<ProveedoresxtypeView> ProveedoresxtypeViews { get; set; }  
+    public virtual DbSet<ProveedoresxtypeView> ProveedoresxtypeViews { get; set; }
+    public virtual DbSet<MaterialsXProvider> MaterialsxProviders { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
     {
+        modelBuilder.Entity<MaterialsxProvExist>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("materialsxproviders"); // 👈 nombre de la vista en la DB
+        });
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<MaterialsByBranchVW>(entity =>
             {
                 entity.HasNoKey();

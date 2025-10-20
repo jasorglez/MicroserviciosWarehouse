@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Warehouse.Models;
+using Warehouse.Models.Views;
 
 
 namespace Warehouse.Service
@@ -34,6 +35,25 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<MaterialsXProvider>> MaterialsxProv(string Typereference, int idProv)
+        {
+            try
+            {
+                var result = await _context.MaterialsxProviders
+                    .Where(m => m.IdProvider==idProv)
+                    .OrderBy(m => m.TypeReference==Typereference)
+                    .AsNoTracking()
+                    .ToListAsync();
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Materials view");
+                throw;
+            }
+        }
+
 
         public async Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany)
         {
@@ -349,6 +369,7 @@ namespace Warehouse.Service
     public interface IMaterialService
     {
         Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany);
+        Task<List<MaterialsXProvider>> MaterialsxProv(string Typereference, int idProv);
         Task<List<object>> GetSupplies(int idCompany, string typematerial);
         Task<List<object>> Get2Supplies(int idCompany);
         Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany);

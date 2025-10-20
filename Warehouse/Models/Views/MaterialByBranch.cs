@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
 
-namespace Warehouse.Models
+namespace Warehouse.Models.Views
 {
     [Table("materialsByBranchVW")]
     public class MaterialsByBranchVW
@@ -36,7 +36,7 @@ namespace Warehouse.Models
         [Required]
         [Column("id_familia")]
         public int IdFamilia { get; set; }
-        
+
         [Column("id_subfamilia")]
         public int? IdSubfamilia { get; set; }
 
@@ -96,7 +96,7 @@ namespace Warehouse.Models
         [Required]
         [Column("active")]
         public bool Active { get; set; }
-        
+
         // Propiedad de navegación para la relación inversa con PricesXProductsPresentation
         public virtual ICollection<PricesXProductsPresentation> PricesWithMaterial { get; set; } = new List<PricesXProductsPresentation>();
     }

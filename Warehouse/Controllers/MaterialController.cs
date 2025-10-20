@@ -5,6 +5,7 @@ using Warehouse.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
 using Warehouse.Models.DTOs;
+using Warehouse.Models.Views;
 
 namespace Warehouse.Controllers
 {
@@ -47,6 +48,20 @@ namespace Warehouse.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error retrieving supplies for company {IdCompany}", idCompany);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("materialsxproviders")]
+        public async Task<ActionResult<List<MaterialsXProvider>>> GetMaterial(string Typereference, int idProv)
+        {
+            try
+            {
+                return await _service.MaterialsxProv(Typereference, idProv);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {IdProv}", idProv);
                 return StatusCode(500, "Internal server error");
             }
         }

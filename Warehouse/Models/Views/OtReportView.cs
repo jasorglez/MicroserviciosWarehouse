@@ -1,4 +1,4 @@
-﻿namespace Warehouse.Models
+﻿namespace Warehouse.Models.Views
 {
     public class OtReportView
     {

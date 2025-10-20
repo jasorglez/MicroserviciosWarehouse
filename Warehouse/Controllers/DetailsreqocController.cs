@@ -6,6 +6,7 @@ using Warehouse.Models;
 using Warehouse.Service;
 using Microsoft.Extensions.Logging;
 using Microsoft.AspNetCore.Authorization;
+using Warehouse.Models.DTOs;
 
 namespace Warehouse.Controllers
 {
@@ -35,6 +36,20 @@ namespace Warehouse.Controllers
             {
                 _logger.LogError(ex, "Error getting Details for movement {IdMovement}", idMovement);
                 return StatusCode(500, "An error occurred while retrieving the details");
+            }
+        }
+
+        [HttpGet]
+        public async Task<ActionResult<List<PurchaseOrderDetail>>> GetPurchaseOrders(int idProv)
+        {
+            try
+            {
+                var result = await _service.GetPurchaseOrderDetailsQuery(idProv);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { error = ex.Message });
             }
         }
 

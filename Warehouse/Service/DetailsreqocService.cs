@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Warehouse.Models;
+using Warehouse.Models.DTOs;
 
 namespace Warehouse.Service
 {
@@ -53,6 +54,33 @@ namespace Warehouse.Service
                 _logger.LogError(ex, "Error retrieving Details for movement {IdMovement}", idMovement);
                 throw;
             }
+        }
+
+        // Query Syntax (Alternative)
+        public async Task<List<PurchaseOrderDetail>> GetPurchaseOrderDetailsQuery(int idProv)
+        {
+
+            var result = await (
+                from o in _context.Ocandreqs
+                join d in _context.Detailsreqoc on o.Id equals d.IdMovement
+                join m in _context.Materials on d.IdSupplie equals m.Id
+                where o.Type == "OC" && o.IdProvider==idProv && d.Active == true 
+                orderby o.Id
+                select new PurchaseOrderDetail
+                {
+                    Id           = o.Id,
+                    Folio        = o.Folio,
+                    DateCreate   = o.DateCreate,
+                    IdSupplie    = d.IdSupplie,
+                    Description  = m.Description,
+                    Quantity     = d.Quantity,
+                    Price        = d.Price,
+                    IdProvider   = o.IdProvider 
+                })
+                .AsNoTracking()
+                .ToListAsync();
+
+            return result;
         }
 
         public async Task Save(Detailsreqoc detail)
@@ -122,6 +150,7 @@ namespace Warehouse.Service
     public interface IDetailsreqocService
     {
         Task<List<object>> GetDetails(int idMovement);
+        Task<List<PurchaseOrderDetail>> GetPurchaseOrderDetailsQuery(int idProv);
         Task Save(Detailsreqoc detail);
         Task<Detailsreqoc?> Update(int id, Detailsreqoc detail);
         Task<bool> Delete(int id);
