@@ -35,15 +35,24 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialsDelison> MaterialsDelison { get; set; }
     public virtual DbSet<CreditProveedores> CreditProveedores { get; set; }
     public virtual DbSet<MaterialsXProvider> MaterialsxProviders { get; set; }
+    public virtual DbSet<MaterialWithCount> MaterialWithCounts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
-    {
-        modelBuilder.Entity<MaterialsxProvExist>(entity =>
+    {        
+        modelBuilder.Entity<MaterialWithCount>(entity =>
         {
+            entity.HasNoKey(); // Las vistas generalmente no tienen key
+            entity.ToView("vw_MaterialsWithCounts");            
+            // O si prefieres definir una key:
+            // entity.HasKey(e => e.Id);
+        });
+    
+        modelBuilder.Entity<MaterialsxProvExist>(entity =>
+         {
             entity.HasNoKey();
             entity.ToView("materialsxproviders"); // 👈 nombre de la vista en la DB
-        });
+         });
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<MaterialsByBranchVW>(entity =>

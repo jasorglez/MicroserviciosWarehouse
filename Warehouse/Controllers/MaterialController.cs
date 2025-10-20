@@ -66,6 +66,32 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("with-counts/{idCompany}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<MaterialWithCount>>> GetMaterialsWithCounts(int idCompany)
+        {
+            if (idCompany <= 0)
+            {
+                _logger.LogWarning("Invalid company ID: {IdCompany}", idCompany);
+                return BadRequest(new { message = "ID de compañía inválido" });
+            }
+
+            try
+            {
+                var materials = await _service.GetMaterialsWithCounts(idCompany);
+                return Ok(materials);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting materials with counts for company {IdCompany}", idCompany);
+                return StatusCode(500, new { message = "Error al obtener los materiales" });
+            }
+        }
+
+
+
         [HttpGet("2fields")]
         public async Task<ActionResult<List<object>>> Supplies(int idCompany)
         {

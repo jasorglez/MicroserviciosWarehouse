@@ -36,6 +36,39 @@ namespace Warehouse.Service
             }
         }
 
+
+        public async Task<List<MaterialWithCount>> GetMaterialsWithCounts(int idCompany)
+        {
+            try
+            {
+                var result = await _context.MaterialWithCounts
+                    .Where(m => m.IdCompany == idCompany)
+                    .OrderBy(m => m.Articulo)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                // Aplicar valores por defecto después de cargar desde BD
+                foreach (var item in result)
+                {
+                    item.Insumo     = string.IsNullOrEmpty(item.Insumo) ? "N/A" : item.Insumo;
+                    item.Articulo   = string.IsNullOrEmpty(item.Articulo) ? "Sin especificar" : item.Articulo;
+                    item.Categoria  = string.IsNullOrEmpty(item.Categoria) ? "Sin categoría" : item.Categoria;
+                    item.Familia    = string.IsNullOrEmpty(item.Familia) ? "Sin familia" : item.Familia;
+                    item.Subfamilia = string.IsNullOrEmpty(item.Subfamilia) ? "Sin subfamilia" : item.Subfamilia;
+                    item.Picture    = string.IsNullOrEmpty(item.Picture) ? "sin-imagen.jpg" : item.Picture;
+                    item.ProviderCount ??= 0;
+                    item.SubfamilyCount ??= 0;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Materials with counts for company {IdCompany}", idCompany);
+                throw;
+            }
+        }
+
         public async Task<List<MaterialsXProvider>> MaterialsxProv(string Typereference, int idProv)
         {
             try
@@ -369,6 +402,7 @@ namespace Warehouse.Service
     public interface IMaterialService
     {
         Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany);
+        Task<List<MaterialWithCount>> GetMaterialsWithCounts(int idCompany);
         Task<List<MaterialsXProvider>> MaterialsxProv(string Typereference, int idProv);
         Task<List<object>> GetSupplies(int idCompany, string typematerial);
         Task<List<object>> Get2Supplies(int idCompany);
