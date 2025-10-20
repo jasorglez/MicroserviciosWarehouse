@@ -8,6 +8,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Warehouse;
 using Warehouse.Service;
+using Warehouse.Service.Delison;
 //using Warehouse.Service.Whatsapp;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -92,6 +93,7 @@ builder.Services.AddScoped<ITablesXModulesService, TablesXModulesService>();
 builder.Services.AddScoped<IRawMaterialService, RawMaterialService>();
 builder.Services.AddScoped<IRawMaterialDetailsService, RawMaterialDetailsService>();
 builder.Services.AddScoped<IProveedorXTablaService, ProveedorXTablaService>();
+builder.Services.AddScoped<IMaterialDelisonService, MaterialDelisonService>();
 
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 
