@@ -54,7 +54,11 @@ namespace Warehouse.Models
         public DateTime? Campo8 { get; set; }
 
         [Column("campo9", TypeName = "DECIMAL(16,2)")]
-        public decimal Campo9 { get; set; } 
+        public decimal Campo9 { get; set; }
+
+        [Column("campo10")]
+        [DefaultValue(0)]
+        public int? Campo10 { get; set; } = 0;
 
         [Column("type")]
         [StringLength(10)]
