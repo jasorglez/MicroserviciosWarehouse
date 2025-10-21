@@ -105,32 +105,6 @@ namespace Warehouse.Models
         [StringLength(10)]
         public string? ListPrice { get; set; }
 
-        [Column("packagequantity", TypeName = "DECIMAL(10,2)")]
-        public decimal? PackageQuantity { get; set; }
-
-        [Column("packageprice", TypeName = "NCHAR")]
-        [StringLength(10)]
-        public string? PackagePrice { get; set; }
-
-        [Column("descriptionpackage", TypeName = "VARCHAR")]
-        [StringLength(100)]
-        public string? DescriptionPackage { get; set; }
-
-        [Column("measure", TypeName = "VARCHAR")]
-        [StringLength(50)]
-        public string? Measure { get; set; }
-
-        [Column("requestquantity")]
-        public int? RequestQuantity { get; set; }
-
-        [Column("weightorvolumes", TypeName = "DECIMAL(10,2)")]
-        [DefaultValue(0)]
-        public decimal? WeightOrVolumes { get; set; }
-
-        [Column("expiration")]
-        [DefaultValue(0)]
-        public int? Expiration { get; set; }
-
         [Column("typematerial", TypeName = "CHAR")]
         [StringLength(10)]
         [DefaultValue("CONSUMIBLE")]

@@ -185,9 +185,7 @@ namespace Warehouse.Service
                         s.VentaDLL,
                         s.StockMin, s.StockMax, s.Picture,
                         s.Vigente,  s.TypeMaterial,
-                        s.DescriptionPackage,
-                        s.PackageQuantity, s.Measure,
-                        s.WeightOrVolumes,s.Expiration,
+ 
 
                         s.Active
                        
@@ -298,12 +296,7 @@ namespace Warehouse.Service
                     VentaDLL = material.VentaDLL,
                     StockMin = material.StockMin,
                     StockMax = material.StockMax,
-                    Picture = material.Picture,
-                    DescriptionPackage = material.DescriptionPackage,
-                    PackageQuantity = material.PackageQuantity,
-                    Measure = material.Measure,
-                    WeightOrVolumes = material.WeightOrVolumes,
-                    Expiration = material.Expiration,
+                    Picture = material.Picture,                    
                     TypeMaterial = material.TypeMaterial,
                     Vigente = material.Vigente ?? true, // Valor por defecto si es null
                     Active = material.Active ?? true // Valor por defecto si es null
@@ -352,11 +345,7 @@ namespace Warehouse.Service
                 existingItem.StockMin = material.StockMin;
                 existingItem.StockMax = material.StockMax;
                 existingItem.Picture = material.Picture;
-                existingItem.DescriptionPackage = material.DescriptionPackage;
-                existingItem.PackageQuantity = material.PackageQuantity;
-                existingItem.Measure = material.Measure;
-                existingItem.WeightOrVolumes = material.WeightOrVolumes;
-                existingItem.Expiration = material.Expiration;                
+                
                 existingItem.TypeMaterial = material.TypeMaterial;
                 existingItem.Vigente = material.Vigente;
                 existingItem.Active = material.Active;
