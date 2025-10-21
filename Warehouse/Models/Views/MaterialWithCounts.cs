@@ -15,36 +15,36 @@ namespace Warehouse.Models.Views
 
         [Column("insumo")]
         [StringLength(100)]
-        public string Insumo { get; set; }
+        public string? Insumo { get; set; }
 
         [Column("articulo")]
         [StringLength(255)]
-        public string Articulo { get; set; }
+        public string? Articulo { get; set; }
 
         [Column("id_category")]
         public int IdCategory { get; set; }
 
         [Column("categoria")]
         [StringLength(255)]
-        public string Categoria { get; set; }
+        public string? Categoria { get; set; }
 
         [Column("id_familia")]
-        public int IdFamilia { get; set; }
+        public int? IdFamilia { get; set; }
 
         [Column("familia")]
         [StringLength(255)]
-        public string Familia { get; set; }
+        public string? Familia { get; set; }
 
         [Column("id_subfamilia")]
         public int IdSubfamilia { get; set; }
 
         [Column("subfamilia")]
         [StringLength(255)]
-        public string Subfamilia { get; set; }
+        public string? Subfamilia { get; set; }
 
         [Column("picture")]
         [StringLength(250)]
-        public string Picture { get; set; }
+        public string? Picture { get; set; }
 
         [Column("provider_count")]
         public int? ProviderCount { get; set; }
