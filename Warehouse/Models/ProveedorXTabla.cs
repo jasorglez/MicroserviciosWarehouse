@@ -60,6 +60,14 @@ namespace Warehouse.Models
         [DefaultValue(0)]
         public int? Campo10 { get; set; } = 0;
 
+        [Column("parent_id")]
+        [DefaultValue(0)]
+        public int? IdParent { get; set; } = 0;
+
+        [Column("sub_parent_id")]
+        [DefaultValue(0)]
+        public int? IdsubParent { get; set; } = 0;
+
         [Column("type")]
         [StringLength(10)]
         public string? Type { get; set; }
