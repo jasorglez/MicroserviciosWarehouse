@@ -34,6 +34,14 @@ namespace Warehouse.Service
                 .ToListAsync();
         }
 
+        public async Task<List<ProveedorXTabla>> GetMatXSubfam(int idMaterial, int idFam, string Type)
+        {
+            return await _context.ProveedorXTablas
+                .Where(m => m.Campo1 == idMaterial && m.IdTabla==idFam && m.Type == Type && m.Active)
+                .OrderBy(m => m.Campo2)
+                .ToListAsync();
+        }
+
         public async Task<ProveedorXTabla?> GetById(int id)
         {
             return await _context.ProveedorXTablas
@@ -133,6 +141,7 @@ namespace Warehouse.Service
     {
         Task<List<ProveedorXTabla>> GetAll(int idProveedor, string Type);
         Task<List<ProveedorXTabla>> GetProvxMat(int idMaterial, string Type);
+        Task<List<ProveedorXTabla>> GetMatXSubfam(int idMaterial, int idFam, string Type);
         Task<ProveedorXTabla?> GetById(int id);
         Task<List<ProveedorXTabla>> GetByType(string type);
         Task<ProveedorXTabla> Create(ProveedorXTabla proveedor);

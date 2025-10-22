@@ -46,6 +46,22 @@ namespace Warehouse.Controllers
             return Ok(proveedores);
         }
 
+        [HttpGet]
+        [Route("by-subfam")]
+        public async Task<ActionResult<IEnumerable<ProveedorXTabla>>> GetMatSSubfam(
+     [FromQuery] int idMaterial, [FromQuery] int idFam,
+     [FromQuery] string type)
+        {
+            if (idMaterial <= 0 || string.IsNullOrWhiteSpace(type))
+            {
+                return BadRequest("Invalid material ID or type");
+            }
+
+            var proveedores = await _service.GetMatXSubfam(idMaterial, idFam,type);
+            return Ok(proveedores);
+        }
+
+
         [HttpGet("{id:int}", Name = nameof(GetById))]
         public async Task<ActionResult<ProveedorXTabla>> GetById(int id)
         {
