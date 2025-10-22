@@ -65,6 +65,26 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("getSubfamily")]
+        public async Task<ActionResult<List<object>>> GetSubfamily(int idCompany, int idFam)
+        {
+            try
+            {
+                var cat = await _catalogService.GetTypexSubFam(idCompany, idFam);
+                if (cat == null || !cat.Any())
+                {
+                    _logger.LogWarning("No found Catalog the result is empty");
+                    return NotFound(new { Message = "No Catalog Found or the result is empty", catalog = new List<object>() });
+                }
+                return Ok(cat);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalog for Project");
+                return StatusCode(500, "An error occurred while retrieving Catalog.");
+            }
+        }
+
         [HttpGet("getTypeCat")]
         public async Task<ActionResult<List<object>>> GetTypeCat(string type)
         {

@@ -34,7 +34,7 @@ namespace Warehouse.Service
                 .ToListAsync();
         }
 
-        public async Task<List<ProveedorXTabla>> GetMatXSubfam(int idMaterial, int idFam, string Type)
+        public async Task<List<ProveedorXTabla>> GetMatXSubfam(int idMaterial,int idFam, string Type)
         {
             return await _context.ProveedorXTablas
                 .Where(m => m.Campo1 == idMaterial && m.IdTabla==idFam && m.Type == Type && m.Active)

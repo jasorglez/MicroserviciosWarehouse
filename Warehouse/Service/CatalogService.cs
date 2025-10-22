@@ -84,6 +84,41 @@ namespace Warehouse.Service
             }
         }
 
+
+        public async Task<List<Catalog>> GetTypexSubFam(int idCompany, int idFam)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active == 1 && c.Type == "SUB-FAM" && c.IdCompany == idCompany && c.SubParentId==idFam)
+                    .Select(cat => new Catalog
+                    {
+                        Id = cat.Id,
+                        IdCompany = cat.IdCompany,
+                        Description = cat.Description,
+                        ValueAddition = cat.ValueAddition,
+                        ValueAddition2 = cat.ValueAddition2,
+                        ValueAdditionBit = cat.ValueAdditionBit,
+                        Type = cat.Type,
+                        ParentId = cat.ParentId,
+                        SubParentId = cat.SubParentId,
+                        Vigente = cat.Vigente,
+                        Price = cat.Price,
+                        Active = cat.Active
+
+                    })
+                    .OrderByDescending(cat => cat.Vigente)
+                    .ThenBy(cat => cat.Description)
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalogs");
+                throw;
+            }
+        }
+
         public async Task<List<Catalog>> GetTypexCat(string type)
         {
             try
@@ -388,6 +423,7 @@ namespace Warehouse.Service
     {
         Task<List<Catalog>> GetTypexCat(string type);
         Task<List<Catalog>> GetType(string type, int idCompany);
+        Task<List<Catalog>> GetTypexSubFam(int idCompany, int idFam);
         Task<List<Catalog>> GetTypeAll(int idCompany);
         Task<List<Catalog>> GetTypeVigente(string type, int idCompany);
         Task<List<object>> GetFamilyCatalogs(int idCompany);
