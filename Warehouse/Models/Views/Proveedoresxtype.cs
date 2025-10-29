@@ -46,6 +46,9 @@ namespace Warehouse.Models.Views
         [Column("id_root")]
         public int IdRoot { get; set; }
 
+        [Column("typework")]
+        public string? Typework { get; set; }
+
         [Column("vigente")]
         public bool? Vigente { get; set; }
 
