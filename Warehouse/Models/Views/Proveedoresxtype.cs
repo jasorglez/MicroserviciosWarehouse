@@ -53,6 +53,9 @@ namespace Warehouse.Models.Views
         [Column("vigente")]
         public bool? Vigente { get; set; }
 
+        [Column("position")]
+        public string? Position { get; set; }
+
     }
 }
 
