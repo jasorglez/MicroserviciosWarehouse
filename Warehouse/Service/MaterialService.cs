@@ -23,8 +23,7 @@ namespace Warehouse.Service
             try
             {
                 var result = await _context.ProveedoresxtypeViews
-                    .Where(m => m.IdRoot == idCompany)
-                    .OrderBy(m => m.Company)
+                    .Where(m => m.IdRoot == idCompany)                    
                     .AsNoTracking()
                     .ToListAsync();
                 return result;
