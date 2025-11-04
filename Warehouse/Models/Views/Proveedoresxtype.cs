@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Warehouse.Models.Views
 {
+    [Table("proveedoresxtype")]
     public class ProveedoresxtypeView
     {
         public int Id { get; set; }
