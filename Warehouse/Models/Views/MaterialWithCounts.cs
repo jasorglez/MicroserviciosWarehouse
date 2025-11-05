@@ -54,5 +54,8 @@ namespace Warehouse.Models.Views
 
         [Column("id_company")]
         public int IdCompany { get; set; }
+        
+        [Column("vigente")]
+        public bool? Vigente { get; set; }
     }
 }

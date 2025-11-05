@@ -45,7 +45,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v3.55", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v3.55 Mod. 04-11-2025 14:11, SBK, Server 66.179.240.10" }); 
+   c.SwaggerDoc("v3.55", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v3.55 Mod. 2025-11-04 23:30, SBK, Server 66.179.240.10" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
