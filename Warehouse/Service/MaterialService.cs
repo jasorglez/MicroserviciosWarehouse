@@ -23,7 +23,11 @@ namespace Warehouse.Service
             try
             {
                 var result = await _context.ProveedoresxtypeViews
-                    .Where(m => m.IdRoot == idCompany)                    
+                    .Where(m => m.IdRoot == idCompany)
+                    .OrderByDescending(m => m.Vigente)
+                    .ThenBy(m => string.IsNullOrEmpty(m.Company) ? 1 : 0) // Con company primero (0), sin company después (1)
+                    .ThenBy(m => string.IsNullOrEmpty(m.Company) ? m.NameContact : m.Company)
+                    .ThenBy(m => m.NameContact) // Orden adicional por namecontact como desempate
                     .AsNoTracking()
                     .ToListAsync();
                 return result;
