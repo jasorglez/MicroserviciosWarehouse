@@ -2,6 +2,7 @@
 using System;
 using System.Diagnostics.Contracts;
 using Warehouse.Models;
+using Warehouse.Models.Delison;
 
 namespace Warehouse.Service
 {
@@ -85,7 +86,34 @@ namespace Warehouse.Service
         }
 
 
-        public async Task<List<Catalog>> GetTypexSubFam(int idCompany, int idFam)
+        public async Task<List<ProductoCompleto>> GetProductosCompletosByCompany(int companyId)
+        {
+            var query = from producto in _context.Catalogs
+                        join presentacion in _context.Catalogs
+                            on producto.SubParentId equals presentacion.Id
+                        join categoria in _context.Catalogs
+                            on producto.ParentId equals categoria.Id
+                        where producto.Type == "NAME-PROD" && producto.Active == 1
+                           && presentacion.Type == "PRESENT-PROD" && presentacion.Active == 1
+                           && categoria.Type == "CATEGORY-PROD" && categoria.Active == 1
+                           && producto.IdCompany == companyId
+                        select new ProductoCompleto
+                        {
+                            Id = producto.Id,
+                            Producto = categoria.Description + " - " +
+                                             presentacion.Description + " - " +
+                                             producto.Description,
+                            IdCompany = producto.IdCompany,
+                            Price = producto.Price,
+                            Vigente = producto.Vigente,
+                            Active = producto.Active
+                        };
+
+            return await query.ToListAsync();
+        }
+
+
+    public async Task<List<Catalog>> GetTypexSubFam(int idCompany, int idFam)
         {
             try
             {
@@ -423,6 +451,7 @@ namespace Warehouse.Service
     {
         Task<List<Catalog>> GetTypexCat(string type);
         Task<List<Catalog>> GetType(string type, int idCompany);
+        Task<List<ProductoCompleto>> GetProductosCompletosByCompany(int companyId);
         Task<List<Catalog>> GetTypexSubFam(int idCompany, int idFam);
         Task<List<Catalog>> GetTypeAll(int idCompany);
         Task<List<Catalog>> GetTypeVigente(string type, int idCompany);

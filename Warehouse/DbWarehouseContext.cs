@@ -31,6 +31,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialsByBranchVW> MaterialsByBranchVW { get; set; }
     public virtual DbSet<MaterialsxProvExist> MaterialsxProvExists { get; set; }
     public virtual DbSet<ProveedorXTabla> ProveedorXTablas { get; set; }
+    public virtual DbSet<ProductoCompleto> ProductoCompleto { get; set; }
     public virtual DbSet<ProveedoresxtypeView> ProveedoresxtypeViews { get; set; }
     public virtual DbSet<MaterialsDelison> MaterialsDelison { get; set; }
     public virtual DbSet<CreditProveedores> CreditProveedores { get; set; }
