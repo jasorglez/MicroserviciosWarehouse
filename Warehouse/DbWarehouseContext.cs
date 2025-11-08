@@ -37,6 +37,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<CreditProveedores> CreditProveedores { get; set; }
     public virtual DbSet<MaterialsXProvider> MaterialsxProviders { get; set; }
     public virtual DbSet<MaterialWithCount> MaterialWithCounts { get; set; }
+    public virtual DbSet<MaterialxFinalProduct> MaterialxFinalProducts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 

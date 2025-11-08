@@ -45,7 +45,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v3.65", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v3.65 Mod. 2025-11-07 20:35, SBK, Server 66.179.240.10" }); 
+   c.SwaggerDoc("v3.65", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v3.65 Mod. 2025-11-07 19:00, SBK, Server 66.179.240.10" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -82,6 +82,7 @@ builder.Services.AddDbContext<DbWarehouseContext>(options =>
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<ICatalogService, CatalogService>();
 builder.Services.AddScoped<IMaterialService, MaterialService>();
+builder.Services.AddScoped<IMaterialxFinalProductService, MaterialxFinalProductService>();
 
 builder.Services.AddScoped<IOcandreqService, OcandreqService>();
 builder.Services.AddScoped<IInandoutService, InandoutService>();
