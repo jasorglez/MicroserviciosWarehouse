@@ -187,7 +187,41 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Catalogs
-                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany && c.Vigente == true)
+                    .Where(c => c.Active == 1 && c.Type == type && c.IdCompany == idCompany && c.Vigente == true)
+                    .Select(cat => new Catalog
+                    {
+                        Id = cat.Id,
+                        IdCompany = cat.IdCompany,
+                        Description = cat.Description,
+                        ValueAddition = cat.ValueAddition,
+                        ValueAddition2 = cat.ValueAddition2,
+                        ValueAdditionBit = cat.ValueAdditionBit,
+                        Type = cat.Type,
+                        ParentId = cat.ParentId,
+                        SubParentId = cat.SubParentId,
+                        Vigente = cat.Vigente,
+                        Price = cat.Price,
+                        Active = cat.Active
+
+                    })
+                    .OrderByDescending(cat => cat.Vigente)
+                    .ThenBy(cat => cat.Description)
+                    .AsNoTracking()
+                    .ToListAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalogs");
+                throw;
+            }
+        }
+        
+        public async Task<List<Catalog>> GetTypeMaterialBit(string type, int idCompany)
+        {
+            try
+            {
+                return await _context.Catalogs
+                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany && c.Vigente == true && c.ValueAdditionBit == true)
                     .Select(cat => new Catalog
                     {
                         Id             = cat.Id,
@@ -434,7 +468,7 @@ namespace Warehouse.Service
 
                 existingPermission.IdProcces = perm.IdProcces;
                 existingPermission.Description = perm.Description;
-                existingPermission.Select = perm.Select;                            
+                existingPermission.Select = perm.Select;
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -444,7 +478,33 @@ namespace Warehouse.Service
                 return false;
             }
         }
+        
+         public async Task<bool> updateValueBit(int id, bool value, string type)
+        {
+            try
+            {
+                var existingPermission = await _context.Catalogs.FindAsync(id);
 
+                if (existingPermission == null)
+                {
+                    return false; // Entity not found
+                }
+                if(type == "MATERIAL")
+                {
+                    existingPermission.ValueAdditionBit = value;
+                }else if(type == "REQUISICIONES")
+                {
+                    existingPermission.ValueAdditionBit2 = value;
+                }                        
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating configuration with ID {Id}.", id);
+                return false;
+            }
+        }
     }
 
     public interface ICatalogService
@@ -455,12 +515,14 @@ namespace Warehouse.Service
         Task<List<Catalog>> GetTypexSubFam(int idCompany, int idFam);
         Task<List<Catalog>> GetTypeAll(int idCompany);
         Task<List<Catalog>> GetTypeVigente(string type, int idCompany);
+        Task<List<Catalog>> GetTypeMaterialBit(string type, int idCompany);
         Task<List<object>> GetFamilyCatalogs(int idCompany);
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);
         Task<Catalog> Update(int id, Catalog cat);
         Task<bool> Delete(int id);
         Task<List<ProcessXPermission>> GetProcessXPermissions(int idProcces);
+        Task<bool> updateValueBit(int id, bool value, string type);
         Task<bool> UpdatexPermission(int id, ProcessXPermission perm);
         Task Savexpermission(ProcessXPermission perm);
     }

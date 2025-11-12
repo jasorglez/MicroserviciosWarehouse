@@ -242,9 +242,9 @@ namespace Warehouse.Service
             try
             {
                 return await _context.Materials
-                    .Where(s => s.Active == true && idCompany == s.IdCompany && 
+                    .Where(s => s.Active == true && idCompany == s.IdCompany &&
                     (s.Insumo.Contains(nameOrBarCode) || s.BarCode.Contains(nameOrBarCode) || s.Description.Contains(nameOrBarCode)))
-                 //   .Include(s => s.PricesWithMaterial)
+                    //   .Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
                         s.Id,
@@ -252,14 +252,14 @@ namespace Warehouse.Service
                         s.Insumo,
                         s.Description,
                         s.Active,
-                    /*    PricePresentations = s.PricesWithMaterial.Select(s => new
-                        {
-                            s.Id,
-                            s.IdCatalogs,
-                            s.Description,
-                            s.Price,
-                            s.Active
-                        }).ToList()*/
+                        /*    PricePresentations = s.PricesWithMaterial.Select(s => new
+                            {
+                                s.Id,
+                                s.IdCatalogs,
+                                s.Description,
+                                s.Price,
+                                s.Active
+                            }).ToList()*/
                     }).OrderBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -270,6 +270,26 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<bool> CatalogByMaterial(int idCatalog)
+        {
+            try
+            {
+                var exists = await _context.Materials
+                    .AnyAsync(s => s.Active == true && 
+                        (s.IdCategory == idCatalog || 
+                         s.IdFamilia == idCatalog || 
+                         s.IdSubfamilia == idCatalog));
+
+                return exists;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Supplies");
+                throw;
+            }
+        }
+
 
         public async Task Save(Material material)
         {
@@ -397,6 +417,7 @@ namespace Warehouse.Service
         Task<List<MaterialWithCount>> GetMaterialsWithCounts(int idCompany);
         Task<List<MaterialsXProvider>> MaterialsxProv(string Typereference, int idProv);
         Task<List<object>> GetSupplies(int idCompany, string typematerial);
+        Task<bool> CatalogByMaterial(int idCatalog);
         Task<List<object>> Get2Supplies(int idCompany);
         Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany);
         Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
