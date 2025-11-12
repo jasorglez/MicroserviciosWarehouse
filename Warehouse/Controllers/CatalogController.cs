@@ -45,6 +45,25 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("getCatalogsMaterialBit")]
+        public async Task<ActionResult<List<object>>> GetWarByCompMaterialBit(int idCompany, string type)
+        {
+            try
+            {
+                var cat = await _catalogService.GetTypeMaterialBit(type, idCompany);
+                if (cat == null || !cat.Any())
+                {
+                    _logger.LogWarning("No found Catalog the result is empty");
+                    return NotFound(new { Message = "No Catalog Found or the result is empty", catalog = new List<object>() });
+                }
+                return Ok(cat);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Catalog for Project");
+                return StatusCode(500, "An error occurred while retrieving Catalog.");
+            }
+        }
         [HttpGet("getCatalogs")]
         public async Task<ActionResult<List<object>>> GetWarByComp(int idCompany, string type)
         {
@@ -191,6 +210,24 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpPut("updateValueBit/{id}/{value}/{type}")]
+        public async Task<IActionResult> updateValueBit(int id, bool value, string type)
+        {
+            try
+            {
+                var success = await _catalogService.updateValueBit(id, value, type);
+                if (!success)
+                {
+                    return NotFound(false);
+                }
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating permission with ID {Id}.", id);
+                return StatusCode(500, "Internal server error.");
+            }
+        }
         [HttpPut("update-permission/{idPerm}")]
         public async Task<IActionResult> UpdatePermiss(int idPerm, [FromBody] ProcessXPermission perm)
         {

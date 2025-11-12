@@ -38,6 +38,19 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("catalogBymaterial")]
+        public async Task<ActionResult<bool>> GetCatalogBymaterial(int idCatalog)
+        {
+            try
+            {
+                return await _service.CatalogByMaterial(idCatalog);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idCatalog}", idCatalog);
+                return StatusCode(500, "Internal server error");
+            }
+        }
         [HttpGet("matprov/{idCompany}")]
         public async Task<ActionResult<List<ProveedoresxtypeView>>> GetMat(int idCompany)
         {
