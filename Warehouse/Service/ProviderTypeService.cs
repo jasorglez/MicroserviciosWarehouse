@@ -23,7 +23,9 @@ public class ProviderTypeService : IProviderTypeService
 
             var providerTypes = await _context.ProviderTypes
                 .Where(pt => pt.IdProvider == idProvider)
-                .OrderBy(pt => pt.NameParent)
+                .OrderByDescending(pt => pt.Vigente)
+                .ThenByDescending(pt => pt.Principal)
+                .ThenBy(pt => pt.NameParent)
                 .ThenBy(pt => pt.NameSubparent)
                 .ThenBy(pt => pt.NameProduct)
                 .ToListAsync();

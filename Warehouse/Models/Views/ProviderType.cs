@@ -8,6 +8,9 @@ namespace Warehouse.Models.Views
         [Column("id")]
         public int Id { get; set; }
         
+        [Column("id_product")]
+        public int IdProduct { get; set; }
+        
         [Column("id_provider")]
         public int IdProvider { get; set; }
         

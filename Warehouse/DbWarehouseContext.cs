@@ -40,6 +40,8 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialxFinalProduct> MaterialxFinalProducts { get; set; }
     public virtual DbSet<FinalProduct> FinalProducts { get; set; }
     public virtual DbSet<ProviderType> ProviderTypes { get; set; }
+    
+    public virtual DbSet<SubfamilyxProvider> SubfamilyxProviders { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
