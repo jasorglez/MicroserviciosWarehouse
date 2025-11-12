@@ -22,7 +22,8 @@ namespace Warehouse.Service
         {
             return await _context.ProveedorXTablas
                 .Where(p => p.IdTabla == idProveedor && p.Type == Type && p.Campo6 != "0" && p.Campo6 != "0.00" &&p.Active)
-                .OrderBy(p => p.Campo2)
+                .OrderByDescending(p => p.Vigente)
+                .ThenBy(p => p.Campo2.Trim().ToLower())
                 .ToListAsync();
         }
 
@@ -77,7 +78,9 @@ namespace Warehouse.Service
             existing.Campo6 = proveedor.Campo6;
             existing.Campo7 = proveedor.Campo7;
             existing.Campo8 = proveedor.Campo8;
-            existing.Type = proveedor.Type;
+            //existing.Type = proveedor.Type;
+            existing.Vigente = proveedor.Vigente;
+            existing.Principal = proveedor.Principal;
 
             await _context.SaveChangesAsync();
             return existing;

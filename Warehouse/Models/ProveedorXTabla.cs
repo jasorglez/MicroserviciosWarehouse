@@ -72,6 +72,12 @@ namespace Warehouse.Models
         [StringLength(10)]
         public string? Type { get; set; }
 
+        [Column("vigente")]
+        public bool Vigente { get; set; } = true;
+
+        [Column("principal")]
+        public bool Principal { get; set; } = true;
+
         [Column("active")]
         [DefaultValue(true)]
         public bool Active { get; set; } = true;
