@@ -39,6 +39,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialWithCount> MaterialWithCounts { get; set; }
     public virtual DbSet<MaterialxFinalProduct> MaterialxFinalProducts { get; set; }
     public virtual DbSet<FinalProduct> FinalProducts { get; set; }
+    public virtual DbSet<ProviderType> ProviderTypes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
@@ -90,6 +91,13 @@ public partial class DbWarehouseContext : DbContext
         {
             entity.HasNoKey();
             entity.ToView("vw_finalproduct"); // 👈 nombre de la vista en la DB
+        });
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<ProviderType>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_providerxtype"); // 👈 nombre de la vista en la DB
         });
         base.OnModelCreating(modelBuilder);
 
