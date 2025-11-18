@@ -25,7 +25,8 @@ builder.Services.AddCors(options =>
                              "https://be-app-five.vercel.app", "http://localhost:8100",
                              "https://localhost:7089", "https://biapp.com.mx", 
                              "https://localhost:4200", "https://www.bi2.com.mx",
-                             "https://smp-git-main-jasorglezs-projects.vercel.app", 
+                             "https://smp-git-main-jasorglezs-projects.vercel.app",
+                             "https://smp-beta.vercel.app",
                              "https://bi2.com.mx") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
@@ -49,7 +50,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v3.65", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v3.65 Mod. 2025-11-17 23:30, SBK, Server 66.179.240.10" }); 
+   c.SwaggerDoc("v3.65", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v3.65 Mod. 2025-11-18 12:30, SBK, Server 66.179.240.10" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
