@@ -39,13 +39,21 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialWithCount> MaterialWithCounts { get; set; }
     public virtual DbSet<MaterialxFinalProduct> MaterialxFinalProducts { get; set; }
     public virtual DbSet<FinalProduct> FinalProducts { get; set; }
-    public virtual DbSet<ProviderType> ProviderTypes { get; set; }
-    
+    public virtual DbSet<ProviderType> ProviderTypes { get; set; }    
     public virtual DbSet<SubfamilyxProvider> SubfamilyxProviders { get; set; }
+    public virtual DbSet<MaterialsWithFamiliesView> MaterialsWithFamiliesViews { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
-    {        
+    {
+
+        // Configurar la vista (opcional - si quieres ser explícito)
+        modelBuilder.Entity<MaterialsWithFamiliesView>(entity =>
+        {
+            entity.HasNoKey(); // Las vistas no tienen clave primaria
+            entity.ToView("vw_MaterialsWithFamilies");
+        });
+
         modelBuilder.Entity<MaterialWithCount>(entity =>
         {
             entity.HasNoKey(); // Las vistas generalmente no tienen key

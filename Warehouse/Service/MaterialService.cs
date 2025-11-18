@@ -18,6 +18,46 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+
+        // MÉTODO MEJORADO usando la vista
+        public async Task<List<MaterialsWithFamiliesView>> GetMaterialsWithFamilies(int idCompany)
+        {
+            try
+            {
+                var result = await _context.MaterialsWithFamiliesViews
+                    .Where(m => m.IdCompany == idCompany)
+                    .OrderBy(m => m.FamiliaDescription)
+                    .ThenBy(m => m.SubfamiliaDescription)
+                    .ThenBy(m => m.MaterialDescription)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                // Aplicar valores por defecto si es necesario
+                foreach (var item in result)
+                {
+                    item.Insumo = string.IsNullOrEmpty(item.Insumo) ? "N/A" : item.Insumo;
+                    item.MaterialDescription = string.IsNullOrEmpty(item.MaterialDescription) ? "Sin descripción" : item.MaterialDescription;
+                    item.FamiliaDescription = string.IsNullOrEmpty(item.FamiliaDescription) ? "Sin familia" : item.FamiliaDescription;
+                    item.SubfamiliaDescription = string.IsNullOrEmpty(item.SubfamiliaDescription) ? "Sin subfamilia" : item.SubfamiliaDescription;
+                    item.Barcode = string.IsNullOrEmpty(item.Barcode) ? "N/A" : item.Barcode;
+                    item.Picture = string.IsNullOrEmpty(item.Picture) ? "sin-imagen.jpg" : item.Picture;
+
+                    item.CostoMN ??= 0;
+                    item.VentaMN ??= 0;
+                    item.StockMin ??= 0;
+                    item.StockMax ??= 0;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving materials with families for company {IdCompany}", idCompany);
+                throw;
+            }
+        }
+
+
         public async Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany)
         {
             try
@@ -413,6 +453,7 @@ namespace Warehouse.Service
 
     public interface IMaterialService
     {
+        Task<List<MaterialsWithFamiliesView>> GetMaterialsWithFamilies(int idCompany);
         Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany);
         Task<List<MaterialWithCount>> GetMaterialsWithCounts(int idCompany);
         Task<List<MaterialsXProvider>> MaterialsxProv(string Typereference, int idProv);
