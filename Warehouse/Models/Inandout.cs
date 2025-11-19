@@ -11,21 +11,20 @@ namespace Warehouse.Models
         [Column("id")]
         public int Id { get; set; }
         
-        [Required]
+
         [Column("folio", TypeName = "varchar(20)")]
         public string? Folio { get; set; }
         
-        [Required]
+
         [Column("id_project")]
-        public int IdProject { get; set; }
+        public int? IdProject { get; set; }
         
-        [Required]
         [Column("id_warehouse")]
-        public int IdWarehouse { get; set; }
+        public int? IdWarehouse { get; set; }
         
-        [Required]
+
         [Column("id_type")]
-        public int IdType { get; set; }
+        public int? IdType { get; set; }
         
         [Column("date", TypeName = "Date")]
         public DateTime? Date { get; set; }
