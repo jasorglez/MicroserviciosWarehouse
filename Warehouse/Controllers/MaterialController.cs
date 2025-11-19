@@ -38,6 +38,25 @@ namespace Warehouse.Controllers
             }
         }
 
+
+        // ENDPOINT PRINCIPAL para AG Grid
+        [HttpGet("with-families/{idCompany}")]
+        public async Task<ActionResult<List<MaterialsWithFamiliesView>>> GetMaterialsWithFamilies(int idCompany)
+        {
+            try
+            {
+                var result = await _service.GetMaterialsWithFamilies(idCompany);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving materials with families for company {IdCompany}", idCompany);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+
+
         [HttpGet("catalogBymaterial")]
         public async Task<ActionResult<bool>> GetCatalogBymaterial(int idCatalog)
         {

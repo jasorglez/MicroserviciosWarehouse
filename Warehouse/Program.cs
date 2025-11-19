@@ -21,8 +21,13 @@ builder.Services.AddCors(options =>
         {
             builder
 
-                .WithOrigins("https://localhost", "http://localhost:4200", "https://be-app-five.vercel.app", "http://localhost:8100",
-                             "https://localhost:7089", "https://biapp.com.mx", "https://localhost:4200", "https://www.bi2.com.mx", "https://bi2.com.mx") // Reemplaza esto con el origen de tu aplicacin Angular
+                .WithOrigins("https://localhost", "http://localhost:4200", 
+                             "https://be-app-five.vercel.app", "http://localhost:8100",
+                             "https://localhost:7089", "https://biapp.com.mx", 
+                             "https://localhost:4200", "https://www.bi2.com.mx",
+                             "https://smp-git-main-jasorglezs-projects.vercel.app",
+                             "https://smp-beta.vercel.app",
+                             "https://bi2.com.mx") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -45,7 +50,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v3.65", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v3.65 Mod. 2025-11-12 11:30, SBK, Server 66.179.240.10" }); 
+   c.SwaggerDoc("v4.65", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v4.65 Mod. 2025-11-19 16:10, SBK, Server 66.179.240.10" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -127,7 +132,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v3.65/swagger.json", "Microservicio Warehouse V3.65");
+        c.SwaggerEndpoint("/swagger/v4.65/swagger.json", "Microservicio Warehouse V4.65");
         c.RoutePrefix = "swagger";
     });
 }

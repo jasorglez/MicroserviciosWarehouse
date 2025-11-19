@@ -32,6 +32,7 @@ namespace Warehouse.Service
                     i.IdOc,
                     i.NumBill,
                     i.DeliverName,
+                    i.CountRow, 
                     i.Comment,
                     i.Type,
                     i.Active
@@ -69,6 +70,7 @@ namespace Warehouse.Service
                     i.IdOc,
                     i.NumBill,
                     i.DeliverName,
+                    i.CountRow,
                     i.Comment,
                     i.Type,
                     i.Active
@@ -97,29 +99,53 @@ namespace Warehouse.Service
         }
     }
 
-    public async Task<Inandout?> Update(int id, Inandout inandout)
-    {
-        var existingItem = await _context.Inandouts.FindAsync(id);
-        if (existingItem == null)
+        public async Task<Inandout?> Update(int id, Inandout inandout)
         {
-            _logger.LogWarning("Invalid Order ID provided: {Id}", id);
-            return null;
+            var existingItem = await _context.Inandouts.FindAsync(id);
+            if (existingItem == null)
+            {
+                _logger.LogWarning("Invalid Order ID provided: {Id}", id);
+                return null;
+            }
+
+            try
+            {
+                
+                if (inandout.IdType != 0)
+                    existingItem.IdType = inandout.IdType;
+
+                if (inandout.Date.HasValue)
+                    existingItem.Date = inandout.Date;
+
+                if (inandout.DeliveryDate.HasValue)
+                    existingItem.DeliveryDate = inandout.DeliveryDate;
+
+                if (inandout.IdOc.HasValue)
+                    existingItem.IdOc = inandout.IdOc;
+
+                if (inandout.NumBill != null)
+                    existingItem.NumBill = inandout.NumBill;
+
+                if (inandout.DeliverName != null)
+                    existingItem.DeliverName = inandout.DeliverName;
+
+                if (inandout.CountRow.HasValue)
+                    existingItem.CountRow = inandout.CountRow;
+
+                if (inandout.Comment != null)
+                    existingItem.Comment = inandout.Comment; 
+
+                await _context.SaveChangesAsync();
+                return existingItem;
+            }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogError(ex, "Error updating inandout");
+                throw;
+            }
         }
 
-        try
-        {
-            _context.Entry(existingItem).CurrentValues.SetValues(inandout);
-            await _context.SaveChangesAsync();
-            return existingItem;
-        }
-        catch (DbUpdateConcurrencyException ex)
-        {
-            _logger.LogError(ex, "Error updating inandout");
-            throw;
-        }
-    }
-
-    public async Task<bool> Delete(int id)
+        public async Task<bool> Delete(int id)
     {
         var existingItem = await _context.Inandouts.FindAsync(id);
         if (existingItem == null)
