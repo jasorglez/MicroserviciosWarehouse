@@ -96,6 +96,7 @@ builder.Services.AddScoped<ITablesXModulesService, TablesXModulesService>();
 builder.Services.AddScoped<IRawMaterialService, RawMaterialService>();
 builder.Services.AddScoped<IRawMaterialDetailsService, RawMaterialDetailsService>();
 builder.Services.AddScoped<IProveedorXTablaService, ProveedorXTablaService>();
+builder.Services.AddScoped<IFamilySubFamilyDelisonService, FamilySubFamilyDelisonService>();
 builder.Services.AddScoped<IMaterialDelisonService, MaterialDelisonService>();
 builder.Services.AddScoped<ISubfamilyxProviderService, SubfamilyxProviderService>();
 

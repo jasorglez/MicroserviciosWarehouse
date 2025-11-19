@@ -45,6 +45,13 @@ namespace Warehouse.Controllers
             var proveedores = await _service.GetProvxMat(idMaterial, type);
             return Ok(proveedores);
         }
+        [HttpGet]
+        [Route("cantidad-by-proveedor/{id}")]
+        public async Task<IActionResult> GetCantidadByProveedor( int id)
+        {
+            var proveedores = await _service.GetCantidadByProveedor(id);
+            return Ok(proveedores);
+        }
 
         [HttpGet]
         [Route("by-subfam")]

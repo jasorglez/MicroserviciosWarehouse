@@ -31,6 +31,9 @@ namespace Warehouse.Models
 
         [Column("valueadditionbit2")]
         public bool? ValueAdditionBit2 { get; set; } = false;
+        
+        [Column("valueadditionbit3")]
+        public bool? ValueAdditionBit3 { get; set; } = false;
 
         [Column("vigente")]
         public bool? Vigente { get; set; }
