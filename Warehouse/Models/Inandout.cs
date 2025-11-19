@@ -41,7 +41,10 @@ namespace Warehouse.Models
         
         [Column("deliver_name", TypeName = "varchar(25)")]
         public string? DeliverName { get; set; }
-        
+
+        [Column("countrow")]
+        public int? CountRow { get; set; }
+
         [Column("comment", TypeName = "varchar(200)")]
         public string? Comment { get; set; }
         

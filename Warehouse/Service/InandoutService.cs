@@ -32,6 +32,7 @@ namespace Warehouse.Service
                     i.IdOc,
                     i.NumBill,
                     i.DeliverName,
+                    i.CountRow, 
                     i.Comment,
                     i.Type,
                     i.Active
@@ -69,6 +70,7 @@ namespace Warehouse.Service
                     i.IdOc,
                     i.NumBill,
                     i.DeliverName,
+                    i.CountRow,
                     i.Comment,
                     i.Type,
                     i.Active
