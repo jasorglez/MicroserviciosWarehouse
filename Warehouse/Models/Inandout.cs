@@ -22,10 +22,12 @@ namespace Warehouse.Models
         [Column("id_warehouse")]
         public int? IdWarehouse { get; set; }
         
-
         [Column("id_type")]
         public int? IdType { get; set; }
-        
+
+        [Column("id_ot")]
+        public int? IdOt { get; set; }
+
         [Column("date", TypeName = "Date")]
         public DateTime? Date { get; set; }
         
