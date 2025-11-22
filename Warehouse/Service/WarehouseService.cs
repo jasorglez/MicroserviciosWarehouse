@@ -87,7 +87,7 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<bool> Update(int id, Warehouset warehousest)
+        public async Task<bool> Update(int id, Warehouset warehouset)
         {
             var existingWarehouse = await _context.Warehouses.FindAsync(id);
             if (existingWarehouse == null)
@@ -97,8 +97,19 @@ namespace Warehouse.Service
 
             try
             {
-                _context.Entry(existingWarehouse).CurrentValues.SetValues(warehousest);
-                await _context.SaveChangesAsync();                
+                // Actualizar campo por campo
+                existingWarehouse.IdBranch   = warehouset.IdBranch;
+                existingWarehouse.Place      = warehouset.Place;
+                existingWarehouse.Name       = warehouset.Name;
+                existingWarehouse.Address    = warehouset.Address;
+                existingWarehouse.State      = warehouset.State;
+                existingWarehouse.City       = warehouset.City;
+                existingWarehouse.CodePostal = warehouset.CodePostal;
+                existingWarehouse.Phone      = warehouset.Phone;
+                existingWarehouse.Leader     = warehouset.Leader;
+                existingWarehouse.Principal  = warehouset.Principal;                
+
+                await _context.SaveChangesAsync();
                 return true;
             }
             catch (DbUpdateConcurrencyException ex)
