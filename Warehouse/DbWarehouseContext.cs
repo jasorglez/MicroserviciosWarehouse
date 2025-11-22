@@ -39,7 +39,12 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialWithCount> MaterialWithCounts { get; set; }
     public virtual DbSet<MaterialxFinalProduct> MaterialxFinalProducts { get; set; }
     public virtual DbSet<FinalProduct> FinalProducts { get; set; }
-    public virtual DbSet<ProviderType> ProviderTypes { get; set; }    
+    public virtual DbSet<FamilySubFamilyView> FamilySubFamilyViews { get; set; }
+    public virtual DbSet<CatalogByMasterFamView> CatalogByMasterFamViews { get; set; }
+    public virtual DbSet<MasterFamilyDelison> MasterFamilyDelison { get; set; }
+    public virtual DbSet<CatalogByMasterFamDelison> CatalogByMasterFamDelison { get; set; }
+    public virtual DbSet<ProviderType> ProviderTypes { get; set; }
+    
     public virtual DbSet<SubfamilyxProvider> SubfamilyxProviders { get; set; }
     public virtual DbSet<MaterialsWithFamiliesView> MaterialsWithFamiliesViews { get; set; }
 
@@ -101,6 +106,20 @@ public partial class DbWarehouseContext : DbContext
         {
             entity.HasNoKey();
             entity.ToView("vw_finalproduct"); // 👈 nombre de la vista en la DB
+        });
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<FamilySubFamilyView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_family_subfamily_catalog"); // 👈 nombre de la vista en la DB
+        });
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<CatalogByMasterFamView>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("CatalogByMasterFamView"); // 👈 nombre de la vista en la DB
         });
         base.OnModelCreating(modelBuilder);
 

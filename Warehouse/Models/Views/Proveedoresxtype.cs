@@ -56,6 +56,9 @@ namespace Warehouse.Models.Views
         [Column("position")]
         public string? Position { get; set; }
 
+        [Column("principalbankname")]
+        public string? PrincipalBankName { get; set; }
+
     }
 }
 

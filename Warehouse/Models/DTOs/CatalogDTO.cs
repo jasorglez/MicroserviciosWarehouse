@@ -8,6 +8,8 @@ public class CatalogDTO
     public string? ValueAddition { get; set; } = string.Empty;
     public string? ValueAddition2 { get; set; } = string.Empty;
     public bool? ValueAdditionBit { get; set; }
+    public bool? ValueAdditionBit2 { get; set; }
+    public bool? ValueAdditionBit3 { get; set; }
     public int? ParentId { get; set; }
     public int? SubParentId { get; set; }
     public decimal? Price { get; set; }

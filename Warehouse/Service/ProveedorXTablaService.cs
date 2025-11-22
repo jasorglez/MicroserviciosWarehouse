@@ -2,6 +2,10 @@
 using Microsoft.EntityFrameworkCore;
 using Warehouse.Models;
 using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using Microsoft.Extensions.Logging;
 
 namespace Warehouse.Service
 {
@@ -105,6 +109,29 @@ namespace Warehouse.Service
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<List<CantidadPorTipo>> GetCantidadByProveedor(int id)
+        {
+            try
+            {
+                // Agrupar por Type y contar sólo los registros Vigente == true para el proveedor (IdTabla)
+                var result = await _context.ProveedorXTablas
+                    .Where(p => p.IdTabla == id && p.Vigente)
+                    .GroupBy(p => p.Type)
+                    .Select(g => new CantidadPorTipo
+                    {
+                        Type = g.Key ?? string.Empty,
+                        Count = g.Count()
+                    })
+                    .ToListAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving counts by proveedor {ProveedorId}", id);
+                throw;
+            }
+        }
 
         public async Task<ProveedorXTabla?> UpdateAbonoTabla(int id, int table)
         {
@@ -150,8 +177,23 @@ namespace Warehouse.Service
         Task<ProveedorXTabla> Create(ProveedorXTabla proveedor);
         Task<ProveedorXTabla?> Update(int id, ProveedorXTabla proveedor);
         Task<ProveedorXTabla?> UpdateAbonoTabla(int id, int table);
+    Task<List<CantidadPorTipo>> GetCantidadByProveedor(int id);
         Task<bool> Delete(int id);
         Task<bool> ToggleActive(int id);
+    }
+
+     public class DetailFamily
+        {
+            public int IdCatalog { get; set; }
+            public int IdMaster { get; set; }
+            public bool Vigente { get; set; }
+            
+        }
+
+    public class CantidadPorTipo
+    {
+        public string Type { get; set; } = string.Empty;
+        public int Count { get; set; }
     }
 
 }
