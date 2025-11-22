@@ -58,14 +58,14 @@ namespace Warehouse.Models
         public string Phone { get; set; } = string.Empty;
 
         [Required]
-        [StringLength(50)]
+        [StringLength(100)]
         [Column("leader", TypeName = "NVARCHAR")]
         [DefaultValue("LEADER")]
         public string Leader { get; set; } = string.Empty;
 
         [StringLength(2)]
-        [Column("principal", TypeName = "VARCHAR")]
-        public string? Principal { get; set; }
+        [Column("principal")]
+        public bool Principal { get; set; }
 
         [Required]
         [Column("active")]
