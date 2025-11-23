@@ -37,10 +37,10 @@ namespace Warehouse.Models
         [Column("id_oc")]
         public int? IdOc { get; set; }
         
-        [Column("num_bill", TypeName = "varchar(10)")]
+        [Column("num_bill", TypeName = "varchar(30)")]
         public string? NumBill { get; set; }
         
-        [Column("deliver_name", TypeName = "varchar(25)")]
+        [Column("deliver_name", TypeName = "varchar(66)")]
         public string? DeliverName { get; set; }
 
         [Column("countrow")]
