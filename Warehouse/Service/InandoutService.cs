@@ -31,7 +31,7 @@ namespace Warehouse.Service
                     i.DeliveryDate,
                     i.IdOc,
                     i.NumBill,i.IdOt,
-                    i.DeliverName,
+                    i.DeliverName, i.IdAutoriza,
                     i.CountRow, 
                     i.Comment,
                     i.Type,
@@ -73,7 +73,7 @@ namespace Warehouse.Service
                     i.DeliverName,
                     i.CountRow,
                     i.Comment,
-                    i.Type,
+                    i.Type, i.IdAutoriza,
                     i.Active
                 })
                 .AsNoTracking()
@@ -132,6 +132,9 @@ namespace Warehouse.Service
 
                 if (inandout.CountRow.HasValue)
                     existingItem.CountRow = inandout.CountRow;
+
+                if (inandout.IdAutoriza.HasValue)
+                    existingItem.IdAutoriza = inandout.IdAutoriza;
 
                 if (inandout.Comment != null)
                     existingItem.Comment = inandout.Comment; 
