@@ -28,6 +28,9 @@ namespace Warehouse.Models
         [Column("id_ot")]
         public int? IdOt { get; set; }
 
+        [Column("id_autoriza")]
+        public int? IdAutoriza { get; set; }
+
         [Column("date", TypeName = "Date")]
         public DateTime? Date { get; set; }
         
