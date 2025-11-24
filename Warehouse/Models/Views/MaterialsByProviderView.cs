@@ -17,9 +17,6 @@ namespace Warehouse.Models.Views
         [Column("id_provider")]
         public int IdProvider { get; set; }
 
-        [Column("id_material")]
-        public int? IdMaterial { get; set; }
-
         [Column("codigo")]
         [StringLength(100)]
         public string? Codigo { get; set; }
