@@ -41,6 +41,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<FinalProduct> FinalProducts { get; set; }
     public virtual DbSet<FamilySubFamilyView> FamilySubFamilyViews { get; set; }
     public virtual DbSet<CatalogByMasterFamView> CatalogByMasterFamViews { get; set; }
+    public virtual DbSet<MateriaByCatalog> MateriaByCatalog { get; set; }
     public virtual DbSet<MasterFamilyDelison> MasterFamilyDelison { get; set; }
     public virtual DbSet<CatalogByMasterFamDelison> CatalogByMasterFamDelison { get; set; }
     public virtual DbSet<ProviderType> ProviderTypes { get; set; }

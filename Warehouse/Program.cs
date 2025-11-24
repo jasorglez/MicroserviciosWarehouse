@@ -105,6 +105,9 @@ builder.Services.AddScoped<IFamilySubFamilyDelisonService, FamilySubFamilyDeliso
 builder.Services.AddScoped<IMaterialDelisonService, MaterialDelisonService>();
 builder.Services.AddScoped<ISubfamilyxProviderService, SubfamilyxProviderService>();
 
+// MateriaByCatalog service registration
+builder.Services.AddScoped<IMateriaByCatalogService, MateriaByCatalogService>();
+
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 
 builder.Services.AddHttpContextAccessor();

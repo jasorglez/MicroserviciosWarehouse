@@ -14,6 +14,9 @@ namespace Warehouse.Models.Views
         [Column("IdMaster")]
         public int IdMaster { get; set; }
 
+        [Column("MasterFamily")]
+        public int MasterFamily { get; set; }
+
         [Column("IdCompanyMaster")]
         public int IdCompanyMaster { get; set; }
 
