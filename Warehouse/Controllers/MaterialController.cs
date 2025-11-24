@@ -9,7 +9,7 @@ using Warehouse.Models.Views;
 
 namespace Warehouse.Controllers
 {
-    //[Authorize]
+    [Authorize]
     [Route("api/[controller]")]
     [ApiController]
     public class MaterialController : ControllerBase
