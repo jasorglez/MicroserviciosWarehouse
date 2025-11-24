@@ -37,6 +37,7 @@ public class MateriaByCatalogService : IMateriaByCatalogService
         {
             _context.MateriaByCatalog.Add(MateriaByCatalog);
             await _context.SaveChangesAsync();
+            await ActualizarPorcentaje(MateriaByCatalog.IdCompany, MateriaByCatalog.IdConcep);
             return MateriaByCatalog;
         }
         catch (Exception ex)
@@ -72,6 +73,7 @@ public class MateriaByCatalogService : IMateriaByCatalogService
             existingItem.Id = id;
 
             await _context.SaveChangesAsync();
+            await ActualizarPorcentaje(existingItem.IdCompany, existingItem.IdConcep);
             return existingItem;
         }
         catch (Exception ex)
@@ -102,6 +104,37 @@ public class MateriaByCatalogService : IMateriaByCatalogService
             throw;
         }
     }
+
+    public async Task<bool> ActualizarPorcentaje(int? IdCompany,int? IdConcep)
+    {
+        var listaActiva = await _context.MateriaByCatalog
+            .Where(rm => rm.Active == true && rm.IdCompany == IdCompany && rm.IdConcep == IdConcep && rm.Check == false)
+            .ToListAsync();
+        var cantidad = listaActiva.Sum(x => x.Cantidad) ?? 0;
+
+        foreach (var item in listaActiva)
+        {
+            if (cantidad > 0)
+            {
+                item.Proporcion = (item.Cantidad / cantidad) * 100;
+            }
+            else
+            {
+                item.Proporcion = 0;
+            }
+            _context.MateriaByCatalog.Update(item);
+        }
+        var listaInactiva = await _context.MateriaByCatalog
+            .Where(rm => rm.Active == true && rm.IdCompany == IdCompany && rm.IdConcep == IdConcep && rm.Check == true)
+            .ToListAsync();
+        foreach (var item in listaInactiva)
+        {
+            item.Proporcion = 0;
+            _context.MateriaByCatalog.Update(item);
+        }
+        await _context.SaveChangesAsync();
+        return true;
+    }
 }
 
 public interface IMateriaByCatalogService
@@ -110,4 +143,5 @@ public interface IMateriaByCatalogService
     Task<MateriaByCatalog> CreateMateriaByCatalogAsync(MateriaByCatalog MateriaByCatalog);
     Task<MateriaByCatalog?> UpdateMateriaByCatalogAsync(int id, MateriaByCatalog MateriaByCatalog);
     Task<bool> DeleteMateriaByCatalogAsync(int id);
+    Task<bool> ActualizarPorcentaje(int? IdCompany, int? IdConcep);
 }
