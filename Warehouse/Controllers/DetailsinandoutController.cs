@@ -36,6 +36,24 @@ public class DetailsinandoutController : ControllerBase
         }
     }
 
+    [HttpGet("sumentrada/{productId}/{warehouseId}")]
+    public async Task<IActionResult> GetSumaEntradaxWarehouse(int productId, int warehouseId)
+    {
+        try
+        {
+            var result = await _service.GetTotalInByProductAndWarehouse(productId, warehouseId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Error getting total IN for product {ProductId} in warehouse {WarehouseId}",
+                productId, warehouseId);
+            throw;
+        }
+    }
+
+
     [HttpPost]
     public async Task<IActionResult> Save([FromBody] Detailsinandout detail)
     {

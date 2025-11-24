@@ -49,7 +49,34 @@ namespace Warehouse.Service;
             }
         }
 
-        public async Task Save(Detailsinandout detail)
+    public async Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId)
+    {
+        try
+        {
+            var total = await _context.Detailsinandout
+                .Where(d => d.Active == true && d.IdProduct == productId)
+                .Join(_context.Inandouts,
+                    d => d.IdInandout,
+                    i => i.Id,
+                    (d, i) => new { d, i })
+                .Join(_context.Warehouses,
+                    di => di.i.IdWarehouse,
+                    w => w.Id,
+                    (di, w) => new { di.d, di.i, w })
+                .Where(x => x.i.Type == "IN" && x.w.Id == warehouseId)
+                .SumAsync(x => (decimal?)x.d.Quantity) ?? 0;
+
+            return total;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving total IN quantity for product {ProductId} at warehouse {WarehouseId}", productId, warehouseId);
+            throw;
+        }
+    }
+
+
+    public async Task Save(Detailsinandout detail)
         {
             try
             {
@@ -117,6 +144,7 @@ namespace Warehouse.Service;
     public interface IDetailsinandoutService
     {
         Task<List<object>> GetDetails(int idInandout);
+        Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId);
         Task Save(Detailsinandout detail);
         Task<Detailsinandout?> Update(int id, Detailsinandout detail);
         Task<bool> Delete(int id);
