@@ -19,7 +19,7 @@ public class MateriaByCatalogService : IMateriaByCatalogService
         try
         {
             return await _context.MateriaByCatalog
-                .Where(rm => rm.Active == true && rm.IdCompany == idCompany && rm.IdCatalog == idMaterial)
+                .Where(rm => rm.Active == true && rm.IdCompany == idCompany && rm.IdConcep == idMaterial)
                 .OrderByDescending(rm => rm.FechaCambio)
                 .ToListAsync<object>();
         }
