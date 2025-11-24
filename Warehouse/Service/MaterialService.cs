@@ -469,7 +469,6 @@ namespace Warehouse.Service
                     item.Categoria = string.IsNullOrEmpty(item.Categoria) ? "Sin categoría" : item.Categoria;
                     item.Familia = string.IsNullOrEmpty(item.Familia) ? "Sin familia" : item.Familia;
                     item.Subfamilia = string.IsNullOrEmpty(item.Subfamilia) ? "Sin subfamilia" : item.Subfamilia;
-                    item.Picture = string.IsNullOrEmpty(item.Picture) ? "sin-imagen.jpg" : item.Picture;
                     item.Precio ??= 0;
                     item.Vigente ??= true;
                 }

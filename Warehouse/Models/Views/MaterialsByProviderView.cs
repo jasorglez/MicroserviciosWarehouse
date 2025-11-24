@@ -54,9 +54,6 @@ namespace Warehouse.Models.Views
         [Column("subfamilia")]
         [StringLength(255)]
         public string? Subfamilia { get; set; }
-
-        [Column("picture")]
-        [StringLength(500)]
-        public string? Picture { get; set; }
+        
     }
 }
