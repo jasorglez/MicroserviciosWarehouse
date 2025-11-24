@@ -55,6 +55,40 @@ namespace Warehouse.Service.Delison
                 throw;
             }
         }
+        public async Task<List<CatalogByMasterFamView>> GetSubFamilyByMaster( int idMasterFamily)
+        {
+            try
+            {
+                var items = await _context.CatalogByMasterFamViews
+                    .Where(f => f.MasterFamily == idMasterFamily && f.Subfamilia != null && f.Vigente == true)
+                    .OrderBy(f => f.Subfamilia)
+                    .ToListAsync();
+                return items;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idMasterFamily}", idMasterFamily);
+                throw;
+            }
+        }
+
+        public async Task<List<CatalogByMasterFamView>> GetSubFamilyByMasterVigentes( int idMasterFamily)
+        {
+            try
+            {
+                var items = await _context.CatalogByMasterFamViews
+                    .Where(f => f.MasterFamily == idMasterFamily && f.Subfamilia != null && f.Vigente == true)
+                    .OrderBy(f => f.Subfamilia)
+                    .ToListAsync();
+                return items;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idMasterFamily}", idMasterFamily);
+                throw;
+            }
+        }
+
 
         public async Task<List<MasterFamilyDelison>> GetSuppliesMasterFamily(int idCompany)
         {
@@ -213,6 +247,8 @@ namespace Warehouse.Service.Delison
     public interface IFamilySubFamilyDelisonService
     {
         Task<List<CatalogByMasterFamView>> GetDetailByMaster(int idCompany, int idMasterFamily);
+        Task<List<CatalogByMasterFamView>> GetSubFamilyByMaster( int idMasterFamily);
+        Task<List<CatalogByMasterFamView>> GetSubFamilyByMasterVigentes( int idMasterFamily);
         Task<List<FamilySubFamilyView>> GetSupplies(int idCompany);
         Task<List<MasterFamilyDelison>> GetSuppliesMasterFamily(int idCompany);
         Task<List<Catalog>> GetCatalog( int idCompany);

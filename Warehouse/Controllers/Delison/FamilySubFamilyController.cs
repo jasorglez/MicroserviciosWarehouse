@@ -63,6 +63,34 @@ namespace Warehouse.Controllers.Delison
                 return StatusCode(500, "Internal server error");
             }
         }
+        [HttpGet("GetSubFamilyByMaster/{idMaster}")]
+        public async Task<IActionResult> GetSubFamilyByMaster(int idMaster)
+        {
+            try
+            {
+                var supplies = await _service.GetSubFamilyByMaster(idMaster);
+                return Ok(supplies);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idMaster}", idMaster);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+        [HttpGet("GetSubFamilyByMasterVigentes/{idMaster}")]
+        public async Task<IActionResult> GetSubFamilyByMasterVigentes(int idMaster)
+        {
+            try
+            {
+                var supplies = await _service.GetSubFamilyByMasterVigentes(idMaster);
+                return Ok(supplies);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idMaster}", idMaster);
+                return StatusCode(500, "Internal server error");
+            }
+        }
 
         [HttpGet("GetCatalog")]
         public async Task<IActionResult> GetCatalog([FromQuery] int idCompany)

@@ -86,7 +86,8 @@ namespace Warehouse.Service
             {
                 var result = await _context.MaterialWithCounts
                     .Where(m => m.IdCompany == idCompany)
-                    .OrderBy(m => m.Articulo)
+                    .OrderByDescending(m => m.Vigente)
+                    .ThenBy(m => m.Articulo)
                     .AsNoTracking()
                     .ToListAsync();
 
