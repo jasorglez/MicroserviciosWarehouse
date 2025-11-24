@@ -108,7 +108,7 @@ public class MateriaByCatalogService : IMateriaByCatalogService
     public async Task<bool> ActualizarPorcentaje(int? IdCompany,int? IdConcep)
     {
         var listaActiva = await _context.MateriaByCatalog
-            .Where(rm => rm.Active == true && rm.IdCompany == IdCompany && rm.IdConcep == IdConcep && rm.Check == true)
+            .Where(rm => rm.Active == true && rm.IdCompany == IdCompany && rm.IdConcep == IdConcep && rm.Check == false)
             .ToListAsync();
         var cantidad = listaActiva.Sum(x => x.Cantidad) ?? 0;
 
@@ -125,7 +125,7 @@ public class MateriaByCatalogService : IMateriaByCatalogService
             _context.MateriaByCatalog.Update(item);
         }
         var listaInactiva = await _context.MateriaByCatalog
-            .Where(rm => rm.Active == true && rm.IdCompany == IdCompany && rm.IdConcep == IdConcep && rm.Check == false)
+            .Where(rm => rm.Active == true && rm.IdCompany == IdCompany && rm.IdConcep == IdConcep && rm.Check == true)
             .ToListAsync();
         foreach (var item in listaInactiva)
         {
