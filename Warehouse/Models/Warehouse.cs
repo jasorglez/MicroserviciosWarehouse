@@ -18,54 +18,50 @@ namespace Warehouse.Models
         [Column("id_branch")]
         public int IdBranch { get; set; }
 
-        [Required]
+        
         [StringLength(50)]
         [Column("place", TypeName = "VARCHAR")]
-        public string Place { get; set; } = string.Empty;
+        public string? Place { get; set; } = string.Empty;
 
         [Required]
         [StringLength(50)]
         [Column("name", TypeName = "VARCHAR")]
         [DefaultValue("NAME WAREHOUSES")]
-        public string Name { get; set; } = string.Empty;
+        public string? Name { get; set; } = string.Empty;
 
-        [Required]
+
         [StringLength(150)]
         [Column("address", TypeName = "NVARCHAR")]
         [DefaultValue("ADDRESS")]
-        public string Address { get; set; } = string.Empty;
+        public string? Address { get; set; } = string.Empty;
 
-        [Required]
         [StringLength(50)]
         [Column("state", TypeName = "VARCHAR")]
-        public string State { get; set; } = string.Empty;
+        public string? State { get; set; } = string.Empty;
 
         [StringLength(40)]
         [Column("city", TypeName = "NCHAR")]
         public string? City { get; set; }
-
-        
-        [Required]
+                
         [StringLength(10)]
         [Column("codepostal", TypeName = "CHAR")]
         [DefaultValue("CP")]
-        public string CodePostal { get; set; } = string.Empty;
+        public string? CodePostal { get; set; } = string.Empty;
 
-        [Required]
+        
         [StringLength(10)]
         [Column("phone", TypeName = "CHAR")]
         [DefaultValue("TELEFONO")]
-        public string Phone { get; set; } = string.Empty;
+        public string? Phone { get; set; } = string.Empty;
 
-        [Required]
-        [StringLength(50)]
+        
+        [StringLength(100)]
         [Column("leader", TypeName = "NVARCHAR")]
         [DefaultValue("LEADER")]
-        public string Leader { get; set; } = string.Empty;
-
-        [StringLength(2)]
-        [Column("principal", TypeName = "VARCHAR")]
-        public string? Principal { get; set; }
+        public string? Leader { get; set; } = string.Empty;
+                
+        [Column("principal")]
+        public bool Principal { get; set; }
 
         [Required]
         [Column("active")]

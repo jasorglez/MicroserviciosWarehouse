@@ -22,10 +22,15 @@ namespace Warehouse.Models
         [Column("id_warehouse")]
         public int? IdWarehouse { get; set; }
         
-
         [Column("id_type")]
         public int? IdType { get; set; }
-        
+
+        [Column("id_ot")]
+        public int? IdOt { get; set; }
+
+        [Column("id_autoriza")]
+        public int? IdAutoriza { get; set; }
+
         [Column("date", TypeName = "Date")]
         public DateTime? Date { get; set; }
         
@@ -35,10 +40,10 @@ namespace Warehouse.Models
         [Column("id_oc")]
         public int? IdOc { get; set; }
         
-        [Column("num_bill", TypeName = "varchar(10)")]
+        [Column("num_bill", TypeName = "varchar(30)")]
         public string? NumBill { get; set; }
         
-        [Column("deliver_name", TypeName = "varchar(25)")]
+        [Column("deliver_name", TypeName = "varchar(66)")]
         public string? DeliverName { get; set; }
 
         [Column("countrow")]
