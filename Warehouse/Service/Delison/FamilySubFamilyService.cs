@@ -72,12 +72,17 @@ namespace Warehouse.Service.Delison
             }
         }
 
-        public async Task<List<CatalogByMasterFamView>> GetSubFamilyByMasterVigentes( int idMasterFamily)
+        public async Task<List<CatalogByMasterFamView>> GetSubFamilyByMasterVigentes( int idCompany, int idMasterFamily, int idFamilia)
         {
             try
             {
+                var existentes = await _context.MateriaByCatalog
+                    .Where(m =>m.IdCompany == idCompany && m.Active == true && m.IdConcep == idMasterFamily)
+                    .Select(m => m.IdCatalog.Value)
+                    .ToListAsync();
+
                 var items = await _context.CatalogByMasterFamViews
-                    .Where(f => f.MasterFamily == idMasterFamily && f.Subfamilia != null && f.Vigente == true)
+                    .Where(f => f.MasterFamily == idFamilia && f.Subfamilia != null && f.Vigente == true && f.IdSubfamily.HasValue && !existentes.Contains(f.IdSubfamily.Value))
                     .OrderBy(f => f.Subfamilia)
                     .ToListAsync();
                 return items;
@@ -248,7 +253,7 @@ namespace Warehouse.Service.Delison
     {
         Task<List<CatalogByMasterFamView>> GetDetailByMaster(int idCompany, int idMasterFamily);
         Task<List<CatalogByMasterFamView>> GetSubFamilyByMaster( int idMasterFamily);
-        Task<List<CatalogByMasterFamView>> GetSubFamilyByMasterVigentes( int idMasterFamily);
+        Task<List<CatalogByMasterFamView>> GetSubFamilyByMasterVigentes( int idCompany, int idMasterFamily, int idFamilia);
         Task<List<FamilySubFamilyView>> GetSupplies(int idCompany);
         Task<List<MasterFamilyDelison>> GetSuppliesMasterFamily(int idCompany);
         Task<List<Catalog>> GetCatalog( int idCompany);
