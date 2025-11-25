@@ -50,7 +50,11 @@ namespace Warehouse.Service
                         o.Phone,
                         o.Discount,
                         o.Close,
-                        o.Active
+                        o.Active,
+                        // Conteo de items relacionados en Detailsreqoc
+                        countrow = _context.Detailsreqoc
+                            .Where(d => d.IdMovement == o.Id && d.Active == true)
+                            .Count()
                     })
                     .AsNoTracking()
                     .ToListAsync<object>();
