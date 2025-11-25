@@ -47,11 +47,8 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<ProviderType> ProviderTypes { get; set; }    
     public virtual DbSet<SubfamilyxProvider> SubfamilyxProviders { get; set; }
     public virtual DbSet<MaterialsWithFamiliesView> MaterialsWithFamiliesViews { get; set; }
-<<<<<<< HEAD
     public virtual DbSet<VwInventarioTotal> VwInventarioTotal { get; set; }
-=======
     public virtual DbSet<MaterialsByProviderView> MaterialsByProviderViews { get; set; }
->>>>>>> 6c8767ee61258244352f62db8f16dd9c0498d3b2
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
