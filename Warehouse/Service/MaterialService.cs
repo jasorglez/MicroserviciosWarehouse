@@ -450,6 +450,37 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<MaterialsByProviderView>> GetMaterialsByProvider(int idProvider)
+        {
+            try
+            {
+                var result = await _context.MaterialsByProviderViews
+                    .Where(m => m.IdProvider == idProvider)
+                    .OrderBy(m => m.Nombre)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                // Aplicar valores por defecto después de cargar desde BD
+                foreach (var item in result)
+                {
+                    item.Codigo = string.IsNullOrEmpty(item.Codigo) ? "N/A" : item.Codigo;
+                    item.Nombre = string.IsNullOrEmpty(item.Nombre) ? "Sin especificar" : item.Nombre;
+                    item.Categoria = string.IsNullOrEmpty(item.Categoria) ? "Sin categoría" : item.Categoria;
+                    item.Familia = string.IsNullOrEmpty(item.Familia) ? "Sin familia" : item.Familia;
+                    item.Subfamilia = string.IsNullOrEmpty(item.Subfamilia) ? "Sin subfamilia" : item.Subfamilia;
+                    item.Precio ??= 0;
+                    item.Vigente ??= true;
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving materials by provider {IdProvider}", idProvider);
+                throw;
+            }
+        }
     }
 
     public interface IMaterialService
@@ -463,6 +494,7 @@ namespace Warehouse.Service
         Task<List<object>> Get2Supplies(int idCompany);
         Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany);
         Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
+        Task<List<MaterialsByProviderView>> GetMaterialsByProvider(int idProvider);
         Task Save(Material material);
         Task<Material?> Update(int id, Material material);
         Task<bool> Delete(int id);

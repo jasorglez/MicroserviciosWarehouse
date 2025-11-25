@@ -244,5 +244,29 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "Internal server error");
             }
         }
+
+        [HttpGet("by-provider/{idProvider}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<List<MaterialsByProviderView>>> GetMaterialsByProvider(int idProvider)
+        {
+            if (idProvider <= 0)
+            {
+                _logger.LogWarning("Invalid provider ID: {IdProvider}", idProvider);
+                return BadRequest(new { message = "ID de proveedor inválido" });
+            }
+
+            try
+            {
+                var materials = await _service.GetMaterialsByProvider(idProvider);
+                return Ok(materials);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting materials by provider {IdProvider}", idProvider);
+                return StatusCode(500, new { message = "Error al obtener los materiales del proveedor" });
+            }
+        }
     }
 }
