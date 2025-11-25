@@ -41,7 +41,7 @@ namespace Warehouse.Service
                             dm.Details.Quantity,
                             dm.Details.Price,
                             dm.Details.Total,
-                            dm.Details.Type,
+                            dm.Details.Type,dm.Details.IdProvider,
                             dm.Details.Comment,
                             dm.Details.Dateuse,
                             dm.Details.Active
