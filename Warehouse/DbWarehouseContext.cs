@@ -44,16 +44,22 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MateriaByCatalog> MateriaByCatalog { get; set; }
     public virtual DbSet<MasterFamilyDelison> MasterFamilyDelison { get; set; }
     public virtual DbSet<CatalogByMasterFamDelison> CatalogByMasterFamDelison { get; set; }
-    public virtual DbSet<ProviderType> ProviderTypes { get; set; }
-    
+    public virtual DbSet<ProviderType> ProviderTypes { get; set; }    
     public virtual DbSet<SubfamilyxProvider> SubfamilyxProviders { get; set; }
     public virtual DbSet<MaterialsWithFamiliesView> MaterialsWithFamiliesViews { get; set; }
+    public virtual DbSet<VwInventarioTotal> VwInventarioTotal { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
     {
 
-        // Configurar la vista (opcional - si quieres ser explícito)
+        modelBuilder.Entity<VwInventarioTotal>(entity =>
+        {
+            entity.HasNoKey(); // Las vistas no tienen clave primaria
+            entity.ToView("VW_InventarioTotal");
+        });
+
+
         modelBuilder.Entity<MaterialsWithFamiliesView>(entity =>
         {
             entity.HasNoKey(); // Las vistas no tienen clave primaria
