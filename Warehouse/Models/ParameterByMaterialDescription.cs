@@ -9,6 +9,9 @@ public class ParameterByMaterialDescription
     [Key]
     [Column("id")]
     public int? Id { get; set; }
+    
+    [Column("id_master")]
+    public int? IdMaster { get; set; }
 
     [Column("id_parameter")]
     public int? IdParameter { get; set; }
