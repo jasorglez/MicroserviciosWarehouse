@@ -50,7 +50,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v4.66", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v4.66 Mod. 2025-11-24 21:30, BSK, Server 66.179.240.10" }); 
+   c.SwaggerDoc("v4.88", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v4.88 Mod. 2025-11-25 13:52, SBK, Server 66.179.240.10" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -110,6 +110,7 @@ builder.Services.AddScoped<ISubfamilyxProviderService, SubfamilyxProviderService
 builder.Services.AddScoped<IMateriaByCatalogService, MateriaByCatalogService>();
 
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
+builder.Services.AddScoped<IInventarioService, InventarioService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -123,7 +124,10 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(
-                builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("La clave JWT no esta configurada")))
+                builder.Configuration["Jwt:Key"] ?? throw new InvalidOperationException("La clave JWT no esta configurada"))),
+            // AGREGAR ESTAS LÍNEAS:
+            ClockSkew = TimeSpan.FromMinutes(5), // Tolerancia de 5 minutos
+            RequireExpirationTime = true
         };
 
     });
@@ -136,7 +140,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v4.66/swagger.json", "Microservicio Warehouse V4.66");
+        c.SwaggerEndpoint("/swagger/v4.88/swagger.json", "Microservicio Warehouse V4.88");
         c.RoutePrefix = "swagger";
     });
 }

@@ -7,11 +7,11 @@ namespace Warehouse.Models.Views
     public class MaterialsWithFamiliesView
     {
         public string Insumo { get; set; }
-        public string MaterialDescription { get; set; }
-        public string FamiliaDescription { get; set; }
-        public string SubfamiliaDescription { get; set; }
-        public string Barcode { get; set; }
-        public string Picture { get; set; }
+        public string? MaterialDescription { get; set; }
+        public string? FamiliaDescription { get; set; }
+        public string? SubfamiliaDescription { get; set; }
+        public string? Barcode { get; set; }
+        public string? Picture { get; set; }
         public decimal? CostoMN { get; set; }
         public decimal? VentaMN { get; set; }
         public int? StockMin { get; set; }

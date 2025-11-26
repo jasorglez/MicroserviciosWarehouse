@@ -12,14 +12,17 @@ namespace Warehouse.Models
         [Column("id")]
         public int Id { get; set; }
 
-        [Required]
+        
         [Column("id_movement")]
         public int IdMovement { get; set; }
 
-        [Required]
+        
         [Column("id_supplie")]
         public int IdSupplie { get; set; }
-        
+
+        [Column("id_provider")]
+        public int IdProvider { get; set; }
+
         [Required]
         [Column("dateuse", TypeName = "date")]
         public DateTime Dateuse { get; set; }
