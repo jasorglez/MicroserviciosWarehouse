@@ -29,7 +29,7 @@ public class ParameterByMaterialDescriptionController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving raw materials for company {IdCompany}", idCompany);
+            _logger.LogError(ex, "Error retrieving raw materials for company {idParameter}", idParameter);
             return StatusCode(500, "Internal server error");
         }
     }
