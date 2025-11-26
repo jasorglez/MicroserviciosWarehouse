@@ -19,7 +19,8 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
         try
         {
             return await _context.ParameterByMaterialDescription
-                .Where(p => p.Activo == true && p.Vigente == true && p.IdMaster == idMaster)
+                .Where(p => p.Activo == true && p.IdMaster == idMaster)
+                .OrderBy(p => p.Vigente)
                 .ToListAsync<object>();
         }
         catch (Exception ex)
@@ -29,7 +30,28 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
         }
     }
 
-    public async Task<List<object>> Getparameter(int idCompany)
+    public async Task<List<object>> Getparameter(int idCompany, int idMaster)
+    {
+        try
+        {
+            var existentes = await _context.ParameterByMaterialDescription
+                .Where(m => m.Activo == true && m.IdMaster == idMaster)
+                .Select(m => m.IdParameter.Value)
+                .ToListAsync();
+
+            return await _context.Catalogs
+                .Where(c => c.Active == 1 && c.IdCompany == idCompany && c.Type == "PARAMETER" && !existentes.Contains(c.Id))
+                .OrderBy(c => c.Description)
+                .ToListAsync<object>();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving raw materials for company {IdCompany}", idCompany);
+            throw;
+        }
+    }
+
+    public async Task<List<object>> GetparameterVigente(int idCompany)
     {
         try
         {
@@ -123,7 +145,8 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
 public interface IParameterByMaterialDescriptionService
 {
     Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idMaster);
-    Task<List<object>> Getparameter(int idCompany);
+    Task<List<object>> GetparameterVigente(int idCompany);
+    Task<List<object>> Getparameter(int idCompany, int idMaster);
     Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameter);
     Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription);
     Task<bool> DeleteParameterByMaterialDescriptionAsync(int id);

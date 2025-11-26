@@ -35,11 +35,26 @@ public class ParameterByMaterialDescriptionController : ControllerBase
     }
 
     [HttpGet("parameter/{idCompany}")]
-    public async Task<ActionResult<List<Catalog>>> Getparameter(int idCompany)
+    public async Task<ActionResult<List<Catalog>>> GetparameterVigente(int idCompany)
     {
         try
         {
-            var Catalogs = await _service.Getparameter(idCompany);
+            var Catalogs = await _service.GetparameterVigente(idCompany);
+            return Ok(Catalogs);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving parameters for company {IdCompany}", idCompany);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    [HttpGet("parameter/{idCompany}/{idMaster}")]
+    public async Task<ActionResult<List<Catalog>>> Getparameter(int idCompany, int idMaster)
+    {
+        try
+        {
+            var Catalogs = await _service.Getparameter(idCompany, idMaster);
             return Ok(Catalogs);
         }
         catch (Exception ex)
