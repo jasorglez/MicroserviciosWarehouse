@@ -20,7 +20,7 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
         {
             return await _context.ParameterByMaterialDescription
                 .Where(p => p.Activo == true && p.IdMaster == idMaster)
-                .OrderBy(p => p.Vigente)
+                .OrderByDescending(p => p.Vigente)
                 .ToListAsync<object>();
         }
         catch (Exception ex)
