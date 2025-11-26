@@ -19,12 +19,12 @@ public class ParameterByMaterialDescriptionController : ControllerBase
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     
-    /*[HttpGet("byIdCompany/{idCompany}/{idMaterial}")]
-    public async Task<ActionResult<List<ParameterByMaterialDescription>>> GetParameterByMaterialDescriptions(int idCompany, int idMaterial)
+    [HttpGet("parameterByMaterialDescription/{idParameter}")]
+    public async Task<ActionResult<List<ParameterByMaterialDescription>>> GetParameterByMaterialDescriptions(int idParameter)
     {
         try
         {
-            var ParameterByMaterialDescriptions = await _service.GetParameterByMaterialDescriptionsAsync(idCompany, idMaterial);
+            var ParameterByMaterialDescriptions = await _service.GetParameterByMaterialDescriptionsAsync(idParameter);
             return Ok(ParameterByMaterialDescriptions);
         }
         catch (Exception ex)
@@ -32,7 +32,7 @@ public class ParameterByMaterialDescriptionController : ControllerBase
             _logger.LogError(ex, "Error retrieving raw materials for company {IdCompany}", idCompany);
             return StatusCode(500, "Internal server error");
         }
-    }*/
+    }
 
     [HttpGet("parameter/{idCompany}")]
     public async Task<ActionResult<List<Catalog>>> Getparameter(int idCompany)
@@ -69,7 +69,7 @@ public class ParameterByMaterialDescriptionController : ControllerBase
         }
     }
     
-    /*[HttpPut]
+    [HttpPut]
     public async Task<ActionResult<ParameterByMaterialDescription>> UpdateParameterByMaterialDescription(int id, [FromBody] ParameterByMaterialDescription parameterByMaterialDescription)
     {
         if (parameterByMaterialDescription == null)
@@ -110,5 +110,5 @@ public class ParameterByMaterialDescriptionController : ControllerBase
             _logger.LogError(ex, "Error deleting raw material with ID {Id}", id);
             return StatusCode(500, "Internal server error");
         }
-    }*/
+    }
 }
