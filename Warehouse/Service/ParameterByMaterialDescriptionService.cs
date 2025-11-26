@@ -14,7 +14,7 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     
-    public async Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idCompany, int idMaterial)
+    /*public async Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idCompany, int idMaterial)
     {
         try
         {
@@ -27,7 +27,7 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
             _logger.LogError(ex, "Error retrieving parameters for company {IdCompany}", idCompany);
             throw;
         }
-    }
+    }*/
 
     public async Task<List<object>> Getparameter(int idCompany)
     {
@@ -61,7 +61,7 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
         }
     }
     
-    public async Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription)
+    /*public async Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription)
     {
         // Load existing entity from DB
         var existingItem = await _context.ParameterByMaterialDescription.FindAsync(id);
@@ -116,15 +116,15 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
             _logger.LogError(ex, "Error deleting raw material with ID {Id}", id);
             throw;
         }
-    }
+    }*/
 
 }
 
 public interface IParameterByMaterialDescriptionService
 {
-    Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idCompany, int idMaterial);
+    //Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idCompany, int idMaterial);
     Task<List<object>> Getparameter(int idCompany);
     Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameterByMaterialDescription);
-    Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription);
-    Task<bool> DeleteParameterByMaterialDescriptionAsync(int id);
+    //Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription);
+    //Task<bool> DeleteParameterByMaterialDescriptionAsync(int id);
 }
