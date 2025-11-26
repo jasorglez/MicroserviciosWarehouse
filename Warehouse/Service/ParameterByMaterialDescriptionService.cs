@@ -107,7 +107,7 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
 
         try
         {
-            existingItem.Active = false;
+            existingItem.Activo = false;
             await _context.SaveChangesAsync();
             return true;
         }

@@ -8,7 +8,7 @@ public class ParameterByMaterialDescription
 {
     [Key]
     [Column("id")]
-    public int Id { get; set; }
+    public int? Id { get; set; }
 
     [Column("id_parameter")]
     public int? IdParameter { get; set; }
@@ -23,8 +23,8 @@ public class ParameterByMaterialDescription
     public decimal? Maximo { get; set; }
 
     [Column("vigente")]
-    public bool Vigente { get; set; }
+    public bool? Vigente { get; set; }
 
-    [Column("active")]
-    public bool Active { get; set; }
+    [Column("activo")]
+    public bool? Activo { get; set; }
 }
