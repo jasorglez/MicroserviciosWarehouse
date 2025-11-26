@@ -98,6 +98,7 @@ builder.Services.AddScoped<IDetailsinandoutService, DetailsinandoutService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();  
 builder.Services.AddScoped<ISetupService, SetupService>();  
 builder.Services.AddScoped<ITablesXModulesService, TablesXModulesService>();
+builder.Services.AddScoped<IParameterByMaterialDescriptionService, ParameterByMaterialDescriptionService>();
 builder.Services.AddScoped<IRawMaterialService, RawMaterialService>();
 builder.Services.AddScoped<IRawMaterialDetailsService, RawMaterialDetailsService>();
 builder.Services.AddScoped<IProveedorXTablaService, ProveedorXTablaService>();

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using Warehouse.Models;
 using Warehouse.Models.Delison;
 using Warehouse.Models.Views;
@@ -32,6 +32,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialsxProvExist> MaterialsxProvExists { get; set; }
     public virtual DbSet<ProveedorXTabla> ProveedorXTablas { get; set; }
     public virtual DbSet<ProductoCompleto> ProductoCompleto { get; set; }
+    public virtual DbSet<ParameterByMaterialDescription> ParameterByMaterialDescription { get; set; }
     public virtual DbSet<ProveedoresxtypeView> ProveedoresxtypeViews { get; set; }
     public virtual DbSet<MaterialsDelison> MaterialsDelison { get; set; }
     public virtual DbSet<CreditProveedores> CreditProveedores { get; set; }
