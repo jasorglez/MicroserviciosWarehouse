@@ -14,17 +14,17 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
     
-    public async Task<List<object>> GetParameterByMaterialDescriptionsAsync( int idParameter)
+    public async Task<List<object>> GetParameterByMaterialDescriptionsAsync( int idMaster)
     {
         try
         {
             return await _context.ParameterByMaterialDescription
-                .Where(p => p.Activo == true && p.Vigente == true && p.IdParameter == idParameter)
+                .Where(p => p.Activo == true && p.Vigente == true && p.IdMaster == idMaster)
                 .ToListAsync<object>();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving parameters for parameter {IdParameter}", idParameter);
+            _logger.LogError(ex, "Error retrieving parameters for parameter {idMaster}", idMaster);
             throw;
         }
     }
@@ -122,7 +122,7 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
 
 public interface IParameterByMaterialDescriptionService
 {
-    Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idParameter);
+    Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idMaster);
     Task<List<object>> Getparameter(int idCompany);
     Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameter);
     Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription);
