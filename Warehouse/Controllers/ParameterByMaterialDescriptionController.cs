@@ -50,21 +50,21 @@ public class ParameterByMaterialDescriptionController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<ActionResult<ParameterByMaterialDescription>> CreateParameterByMaterialDescription([FromBody] ParameterByMaterialDescription parameterByMaterialDescription)
+    public async Task<ActionResult<ParameterByMaterialDescription>> CreateParameterByMaterialDescription([FromBody] ParameterByMaterialDescription parameter)
     {
-        if (parameterByMaterialDescription == null)
+        if (parameter == null)
         {
             return BadRequest("Parameter cannot be null.");
         }
 
         try
         {
-            var createdParameterByMaterialDescription = await _service.CreateParameterByMaterialDescriptionAsync(parameterByMaterialDescription);
+            var createdParameterByMaterialDescription = await _service.CreateParameterByMaterialDescriptionAsync(parameter);
             return Ok(createdParameterByMaterialDescription);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error creating raw material {parameterByMaterialDescription}" , parameterByMaterialDescription);
+            _logger.LogError(ex, "Error creating raw material {parameter}" , parameter);
             return StatusCode(500, "Internal server error");
         }
     }

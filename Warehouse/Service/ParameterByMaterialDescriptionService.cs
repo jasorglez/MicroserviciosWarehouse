@@ -46,13 +46,13 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
     }
 
     
-    public async Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameterByMaterialDescription)
+    public async Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameter)
     {
         try
         {
-            _context.ParameterByMaterialDescription.Add(parameterByMaterialDescription);
+            _context.ParameterByMaterialDescription.Add(parameter);
             await _context.SaveChangesAsync();
-            return parameterByMaterialDescription;
+            return parameter;
         }
         catch (Exception ex)
         {
@@ -124,7 +124,7 @@ public interface IParameterByMaterialDescriptionService
 {
     //Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idCompany, int idMaterial);
     Task<List<object>> Getparameter(int idCompany);
-    Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameterByMaterialDescription);
+    Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameter);
     //Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription);
     //Task<bool> DeleteParameterByMaterialDescriptionAsync(int id);
 }
