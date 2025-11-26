@@ -50,16 +50,16 @@ public class ParameterByMaterialDescriptionController : ControllerBase
     }
     
     [HttpPost]
-    public async Task<ActionResult<ParameterByMaterialDescription>> CreateParameterByMaterialDescription([FromBody] ParameterByMaterialDescription ParameterByMaterialDescription)
+    public async Task<ActionResult<ParameterByMaterialDescription>> CreateParameterByMaterialDescription([FromBody] ParameterByMaterialDescription parameterByMaterialDescription)
     {
-        if (ParameterByMaterialDescription == null)
+        if (parameterByMaterialDescription == null)
         {
-            return BadRequest("Raw material cannot be null.");
+            return BadRequest("Parameter cannot be null.");
         }
 
         try
         {
-            var createdParameterByMaterialDescription = await _service.CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription);
+            var createdParameterByMaterialDescription = await _service.CreateParameterByMaterialDescriptionAsync(parameterByMaterialDescription);
             return Ok(createdParameterByMaterialDescription);
         }
         catch (Exception ex)
@@ -70,16 +70,16 @@ public class ParameterByMaterialDescriptionController : ControllerBase
     }
     
     [HttpPut]
-    public async Task<ActionResult<ParameterByMaterialDescription>> UpdateParameterByMaterialDescription(int id, [FromBody] ParameterByMaterialDescription ParameterByMaterialDescription)
+    public async Task<ActionResult<ParameterByMaterialDescription>> UpdateParameterByMaterialDescription(int id, [FromBody] ParameterByMaterialDescription parameterByMaterialDescription)
     {
-        if (ParameterByMaterialDescription == null)
+        if (parameterByMaterialDescription == null)
         {
-            return BadRequest("Raw material cannot be null.");
+            return BadRequest("Parameter cannot be null.");
         }
 
         try
         {
-            var updatedParameterByMaterialDescription = await _service.UpdateParameterByMaterialDescriptionAsync(id, ParameterByMaterialDescription);
+            var updatedParameterByMaterialDescription = await _service.UpdateParameterByMaterialDescriptionAsync(id, parameterByMaterialDescription);
             if (updatedParameterByMaterialDescription == null)
             {
                 return NotFound($"Raw material with ID {id} not found.");

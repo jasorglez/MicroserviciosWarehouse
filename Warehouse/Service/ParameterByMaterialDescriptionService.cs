@@ -46,13 +46,13 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
     }
 
     
-    public async Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription ParameterByMaterialDescription)
+    public async Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameterByMaterialDescription)
     {
         try
         {
-            _context.ParameterByMaterialDescription.Add(ParameterByMaterialDescription);
+            _context.ParameterByMaterialDescription.Add(parameterByMaterialDescription);
             await _context.SaveChangesAsync();
-            return ParameterByMaterialDescription;
+            return parameterByMaterialDescription;
         }
         catch (Exception ex)
         {
@@ -61,7 +61,7 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
         }
     }
     
-    public async Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription ParameterByMaterialDescription)
+    public async Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription)
     {
         // Load existing entity from DB
         var existingItem = await _context.ParameterByMaterialDescription.FindAsync(id);
@@ -73,17 +73,17 @@ public class ParameterByMaterialDescriptionService : IParameterByMaterialDescrip
             return null;
         }
 
-        if (ParameterByMaterialDescription == null)
+        if (parameterByMaterialDescription == null)
         {
-            _logger.LogWarning("Request body was null when updating raw material with ID {Id}", id);
-            throw new ArgumentNullException(nameof(ParameterByMaterialDescription));
+            _logger.LogWarning("Request body was null when updating parameter with ID {Id}", id);
+            throw new ArgumentNullException(nameof(parameterByMaterialDescription));
         }
 
         try
         {
             // Copy incoming values onto the tracked entity. This avoids EF interpreting the incoming object
             // as a new entity and inserting it. Preserve the primary key.
-            _context.Entry(existingItem).CurrentValues.SetValues(ParameterByMaterialDescription);
+            _context.Entry(existingItem).CurrentValues.SetValues(parameterByMaterialDescription);
             existingItem.Id = id;
 
             await _context.SaveChangesAsync();
@@ -124,7 +124,7 @@ public interface IParameterByMaterialDescriptionService
 {
     Task<List<object>> GetParameterByMaterialDescriptionsAsync(int idCompany, int idMaterial);
     Task<List<object>> Getparameter(int idCompany);
-    Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription ParameterByMaterialDescription);
-    Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription ParameterByMaterialDescription);
+    Task<ParameterByMaterialDescription> CreateParameterByMaterialDescriptionAsync(ParameterByMaterialDescription parameterByMaterialDescription);
+    Task<ParameterByMaterialDescription?> UpdateParameterByMaterialDescriptionAsync(int id, ParameterByMaterialDescription parameterByMaterialDescription);
     Task<bool> DeleteParameterByMaterialDescriptionAsync(int id);
 }
