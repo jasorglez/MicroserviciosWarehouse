@@ -21,13 +21,20 @@ public class FinalProductService : IFinalProductService
         {
             _logger.LogInformation("Fetching final products for company {IdCompany}", idCompany);
 
-            var products = await _context.FinalProducts
+            // Primero obtenemos los productos desde la BD (aquí sí usamos await)
+            var productsFromDb = await _context.FinalProducts
                 .Where(fp => fp.IdCompany == idCompany && fp.Active == 1)
-                .OrderBy(fp => fp.Category)
-                .ThenBy(fp => fp.Presentation)
                 .ToListAsync();
 
+            // Luego ordenamos en memoria (sin await)
+            var products = productsFromDb
+                .OrderBy(fp => fp.Category)
+                .ThenBy(fp => ExtraerNumero(fp.Presentation))
+                .ToList();
+
+
             _logger.LogInformation("Found {Count} final products for company {IdCompany}", products.Count, idCompany);
+
             return products;
         }
         catch (Exception ex)
@@ -36,6 +43,23 @@ public class FinalProductService : IFinalProductService
             throw;
         }
     }
+
+    int ExtraerNumero(string texto)
+    {
+        if (string.IsNullOrWhiteSpace(texto))
+            return 0;
+
+        // extrae solo los dígitos
+        var numeros = new string(texto.Where(char.IsDigit).ToArray());
+
+        if (int.TryParse(numeros, out int valor))
+            return valor;
+
+        return 0; // si no hay números válidos
+    }
+
+
+
 }
 
 public interface IFinalProductService
