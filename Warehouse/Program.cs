@@ -24,10 +24,10 @@ builder.Services.AddCors(options =>
                 .WithOrigins("https://localhost", "http://localhost:4200", 
                              "https://be-app-five.vercel.app", "http://localhost:8100",
                              "https://localhost:7089", "https://biapp.com.mx", 
-                             "https://localhost:4200", "https://www.bi2.com.mx",
+                             "https://localhost:4200", 
                              "https://smp-git-main-jasorglezs-projects.vercel.app",
                              "https://smp-beta.vercel.app",
-                             "https://bi2.com.mx") 
+                             "https://bi2.com.mx", "https://www.bi2.com.mx") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
