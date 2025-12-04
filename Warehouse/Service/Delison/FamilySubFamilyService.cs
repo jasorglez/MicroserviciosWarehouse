@@ -124,7 +124,7 @@ namespace Warehouse.Service.Delison
 
                 // Consultar catálogos tipo FAM-CAT que no estén ya registrados en MasterFamilyDelison
                 var items = await _context.Catalogs
-                    .Where(c => c.Active == 1 && c.Type == "FAM-CAT" && c.IdCompany == idCompany && c.Vigente == true && !existentes.Contains(c.Id))
+                    .Where(c => c.Active == 1 && c.Type == "FAM-CAT" && c.IdCompany == idCompany && c.Vigente == true  && c.Active == 1 && !existentes.Contains(c.Id))
                     .OrderByDescending(cat => cat.Vigente)
                     .ThenBy(cat => cat.Description)
                     .AsNoTracking()
