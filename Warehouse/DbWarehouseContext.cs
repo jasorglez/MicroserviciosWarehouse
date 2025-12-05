@@ -51,6 +51,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<VwInventarioTotal> VwInventarioTotal { get; set; }
     public virtual DbSet<MaterialsByProviderView> MaterialsByProviderViews { get; set; }
     public virtual DbSet<SucursalByMaterialProveedor> SucursalByMaterialProveedor { get; set; }
+    public virtual DbSet<TypexPrefixes> TypexPrefixes { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
