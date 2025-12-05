@@ -169,6 +169,36 @@ namespace Warehouse.Controllers.Delison
             }
         }
 
+        [HttpGet("GetArticulosSubFamilyByMaster/{idMaster}")]
+        public async Task<IActionResult> GetArticulosSubFamilyByMaster(int idMaster)
+        {
+            try
+            {
+                var supplies = await _service.GetArticulosSubFamilyByMaster(idMaster);
+                return Ok(supplies);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idMaster}", idMaster);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("GetArticulosSubFamilyByMasterVigentes/{idCompany}/{idMasterFamily}/{idFamilia}")]
+        public async Task<IActionResult> GetArticulosSubFamilyByMasterVigentes(int idCompany, int idMasterFamily, int idFamilia)
+        {
+            try
+            {
+                var supplies = await _service.GetArticulosSubFamilyByMasterVigentes(idCompany, idMasterFamily, idFamilia);
+                return Ok(supplies);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idMasterFamily}", idMasterFamily);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
 
 
         // removed nested Family class to avoid type conflict with Warehouse.Service.Delison.Family

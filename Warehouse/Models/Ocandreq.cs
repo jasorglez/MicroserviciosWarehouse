@@ -13,108 +13,112 @@ namespace Warehouse.Models
         public int Id { get; set; }
 
         [Required]
-        [Column("folio", TypeName = "VARCHAR")]
+        [Column("folio", TypeName = "VARCHAR(20)")]
         [StringLength(20)]
         public string Folio { get; set; } = string.Empty;
-        
-        [Column("type_reference")]
-        public string? TypeReference { get; set; } // "project" o "branch"
+
+        [Required]
+        [Column("type_reference", TypeName = "VARCHAR(50)")]
+        [StringLength(50)]
+        public string TypeReference { get; set; } = "project";
+
+        [Column("id_req")]
+        public int? IdReq { get; set; } = 0;
 
         [Column("id_reference")]
-        public int IdReference { get; set; }
-        
-        [Column("id_req")]
-        public int? IdReq { get; set; }
+        public int IdReference { get; set; } = 0;
 
         [Required]
         [Column("datecreate", TypeName = "DATE")]
         public DateTime DateCreate { get; set; }
 
+        [Column("id_provider")]
+        public int? IdProvider { get; set; } = 0;
+
         [Required]
         [Column("id_departament")]
-        public int IdDepartament { get; set; }
+        public int IdDepartament { get; set; } = 0;
 
         [Required]
-        [Column("delivery", TypeName = "VARCHAR")]
+        [Column("delivery", TypeName = "VARCHAR(80)")]
         [StringLength(80)]
-        public string? Delivery { get; set; } = string.Empty;
+        public string Delivery { get; set; } = "NO APLICA";
 
         [Required]
-        [Column("deliverytime", TypeName = "VARCHAR")]
+        [Column("deliverytime", TypeName = "VARCHAR(20)")]
         [StringLength(20)]
-        public string? DeliveryTime { get; set; } = string.Empty;
+        public string DeliveryTime { get; set; } = "1 DAY";
 
         [Required]
-        [Column("typeoc", TypeName = "VARCHAR")]
+        [Column("typeoc", TypeName = "VARCHAR(20)")]
         [StringLength(20)]
-        public string TypeOc { get; set; } = string.Empty;
+        public string TypeOc { get; set; } = "INSUMOS";
 
-        [Required]
         [Column("datesupply", TypeName = "DATE")]
-        [JsonPropertyName("dateSupply")]
         public DateTime? DateSupply { get; set; }
 
         [Required]
         [Column("id_payment")]
-        public int IdPayment { get; set; }
+        public int IdPayment { get; set; } = 0;
 
         [Required]
         [Column("id_currency")]
-        public int IdCurrency { get; set; }
+        public int IdCurrency { get; set; } = 0;
 
-        [Column("conditions", TypeName = "VARCHAR")]
+        [Column("conditions", TypeName = "VARCHAR(50)")]
         [StringLength(50)]
         public string? Conditions { get; set; }
 
         [Column("id_authorize")]
-        public int IdAuthorize { get; set; }
+        public int? IdAuthorize { get; set; } = 0;
 
-        [Column("priority", TypeName = "VARCHAR")]
+        [Column("priority", TypeName = "VARCHAR(12)")]
         [StringLength(12)]
         public string? Priority { get; set; }
 
-        [Column("solicit", TypeName = "VARCHAR")]
+        [Column("solicit", TypeName = "VARCHAR(50)")]
         [StringLength(50)]
         public string? Solicit { get; set; }
 
-        [Column("type", TypeName = "VARCHAR")]
-        [StringLength(6)]
-        public string? Type { get; set; }
+        [Column("discount", TypeName = "DECIMAL(38,2)")]
+        public decimal? Discount { get; set; } = 0;
 
-        [Column("comments", TypeName = "VARCHAR")]
-        [StringLength(50)]
-        public string? Comments { get; set; }
-        
-        [Column("id_provider")]
-        public int? IdProvider { get; set; }
-        
-        [Column("discount", TypeName = "DECIMAL(16,2)")]
-        public decimal? Discount { get; set; }
-        
-        [Column("iva_retention", TypeName = "DECIMAL(16,2)")]
-        public decimal? IvaRetention { get; set; }
-        
-        [Column("address", TypeName = "VARCHAR")]
+        [Column("iva_retention", TypeName = "DECIMAL(38,2)")]
+        public decimal? IvaRetention { get; set; } = 0;
+
+        [Column("id_solicit")]
+        public int? IdSolicit { get; set; } = 0;
+
+        [Column("address", TypeName = "VARCHAR(200)")]
         [StringLength(200)]
         public string? Address { get; set; }
-        
-        [Column("city", TypeName = "VARCHAR")]
+
+        [Column("city", TypeName = "VARCHAR(100)")]
         [StringLength(100)]
         public string? City { get; set; }
-        
-        [Column("phone", TypeName = "VARCHAR")]
+
+        [Column("phone", TypeName = "VARCHAR(10)")]
         [StringLength(10)]
         public string? Phone { get; set; }
-        
-        [Column("id_solicit")]
-        public int? IdSolicit { get; set; }
 
+        [Column("type", TypeName = "VARCHAR(6)")]
+        [StringLength(6)]
+        public string? Type { get; set; } = "OC";
+
+        [Column("compliancepedimento", TypeName = "DECIMAL(7,2)")]
+        public decimal? CompliancePedimento { get; set; }
+
+        [Column("compliancerequesicion", TypeName = "DECIMAL(7,2)")]
+        public decimal? ComplianceRequesicion { get; set; }
+
+        [Column("comments", TypeName = "VARCHAR(50)")]
+        [StringLength(50)]
+        public string? Comments { get; set; }
 
         [Column("close")]
-        public bool Close { get; set; } = false;
+        public bool? Close { get; set; } = false;
 
         [Column("active")]
         public bool? Active { get; set; } = true;
-        
     }
 }

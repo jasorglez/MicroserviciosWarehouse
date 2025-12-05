@@ -94,6 +94,57 @@ namespace Warehouse.Service.Delison
             }
         }
 
+        public async Task<List<MaterialWithCount>> GetArticulosSubFamilyByMaster( int idMasterFamily)
+        {
+            try
+            {
+                var items = await _context.MaterialWithCounts
+                    .Where(f => f.IdCompany == idMasterFamily && f.Vigente == true )
+                    .ToListAsync();
+                return items;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idMasterFamily}", idMasterFamily);
+                throw;
+            }
+        }
+
+        public async Task<List<MaterialWithCount>> GetArticulosSubFamilyByMasterVigentes( int idCompany, int idMasterFamily,int idFamilia)
+        {
+            try
+            {
+                var existentes = await _context.MateriaByCatalog
+                    .Where(m => m.IdCompany == idCompany && m.Active == true && m.IdConcep == idMasterFamily)
+                    .Select(m => m.IdCatalog.Value)
+                    .ToListAsync();
+
+                var items = await _context.CatalogByMasterFamViews
+                    .Where(f => f.MasterFamily == idFamilia 
+                             && f.Subfamilia != null 
+                             && f.Vigente == true 
+                             && f.IdSubfamily.HasValue )
+                    .OrderBy(f => f.Subfamilia)
+                    .ToListAsync();
+
+                var idsItems = items.Select(i => i.IdSubfamily.Value).ToList();
+
+                var result = await _context.MaterialWithCounts
+                    .Where(m => idsItems.Contains(m.IdSubfamilia) && m.Vigente == true && m.Id != idMasterFamily && !existentes.Contains(m.Id)  )
+                    .OrderBy(m => m.Articulo)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return result;
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving supplies for company {idMasterFamily}", idMasterFamily);
+                throw;
+            }
+        }
+
 
         public async Task<List<MasterFamilyDelison>> GetSuppliesMasterFamily(int idCompany)
         {
@@ -124,7 +175,7 @@ namespace Warehouse.Service.Delison
 
                 // Consultar catálogos tipo FAM-CAT que no estén ya registrados en MasterFamilyDelison
                 var items = await _context.Catalogs
-                    .Where(c => c.Active == 1 && c.Type == "FAM-CAT" && c.IdCompany == idCompany && c.Vigente == true && !existentes.Contains(c.Id))
+                    .Where(c => c.Active == 1 && c.Type == "FAM-CAT" && c.IdCompany == idCompany && c.Vigente == true  && c.Active == 1 && !existentes.Contains(c.Id))
                     .OrderByDescending(cat => cat.Vigente)
                     .ThenBy(cat => cat.Description)
                     .AsNoTracking()
@@ -252,6 +303,8 @@ namespace Warehouse.Service.Delison
     public interface IFamilySubFamilyDelisonService
     {
         Task<List<CatalogByMasterFamView>> GetDetailByMaster(int idCompany, int idMasterFamily);
+        Task<List<MaterialWithCount>> GetArticulosSubFamilyByMaster( int idMasterFamily);
+        Task<List<MaterialWithCount>> GetArticulosSubFamilyByMasterVigentes( int idCompany, int idMasterFamily,int idFamilia);
         Task<List<CatalogByMasterFamView>> GetSubFamilyByMaster( int idMasterFamily);
         Task<List<CatalogByMasterFamView>> GetSubFamilyByMasterVigentes( int idCompany, int idMasterFamily, int idFamilia);
         Task<List<FamilySubFamilyView>> GetSupplies(int idCompany);
