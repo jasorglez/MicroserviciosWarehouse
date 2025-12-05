@@ -23,28 +23,35 @@ namespace Warehouse.Service
             {
                 return await _context.Detailsreqoc
                     .Where(d => d.Active == true && idMovement == d.IdMovement)
-                    .Join(_context.Materials,
+                    .GroupJoin(_context.Materials,
                         d => d.IdSupplie,
                         m => m.Id,
-                        (d, m) => new { Details = d, Material = m })
-                    .Join(_context.Catalogs,
-                        dm => dm.Material.IdMedida,
+                        (d, materials) => new { Details = d, Materials = materials })
+                    .SelectMany(
+                        dm => dm.Materials.DefaultIfEmpty(),
+                        (dm, m) => new { dm.Details, Material = m })
+                    .GroupJoin(_context.Catalogs,
+                        dm => dm.Material != null ? dm.Material.IdMedida : (int?)null,
                         c => c.Id,
-                        (dm, c) => new
+                        (dm, catalogs) => new { dm.Details, dm.Material, Catalogs = catalogs })
+                    .SelectMany(
+                        dmc => dmc.Catalogs.DefaultIfEmpty(),
+                        (dmc, c) => new
                         {
-                            dm.Details.Id,
-                            dm.Details.IdMovement,
-                            dm.Details.IdSupplie,
-                            code = dm.Material.Insumo,
-                            description = dm.Material.Description,
-                            measure = c.Description,  // Descripción de la unidad de medida
-                            dm.Details.Quantity,
-                            dm.Details.Price,
-                            dm.Details.Total,
-                            dm.Details.Type,dm.Details.IdProvider,
-                            dm.Details.Comment,
-                            dm.Details.Dateuse,
-                            dm.Details.Active
+                            dmc.Details.Id,
+                            dmc.Details.IdMovement,
+                            dmc.Details.IdSupplie,
+                            code = dmc.Material != null ? dmc.Material.Insumo : string.Empty,
+                            description = dmc.Material != null ? dmc.Material.Description : string.Empty,
+                            measure = c != null ? c.Description : string.Empty,  // Descripción de la unidad de medida
+                            dmc.Details.Quantity,
+                            dmc.Details.Price,
+                            dmc.Details.Total,
+                            dmc.Details.Type,
+                            dmc.Details.IdProvider,
+                            dmc.Details.Comment,
+                            dmc.Details.Dateuse,
+                            dmc.Details.Active
                         })
                     .AsNoTracking()
                     .ToListAsync<object>();
