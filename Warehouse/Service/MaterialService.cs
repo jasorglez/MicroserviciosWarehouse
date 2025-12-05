@@ -336,14 +336,78 @@ namespace Warehouse.Service
         {
             try
             {
-                // Crear una nueva instancia con los campos necesarios
+
+               var materials = await _context.Materials
+                    .Where(m => m.Active == true &&
+                                m.IdCompany == material.IdCompany &&
+                                m.IdSubfamilia == material.IdSubfamilia)
+                    .ToListAsync();
+
+                _logger.LogInformation("Materiales encontrados para IdCompany {IdCompany} y IdSubfamilia {IdSubfamilia}: {Count}",
+                    material.IdCompany, material.IdSubfamilia, materials.Count);
+                var CalculadorIsumo = "";
+                if(materials.Count == 0)
+                {
+                    var cat = await _context.Catalogs
+                        .Where(c => c.Id == material.IdCategory)
+                        .FirstOrDefaultAsync();
+                    var fam = await _context.Catalogs
+                        .Where(c => c.Id == material.IdFamilia)
+                        .FirstOrDefaultAsync();
+                    var subfam = await _context.Catalogs
+                        .Where(c => c.Id == material.IdSubfamilia)
+                        .FirstOrDefaultAsync();
+                    var data = cat?.ValueAddition2 + fam?.ValueAddition2 + subfam?.ValueAddition2 + "-0001";
+                    CalculadorIsumo = data;
+                }
+                else
+                {
+                    // Si quieres imprimir cada material individualmente
+                    var ultimo = materials.LastOrDefault();
+                        _logger.LogInformation("Material -> Id: {Id}, Articulo: {Articulo}, Insumo: {Insumo}",
+                            ultimo.Id, ultimo.Articulo, ultimo.Insumo);
+                    var cat = await _context.Catalogs
+                        .Where(c => c.Id == ultimo.IdCategory)
+                        .FirstOrDefaultAsync();
+                    var fam = await _context.Catalogs
+                        .Where(c => c.Id == ultimo.IdFamilia)
+                        .FirstOrDefaultAsync();
+                    var subfam = await _context.Catalogs
+                        .Where(c => c.Id == ultimo.IdSubfamilia)
+                        .FirstOrDefaultAsync();
+                    _logger.LogInformation("Categoría: {Categoria}, Familia: {Familia}, Subfamilia: {Subfamilia}",
+                        cat?.ValueAddition2, fam?.ValueAddition2, subfam?.ValueAddition2);
+                    var partes = ultimo.Insumo.Split('-');
+                    var contador = "0001";
+
+                    if (partes.Length == 2)
+                    {
+                        var numeroStr = partes[1];     // "0002"
+
+                        if (int.TryParse(numeroStr, out int numero))
+                        {
+                            numero++; // sumar 1
+
+                            // Mantener mismo formato de ceros a la izquierda
+                            var nuevoNumero = numero.ToString(new string('0', numeroStr.Length)); 
+
+                            var nuevoArticulo = $"{partes[0]}-{nuevoNumero}";
+                            CalculadorIsumo = nuevoArticulo;
+
+                            _logger.LogInformation("Nuevo Articulo generado: {Nuevo}", nuevoArticulo);
+                        }
+                    }
+                    _logger.LogInformation("Nuevo Insumo generado: {NuevoInsumo}", CalculadorIsumo);
+                }
+                
+              // Crear una nueva instancia con los campos necesarios
                 var newMaterial = new Material
                 {
                     // Asignar campos del material recibido
                     IdCompany = material.IdCompany,
                     IdBranch = material.IdBranch,
                     IdCustomer = material.IdCustomer,
-                    Insumo = material.Insumo,
+                    Insumo = CalculadorIsumo,
                     Articulo = material.Articulo,
                     BarCode = material.BarCode,
                     IdCategory = material.IdCategory,
