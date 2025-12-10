@@ -113,7 +113,22 @@ namespace Warehouse.Service.Delison
         public async Task<List<MaterialWithCount>> GetArticulosSubFamilyByMasterVigentes( int idCompany, int idMasterFamily,int idFamilia)
         {
             try
-            {
+            {   
+                _logger.LogWarning("Attempted to update non-existent Supply with ID {idMasterFamily} y {idFamilia}", idMasterFamily, idFamilia);
+               var active = await _context.MasterFamilyDelison
+                    .Where(m => m.IdCompany == idCompany 
+                                && m.MasterFamily == idFamilia 
+                                && m.Active == false 
+                                && m.Vigente == true)
+                    .FirstOrDefaultAsync();
+
+                _logger.LogWarning("Attempted to update non-existent Supply with ID {active}", active);
+
+                if (active != null)
+                {
+                    // Si existe un registro, devolver lista vacía
+                    return new List<MaterialWithCount>();
+                }
                 var existentes = await _context.MateriaByCatalog
                     .Where(m => m.IdCompany == idCompany && m.Active == true && m.IdConcep == idMasterFamily)
                     .Select(m => m.IdCatalog.Value)
