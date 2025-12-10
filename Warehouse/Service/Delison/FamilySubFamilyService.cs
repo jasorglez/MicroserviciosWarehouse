@@ -113,37 +113,47 @@ namespace Warehouse.Service.Delison
         public async Task<List<MaterialWithCount>> GetArticulosSubFamilyByMasterVigentes( int idCompany, int idMasterFamily,int idFamilia)
         {
             try
-            {   
-                _logger.LogWarning("Attempted to update non-existent Supply with ID {idMasterFamily} y {idFamilia}", idMasterFamily, idFamilia);
-               var active = await _context.MasterFamilyDelison
-                    .Where(m => m.IdCompany == idCompany 
+            {
+                _logger.LogInformation(
+                    "Verificando estado de la familia {IdFamilia} para la compañía {IdCompany}.", 
+                    idFamilia, 
+                    idCompany
+                );
+
+                // Una familia se considera "inactiva" si existe un registro de configuración para ella
+                // que está Activo (Active = true) pero marcado como No Vigente (Vigente = false).
+                var isFamilySetToInactive = await _context.MasterFamilyDelison
+                    .AnyAsync(m => m.IdCompany == idCompany 
                                 && m.MasterFamily == idFamilia 
-                                && m.Active == false 
-                                && m.Vigente == true)
-                    .FirstOrDefaultAsync();
+                                && m.Vigente == false
+                                && m.Active == true);
 
-                _logger.LogWarning("Attempted to update non-existent Supply with ID {active}", active);
+                _logger.LogInformation("Resultado de la verificación: la familia {IdFamilia} está configurada como inactiva = {IsInactive}.", idFamilia, isFamilySetToInactive);
 
-                if (active != null)
+                if (isFamilySetToInactive)
                 {
-                    // Si existe un registro, devolver lista vacía
+                    _logger.LogInformation("La familia {IdFamilia} está inactiva, devolviendo una lista vacía.", idFamilia);
                     return new List<MaterialWithCount>();
                 }
+
+                // Obtiene los artículos que ya existen en el desglose para no volver a mostrarlos.
                 var existentes = await _context.MateriaByCatalog
                     .Where(m => m.IdCompany == idCompany && m.Active == true && m.IdConcep == idMasterFamily)
                     .Select(m => m.IdCatalog.Value)
                     .ToListAsync();
 
+                // Obtiene las subfamilias vigentes de la familia maestra.
                 var items = await _context.CatalogByMasterFamViews
                     .Where(f => f.MasterFamily == idFamilia 
                              && f.Subfamilia != null 
                              && f.Vigente == true 
-                             && f.IdSubfamily.HasValue )
+                             && f.IdSubfamily.HasValue)
                     .OrderBy(f => f.Subfamilia)
                     .ToListAsync();
 
                 var idsItems = items.Select(i => i.IdSubfamily.Value).ToList();
 
+                // Filtra los artículos finales: deben pertenecer a las subfamilias, estar vigentes, no ser el artículo maestro mismo y no existir ya en el desglose.
                 var result = await _context.MaterialWithCounts
                     .Where(m => idsItems.Contains(m.IdSubfamilia) && m.Vigente == true && m.Id != idMasterFamily && !existentes.Contains(m.Id)  )
                     .OrderBy(m => m.Articulo)
@@ -155,7 +165,7 @@ namespace Warehouse.Service.Delison
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving supplies for company {idMasterFamily}", idMasterFamily);
+                _logger.LogError(ex, "Error en GetArticulosSubFamilyByMasterVigentes para idCompany {idCompany}, idMasterFamily {idMasterFamily}, idFamilia {idFamilia}", idCompany, idMasterFamily, idFamilia);
                 throw;
             }
         }
