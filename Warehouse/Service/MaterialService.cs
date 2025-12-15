@@ -102,7 +102,7 @@ namespace Warehouse.Service
                     item.Picture    = string.IsNullOrEmpty(item.Picture) ? "sin-imagen.jpg" : item.Picture;
                     item.ProviderCount ??= 0;
                     item.SubfamilyCount ??= 0;
-                    item.CostosCount ??= 0m;
+                    item.Costo ??= 0m;
                 }
 
                 return result;
