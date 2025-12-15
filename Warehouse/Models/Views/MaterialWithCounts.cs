@@ -52,6 +52,9 @@ namespace Warehouse.Models.Views
         [Column("subfamily_count")]
         public int? SubfamilyCount { get; set; }
 
+        [Column("costos_count")]
+        public decimal? CostosCount { get; set; }
+
         [Column("id_company")]
         public int IdCompany { get; set; }
         
