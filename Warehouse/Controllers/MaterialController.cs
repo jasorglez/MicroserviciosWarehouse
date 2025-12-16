@@ -268,5 +268,36 @@ namespace Warehouse.Controllers
                 return StatusCode(500, new { message = "Error al obtener los materiales del proveedor" });
             }
         }
+
+        [HttpGet("by-id/{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<Material>> GetMaterialById(int id)
+        {
+            if (id <= 0)
+            {
+                _logger.LogWarning("Invalid material ID: {Id}", id);
+                return BadRequest(new { message = "ID de material inválido" });
+            }
+
+            try
+            {
+                var material = await _service.GetMaterialById(id);
+
+                if (material == null)
+                {
+                    return NotFound(new { message = "Material no encontrado" });
+                }
+
+                return Ok(material);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting material by ID {Id}", id);
+                return StatusCode(500, new { message = "Error al obtener el material" });
+            }
+        }
     }
 }
