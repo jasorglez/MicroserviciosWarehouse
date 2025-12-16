@@ -546,30 +546,6 @@ namespace Warehouse.Service
                 throw;
             }
         }
-
-        public async Task<Material?> GetMaterialById(int id)
-        {
-            try
-            {
-                var material = await _context.Materials
-                    .Where(m => m.Id == id && m.Active == true)
-                    .AsNoTracking()
-                    .FirstOrDefaultAsync();
-
-                if (material == null)
-                {
-                    _logger.LogWarning("Material with ID {Id} not found or inactive", id);
-                    return null;
-                }
-
-                return material;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error retrieving material by ID {Id}", id);
-                throw;
-            }
-        }
     }
 
     public interface IMaterialService
@@ -584,7 +560,6 @@ namespace Warehouse.Service
         Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany);
         Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
         Task<List<MaterialsByProviderView>> GetMaterialsByProvider(int idProvider);
-        Task<Material?> GetMaterialById(int id);
         Task Save(Material material);
         Task<Material?> Update(int id, Material material);
         Task<bool> Delete(int id);
