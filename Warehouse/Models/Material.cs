@@ -110,6 +110,12 @@ namespace Warehouse.Models
         [DefaultValue("CONSUMIBLE")]
         public string? TypeMaterial { get; set; }
 
+        [Column("merma")]
+        public decimal? Merma { get; set; }
+
+        [Column("fecha")]
+        public DateTime? Fecha { get; set; }
+
         [Column("vigente")]
         [DefaultValue(true)]
         public bool? Vigente { get; set; }
