@@ -52,6 +52,9 @@ namespace Warehouse.Models
         [Column("typepriority")]
         public string TypePriority { get; set; }
         
+        [Column("namearticle")]
+        public string? NameArticle { get; set; }
+        
         [Column("numarticle")]
         public string? NumArticle { get; set; }
 
