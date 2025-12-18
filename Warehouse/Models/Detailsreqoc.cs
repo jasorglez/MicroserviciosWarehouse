@@ -16,6 +16,8 @@ namespace Warehouse.Models
         [Column("id_movement")]
         public int IdMovement { get; set; }
 
+        [Column("inorext")]
+        public string Inorext { get; set; }
         
         [Column("id_supplie")]
         public int IdSupplie { get; set; }

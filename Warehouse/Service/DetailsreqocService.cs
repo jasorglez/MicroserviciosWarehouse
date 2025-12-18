@@ -47,6 +47,7 @@ namespace Warehouse.Service
                             dmc.Details.Quantity,
                             dmc.Details.Price,
                             dmc.Details.Total,
+                            dmc.Details.Inorext,
                             dmc.Details.Type,
                             dmc.Details.IdProvider,
                             dmc.Details.Comment,
