@@ -12,6 +12,8 @@ namespace Warehouse.Models
         [Column("id")]
         public int Id { get; set; }
 
+        [Column("recurrent")]
+        public string? Recurrent { get; set; }
         
         [Column("id_movement")]
         public int IdMovement { get; set; }

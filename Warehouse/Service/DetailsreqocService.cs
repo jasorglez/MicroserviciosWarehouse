@@ -39,6 +39,7 @@ namespace Warehouse.Service
                         (dmc, c) => new
                         {
                             dmc.Details.Id,
+                            dmc.Details.Recurrent,
                             dmc.Details.IdMovement,
                             dmc.Details.IdSupplie,
                             code = dmc.Material != null ? dmc.Material.Insumo : string.Empty,
