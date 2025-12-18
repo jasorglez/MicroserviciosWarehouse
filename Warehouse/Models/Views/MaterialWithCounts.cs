@@ -49,11 +49,20 @@ namespace Warehouse.Models.Views
         [Column("provider_count")]
         public int? ProviderCount { get; set; }
 
+        [Column("params_count")]
+        public int? Parametros { get; set; }
+
         [Column("subfamily_count")]
         public int? SubfamilyCount { get; set; }
 
         [Column("costos_count")]
         public decimal? Costo { get; set; }
+
+        [Column("merma")]
+        public decimal? Merma { get; set; }
+
+        [Column("fecha")]
+        public DateTime? Fecha { get; set; }
 
         [Column("id_company")]
         public int IdCompany { get; set; }
