@@ -47,8 +47,13 @@ namespace Warehouse.Models
         public string? Type { get; set; }
 
         [Column("comment", TypeName = "VARCHAR")]
-        [StringLength(20)]
         public string? Comment { get; set; }
+        
+        [Column("typepriority")]
+        public string TypePriority { get; set; }
+        
+        [Column("numarticle")]
+        public string? NumArticle { get; set; }
 
         [Column("active")]
         public bool? Active { get; set; } = true;

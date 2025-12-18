@@ -52,6 +52,8 @@ namespace Warehouse.Service
                             dmc.Details.IdProvider,
                             dmc.Details.Comment,
                             dmc.Details.Dateuse,
+                            dmc.Details.NumArticle,
+                            dmc.Details.TypePriority,
                             dmc.Details.Active
                         })
                     .AsNoTracking()
