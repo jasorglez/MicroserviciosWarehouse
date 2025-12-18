@@ -43,7 +43,6 @@ namespace Warehouse.Models
     
 
         [Column("type", TypeName = "VARCHAR")]
-        [StringLength(6)]
         public string? Type { get; set; }
 
         [Column("comment", TypeName = "VARCHAR")]
