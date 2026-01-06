@@ -56,6 +56,7 @@ namespace Warehouse.Service
                             .Where(d => d.IdMovement == o.Id && d.Active == true)
                             .Count()
                     })
+                    .OrderByDescending(o => o.DateCreate)
                     .AsNoTracking()
                     .ToListAsync<object>();
             }
