@@ -49,6 +49,9 @@ namespace Warehouse.Models.Views
 
         [Column("typework")]
         public string? Typework { get; set; }
+        
+        [Column("type_int_or_ext")]
+        public string? TypeIntOrExt { get; set; }
 
         [Column("vigente")]
         public bool? Vigente { get; set; }
