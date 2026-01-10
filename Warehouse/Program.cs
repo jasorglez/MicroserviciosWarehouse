@@ -22,6 +22,7 @@ builder.Services.AddCors(options =>
             builder
 
                 .WithOrigins("https://localhost", "http://localhost:4200", 
+                             "http://localhost:5173",
                              "https://be-app-five.vercel.app", "http://localhost:8100",
                              "https://localhost:7089", "https://biapp.com.mx", 
                              "https://localhost:4200", "https://www.bi2.com.mx",
