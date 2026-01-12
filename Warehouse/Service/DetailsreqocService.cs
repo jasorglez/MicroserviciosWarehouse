@@ -51,6 +51,7 @@ namespace Warehouse.Service
                             dmc.Details.Intorext,
                             dmc.Details.Type,
                             dmc.Details.IdProvider,
+                            dmc.Details.NameProvider,
                             dmc.Details.Comment,
                             dmc.Details.Dateuse,
                             dmc.Details.NameArticle,

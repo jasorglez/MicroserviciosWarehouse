@@ -25,7 +25,10 @@ namespace Warehouse.Models
         public int IdSupplie { get; set; }
 
         [Column("id_provider")]
-        public int IdProvider { get; set; }
+        public int? IdProvider { get; set; }
+        
+        [Column("name_provider")]
+        public string? NameProvider { get; set; }
 
         [Required]
         [Column("dateuse", TypeName = "date")]
@@ -42,7 +45,6 @@ namespace Warehouse.Models
         // Propiedad de solo lectura para calcular el total en el código si es necesario
         [NotMapped]
         public decimal Total => Quantity * Price;
-    
 
         [Column("type", TypeName = "VARCHAR")]
         public string? Type { get; set; }
