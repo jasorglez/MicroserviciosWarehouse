@@ -1,4 +1,4 @@
-﻿using System;
+﻿
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -15,10 +15,10 @@ namespace Warehouse.Models
         public int IdMovement { get; set; }
 
         [Column("id_supplie")]
-        public int IdSupplie { get; set; }
+        public int IdSupplie { get; set; } = 0;
 
         [Column("id_provider")]
-        public int? IdProvider { get; set; }
+        public int? IdProvider { get; set; } = 0;
 
         [Column("name_provider")]
         public string? NameProvider { get; set; }
@@ -29,46 +29,40 @@ namespace Warehouse.Models
         [Column("price", TypeName = "decimal(16,2)")]
         public decimal Price { get; set; }
 
-        // Computed column in SQL
-        [NotMapped]
-        public decimal Total => Quantity * Price;
+        // Columna calculada en SQL: ([quantity] * [price])
+        [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
+        [Column("total", TypeName = "decimal(16,2)")]
+        public decimal Total { get; private set; }
 
         [Column("dateuse", TypeName = "date")]
         public DateTime? Dateuse { get; set; }
 
-        [Column("type")]
-        [StringLength(6)]
+        [Column("type", TypeName = "varchar(6)")]
         public string? Type { get; set; }
 
-        [Column("recurrent")]
-        [StringLength(10)]
+        [Column("recurrent", TypeName = "varchar(10)")]
         public string Recurrent { get; set; } = "Recurrente";
 
-        [Column("namearticle")]
-        [StringLength(50)]
+        [Column("namearticle", TypeName = "varchar(50)")]
         public string? NameArticle { get; set; }
 
-        [Column("numarticle")]
-        [StringLength(20)]
-        public string? NumArticle { get; set; }
+        [Column("numarticle", TypeName = "varchar(20)")]
+        public string? NumArticle { get; set; } = "numarticle";
 
-        [Column("intorext")]
-        [StringLength(10)]
-        public string IntOrExt { get; set; } = "Interno";
+        [Column("intorext", TypeName = "varchar(10)")]
+        public string Intorext { get; set; } = "Interno";
 
-        [Column("provint")]
-        [StringLength(50)]
-        public string? ProvInt { get; set; }
+        [Column("provint", TypeName = "varchar(50)")]
+        public string? ProvInt { get; set; } = "Sin Proveedor";
 
-        [Column("typepriority")]
-        [StringLength(8)]
-        public string? TypePriority { get; set; }
+        [Column("typepriority", TypeName = "varchar(8)")]
+        public string? TypePriority { get; set; } = "Normal";
 
         [Column("pedimento")]
-        public bool? Pedimento { get; set; }
+        public bool? Pedimento { get; set; } = false;
 
         [Column("pedimentonum")]
-        public int PedimentoNum { get; set; }
+        public int PedimentoNum { get; set; } = 0;
 
         [Column("comment")]
         public string? Comment { get; set; }

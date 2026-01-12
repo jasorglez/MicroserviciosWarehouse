@@ -39,6 +39,7 @@ namespace Warehouse.Service
                         (dmc, c) => new
                         {
                             dmc.Details.Id,
+                            dmc.Details.Recurrent,
                             dmc.Details.IdMovement,
                             dmc.Details.IdSupplie,
                             code = dmc.Material != null ? dmc.Material.Insumo : string.Empty,
@@ -47,13 +48,15 @@ namespace Warehouse.Service
                             dmc.Details.Quantity,
                             dmc.Details.Price,
                             dmc.Details.Total,
-                            dmc.Details.Type,dmc.Details.Pedimento, dmc.Details.Recurrent,
-                            dmc.Details.NameArticle,dmc.Details.NumArticle,dmc.Details.IntOrExt,
-                            dmc.Details.ProvInt,dmc.Details.PedimentoNum, dmc.Details.TypePriority,
-                            dmc.Details.NameProvider,
+                            dmc.Details.Intorext,
+                            dmc.Details.Type,
                             dmc.Details.IdProvider,
+                            dmc.Details.NameProvider,
                             dmc.Details.Comment,
-                            dmc.Details.Dateuse,
+                            dmc.Details.Dateuse,dmc.Details.Pedimento,dmc.Details.PedimentoNum,
+                            dmc.Details.NameArticle,
+                            dmc.Details.NumArticle,
+                            dmc.Details.TypePriority,
                             dmc.Details.Active
                         })
                     .AsNoTracking()
