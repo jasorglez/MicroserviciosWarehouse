@@ -52,6 +52,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<MaterialsByProviderView> MaterialsByProviderViews { get; set; }
     public virtual DbSet<SucursalByMaterialProveedor> SucursalByMaterialProveedor { get; set; }
     public virtual DbSet<TypexPrefixes> TypexPrefixes { get; set; }
+    public virtual DbSet<VwListProvidersForRawMaterial> VwListProvidersForRawMaterials { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
@@ -145,6 +146,13 @@ public partial class DbWarehouseContext : DbContext
         {
             entity.HasNoKey();
             entity.ToView("vw_MaterialsByProviderAndBranch"); // 👈 nombre de la vista en la DB
+        });
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<VwListProvidersForRawMaterial>(entity =>
+        {
+            entity.HasNoKey();
+            entity.ToView("vw_ListProvidersForRawMaterial"); // 👈 nombre de la vista en la DB
         });
         base.OnModelCreating(modelBuilder);
 

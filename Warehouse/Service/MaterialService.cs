@@ -553,6 +553,32 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<VwListProvidersForRawMaterial>> GetProvidersByMaterialAndType(int idMaterial, string? typeIntOrExt)
+        {
+            try
+            {
+                var query = _context.VwListProvidersForRawMaterials
+                    .Where(p => p.IdMaterial == idMaterial);
+
+                if (!string.IsNullOrEmpty(typeIntOrExt))
+                {
+                    query = query.Where(p => p.TypeIntOrExt == typeIntOrExt);
+                }
+
+                var providers = await query
+                    .OrderBy(p => p.ProviderName)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return providers;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving providers for material {IdMaterial} and type {TypeIntOrExt}", idMaterial, typeIntOrExt);
+                throw;
+            }
+        }
     }
 
     public interface IMaterialService
@@ -567,6 +593,7 @@ namespace Warehouse.Service
         Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany);
         Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
         Task<List<MaterialsByProviderView>> GetMaterialsByProvider(int idProvider);
+        Task<List<VwListProvidersForRawMaterial>> GetProvidersByMaterialAndType(int idMaterial, string? typeIntOrExt);
         Task Save(Material material);
         Task<Material?> Update(int id, Material material);
         Task<bool> Delete(int id);

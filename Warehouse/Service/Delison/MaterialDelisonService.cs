@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Warehouse.Models;
+using Warehouse.Models.Views;
 
 namespace Warehouse.Service.Delison
 {
