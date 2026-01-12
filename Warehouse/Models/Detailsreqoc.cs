@@ -62,7 +62,7 @@ namespace Warehouse.Models
         public bool? Pedimento { get; set; } = false;
 
         [Column("pedimentonum")]
-        public int PedimentoNum { get; set; } = 0;
+        public string? PedimentoNum { get; set; } 
 
         [Column("comment")]
         public string? Comment { get; set; }
