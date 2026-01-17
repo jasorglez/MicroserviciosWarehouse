@@ -48,6 +48,15 @@ namespace Warehouse.Models
 
         [Column("numarticle", TypeName = "varchar(20)")]
         public string? NumArticle { get; set; } = "numarticle";
+        
+        [Column("description_new_article")]
+        public string? DescriptionNewArticle { get; set; }
+        
+        [Column("url_new_article")]
+        public string? UrlNewArticle { get; set; }
+        
+        [Column("justification_new_article")]
+        public string? JustificationNewArticle { get; set; }
 
         [Column("intorext", TypeName = "varchar(10)")]
         public string Intorext { get; set; } = "Interno";
