@@ -105,6 +105,9 @@ namespace Warehouse.Models
         [StringLength(6)]
         public string? Type { get; set; } = "OC";
 
+        [Column("pedimento")]
+        public int? Pedimento { get; set; } = 0;
+
         [Column("compliancepedimento", TypeName = "DECIMAL(7,2)")]
         public decimal? CompliancePedimento { get; set; }
 
