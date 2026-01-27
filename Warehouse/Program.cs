@@ -28,7 +28,9 @@ builder.Services.AddCors(options =>
                              "https://localhost:4200", "https://www.bi2.com.mx",
                              "https://smp-git-main-jasorglezs-projects.vercel.app",
                              "https://smp-beta.vercel.app",
-                             "https://bi2.com.mx") 
+                             "https://bi2.com.mx",
+                             "https://delison-pruebas.bi2.mx",
+                             "https://clinica-pruebas.bi2.mx") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
