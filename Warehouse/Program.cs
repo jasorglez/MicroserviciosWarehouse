@@ -28,7 +28,9 @@ builder.Services.AddCors(options =>
                              "https://localhost:4200", "https://www.bi2.com.mx",
                              "https://smp-git-main-jasorglezs-projects.vercel.app",
                              "https://smp-beta.vercel.app",
-                             "https://bi2.com.mx") 
+                             "https://bi2.com.mx",
+                             "https://delison-pruebas.bi2.mx",
+                             "https://clinica-pruebas.bi2.mx") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -144,7 +146,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v4.99/swagger.json", "Microservicio Warehouse V4.99");
+        c.SwaggerEndpoint("/swagger/v5.10/swagger.json", "Microservicio Warehouse V5.10");
         c.RoutePrefix = "swagger";
     });
 }
