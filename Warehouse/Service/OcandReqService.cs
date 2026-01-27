@@ -19,8 +19,13 @@ namespace Warehouse.Service
         {
             try
             {
-                return await _context.Ocandreqs
-                    .Where(o => o.Active == true && typeReference == o.TypeReference && idReference == o.IdReference && type == o.Type)
+                var result = await _context.Ocandreqs
+                    .Where(o =>
+                        o.Active == true &&
+                        o.TypeReference == typeReference &&
+                        o.IdReference == idReference &&
+                        o.Type == type)
+                    .OrderByDescending(o => o.Id)
                     .Select(o => new
                     {
                         o.Id,
@@ -44,7 +49,9 @@ namespace Warehouse.Service
                         o.Priority,
                         o.Type,
                         o.Pedimento,
-                        o.Comments,o.CompliancePedimento, o.ComplianceRequesicion,
+                        o.Comments,
+                        o.CompliancePedimento,
+                        o.ComplianceRequesicion,
                         o.IvaRetention,
                         o.Address,
                         o.City,
@@ -52,14 +59,13 @@ namespace Warehouse.Service
                         o.Discount,
                         o.Close,
                         o.Active,
-                        // Conteo de items relacionados en Detailsreqoc
                         countrow = _context.Detailsreqoc
-                            .Where(d => d.IdMovement == o.Id && d.Active == true)
-                            .Count()
+                            .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
-                    .OrderByDescending(o => o.DateCreate)
                     .AsNoTracking()
-                    .ToListAsync<object>();
+                    .ToListAsync();
+
+                return result.Cast<object>().ToList();
             }
             catch (Exception ex)
             {
@@ -67,6 +73,8 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+
 
         public async Task<object?> GetOrderById(int id)
         {
