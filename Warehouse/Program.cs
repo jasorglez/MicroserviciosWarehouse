@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
                              "https://smp-git-main-jasorglezs-projects.vercel.app",
                              "https://smp-beta.vercel.app",
                              "https://bi2.com.mx",
-                             "https://delison-pruebas.bi2.mx",
+                             "https://pruebas.bi2.mx",
                              "https://clinica-pruebas.bi2.mx") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
