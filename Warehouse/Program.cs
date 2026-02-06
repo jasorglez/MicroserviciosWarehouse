@@ -29,7 +29,7 @@ builder.Services.AddCors(options =>
                              "https://smp-git-main-jasorglezs-projects.vercel.app",
                              "https://smp-beta.vercel.app",
                              "https://bi2.com.mx",
-                             "https://delison-pruebas.bi2.mx",
+                             "https://pruebas.bi2.mx",
                              "https://clinica-pruebas.bi2.mx") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
@@ -53,7 +53,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.10", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.10 Mod. 2025-01-26, BSK, Server 66.179.240.10 12:24" }); 
+   c.SwaggerDoc("v5.10", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.10 Mod. 2025-02-05, BSK, Server 66.179.240.10 12:24" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
