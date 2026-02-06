@@ -47,7 +47,7 @@ namespace Warehouse.Models
         [Required]
         [Column("deliverytime", TypeName = "VARCHAR(20)")]
         [StringLength(20)]
-        public string DeliveryTime { get; set; } = "1 DAY";
+        public string? DeliveryTime { get; set; } = "1 DAY";
 
         [Required]
         [Column("typeoc", TypeName = "VARCHAR(20)")]
