@@ -457,35 +457,35 @@ namespace Warehouse.Service
 
             try
             {
-                // Preserve the original ID and update only the necessary fields
-                existingItem.IdCompany = material.IdCompany;
-                existingItem.IdBranch = material.IdBranch;
-                existingItem.IdCustomer = material.IdCustomer;
-                existingItem.Insumo = material.Insumo;
-                existingItem.Fecha = material.Fecha;
-                existingItem.Merma = material.Merma;
-                existingItem.Articulo = material.Articulo;
-                existingItem.BarCode = material.BarCode;
-                existingItem.IdCategory = material.IdCategory;
-                existingItem.IdFamilia = material.IdFamilia;
-                existingItem.IdSubfamilia = material.IdSubfamilia;
-                existingItem.IdMedida = material.IdMedida;
-                existingItem.IdUbication = material.IdUbication;
-                existingItem.Description = material.Description;
-                existingItem.Date = material.Date;
-                existingItem.AplicaResg = material.AplicaResg;
-                existingItem.CostoMN = material.CostoMN;
-                existingItem.CostoDLL = material.CostoDLL;
-                existingItem.VentaMN = material.VentaMN;
-                existingItem.VentaDLL = material.VentaDLL;
-                existingItem.StockMin = material.StockMin;
-                existingItem.StockMax = material.StockMax;
-                existingItem.Picture = material.Picture;
-                
-                existingItem.TypeMaterial = material.TypeMaterial;
-                existingItem.Vigente = material.Vigente;
-                existingItem.Active = material.Active;
-                
+                // Solo actualizar campos que vienen con valor (partial update / merge)
+                // Esto permite ediciones parciales sin perder datos existentes
+                if (material.IdCompany.HasValue) existingItem.IdCompany = material.IdCompany;
+                if (material.IdBranch.HasValue) existingItem.IdBranch = material.IdBranch;
+                if (material.IdCustomer.HasValue) existingItem.IdCustomer = material.IdCustomer;
+                if (!string.IsNullOrEmpty(material.Insumo)) existingItem.Insumo = material.Insumo;
+                if (material.Fecha.HasValue) existingItem.Fecha = material.Fecha;
+                if (material.Merma.HasValue) existingItem.Merma = material.Merma;
+                if (!string.IsNullOrEmpty(material.Articulo)) existingItem.Articulo = material.Articulo;
+                if (!string.IsNullOrEmpty(material.BarCode)) existingItem.BarCode = material.BarCode;
+                if (material.IdCategory.HasValue) existingItem.IdCategory = material.IdCategory;
+                if (material.IdFamilia.HasValue) existingItem.IdFamilia = material.IdFamilia;
+                if (material.IdSubfamilia.HasValue) existingItem.IdSubfamilia = material.IdSubfamilia;
+                if (material.IdMedida.HasValue) existingItem.IdMedida = material.IdMedida;
+                if (material.IdUbication.HasValue) existingItem.IdUbication = material.IdUbication;
+                if (!string.IsNullOrEmpty(material.Description)) existingItem.Description = material.Description;
+                if (material.Date.HasValue) existingItem.Date = material.Date;
+                if (material.AplicaResg.HasValue) existingItem.AplicaResg = material.AplicaResg;
+                if (material.CostoMN.HasValue) existingItem.CostoMN = material.CostoMN;
+                if (material.CostoDLL.HasValue) existingItem.CostoDLL = material.CostoDLL;
+                if (material.VentaMN.HasValue) existingItem.VentaMN = material.VentaMN;
+                if (material.VentaDLL.HasValue) existingItem.VentaDLL = material.VentaDLL;
+                if (material.StockMin.HasValue) existingItem.StockMin = material.StockMin;
+                if (material.StockMax.HasValue) existingItem.StockMax = material.StockMax;
+                if (!string.IsNullOrEmpty(material.Picture)) existingItem.Picture = material.Picture;
+                if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
+                if (material.Vigente.HasValue) existingItem.Vigente = material.Vigente;
+                if (material.Active.HasValue) existingItem.Active = material.Active;
+
                 await _context.SaveChangesAsync();
                 return existingItem;
             }
