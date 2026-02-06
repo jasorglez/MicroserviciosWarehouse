@@ -6,9 +6,12 @@ namespace Warehouse.Models.Views
     [Table("vw_MaterialsWithFamilies")] // Si quieres mapear explicitamente
     public class MaterialsWithFamiliesView
     {
+        public int Id { get; set; }
         public string Insumo { get; set; }
         public string? MaterialDescription { get; set; }
+        public int? IdFamilia { get; set; }
         public string? FamiliaDescription { get; set; }
+        public int? IdSubfamilia { get; set; }
         public string? SubfamiliaDescription { get; set; }
         public string? Barcode { get; set; }
         public string? Picture { get; set; }
