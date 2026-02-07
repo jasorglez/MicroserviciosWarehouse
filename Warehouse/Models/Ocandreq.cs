@@ -13,8 +13,8 @@ namespace Warehouse.Models
         public int Id { get; set; }
 
         [Required]
-        [Column("folio", TypeName = "VARCHAR(20)")]
-        [StringLength(20)]
+        [Column("folio", TypeName = "VARCHAR(255)")]
+        [StringLength(255)]
         public string Folio { get; set; } = string.Empty;
 
         [Required]
