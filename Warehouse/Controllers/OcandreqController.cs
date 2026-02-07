@@ -131,10 +131,34 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while updating the lock status");
             }
         }
+
+        [HttpPatch("{id}/countitem")]
+        public async Task<IActionResult> SetCountItem(int id, [FromBody] CountItemRequest request)
+        {
+            try
+            {
+                var result = await _service.SetCountItem(id, request.CountItem);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting countItem for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the countItem");
+            }
+        }
     }
 
     public class LockRequest
     {
         public bool Locked { get; set; }
+    }
+
+    public class CountItemRequest
+    {
+        public int CountItem { get; set; }
     }
 }
