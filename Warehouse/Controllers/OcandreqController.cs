@@ -112,5 +112,29 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while deleting the order");
             }
         }
+
+        [HttpPatch("{id}/lock")]
+        public async Task<IActionResult> SetLocked(int id, [FromBody] LockRequest request)
+        {
+            try
+            {
+                var result = await _service.SetLocked(id, request.Locked);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting locked status for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the lock status");
+            }
+        }
+    }
+
+    public class LockRequest
+    {
+        public bool Locked { get; set; }
     }
 }
