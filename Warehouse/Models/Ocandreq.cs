@@ -120,6 +120,9 @@ namespace Warehouse.Models
 
         [Column("close")]
         public bool? Close { get; set; } = false;
+        
+        [Column("countitem")]
+        public int? CountItem { get; set; }
 
         [Column("active")]
         public bool? Active { get; set; } = true;
