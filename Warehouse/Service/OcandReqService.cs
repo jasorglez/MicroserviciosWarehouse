@@ -59,6 +59,7 @@ namespace Warehouse.Service
                         o.Discount,
                         o.Close,
                         o.CountItem,
+                        o.Locked,
                         o.Active,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
@@ -122,6 +123,7 @@ namespace Warehouse.Service
                         o.Discount,
                         o.Close,
                         o.CountItem,
+                        o.Locked,
                         o.Active
                     })
             .AsNoTracking()
