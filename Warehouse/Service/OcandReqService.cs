@@ -59,6 +59,8 @@ namespace Warehouse.Service
                         o.Phone,
                         o.Discount,
                         o.Close,
+                        o.CountItem,
+                        o.Locked,
                         o.Active,
                         o.AuthorizeName,
                         o.AuthorizationStatus,
@@ -125,6 +127,8 @@ namespace Warehouse.Service
                         o.Phone,
                         o.Discount,
                         o.Close,
+                        o.CountItem,
+                        o.Locked,
                         o.Active,
                         o.AuthorizeName,
                         o.AuthorizationStatus,
@@ -230,6 +234,50 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<Ocandreq?> SetLocked(int id, bool locked)
+        {
+            var existingItem = await _context.Ocandreqs.FindAsync(id);
+            if (existingItem == null)
+            {
+                _logger.LogWarning("Attempted to lock non-existent Order with ID {Id}", id);
+                return null;
+            }
+
+            try
+            {
+                existingItem.Locked = locked;
+                await _context.SaveChangesAsync();
+                return existingItem;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting locked status for Order with ID {Id}", id);
+                throw;
+            }
+        }
+
+        public async Task<Ocandreq?> SetCountItem(int id, int countItem)
+        {
+            var existingItem = await _context.Ocandreqs.FindAsync(id);
+            if (existingItem == null)
+            {
+                _logger.LogWarning("Attempted to update countItem for non-existent Order with ID {Id}", id);
+                return null;
+            }
+
+            try
+            {
+                existingItem.CountItem = countItem;
+                await _context.SaveChangesAsync();
+                return existingItem;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting countItem for Order with ID {Id}", id);
+                throw;
+            }
+        }
     }
 
     public interface IOcandreqService
@@ -240,5 +288,7 @@ namespace Warehouse.Service
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
         Task<Ocandreq?> UpdateAuthorization(int id, AuthorizationCallbackDto dto);
         Task<bool> Delete(int id);
+        Task<Ocandreq?> SetLocked(int id, bool locked);
+        Task<Ocandreq?> SetCountItem(int id, int countItem);
     }
 }
