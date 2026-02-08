@@ -123,5 +123,20 @@ namespace Warehouse.Models
 
         [Column("active")]
         public bool? Active { get; set; } = true;
+
+        [Column("authorize_name", TypeName = "VARCHAR(100)")]
+        [StringLength(100)]
+        public string? AuthorizeName { get; set; }
+
+        [Column("authorization_status", TypeName = "VARCHAR(20)")]
+        [StringLength(20)]
+        public string? AuthorizationStatus { get; set; } = "Pendiente";
+
+        [Column("rejection_reason", TypeName = "VARCHAR(500)")]
+        [StringLength(500)]
+        public string? RejectionReason { get; set; }
+
+        [Column("authorized_at")]
+        public DateTime? AuthorizedAt { get; set; }
     }
 }

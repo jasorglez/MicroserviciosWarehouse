@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Warehouse.Models;
+using Warehouse.Models.DTOs;
 using Warehouse.Service;
 
 namespace Warehouse.Controllers
@@ -91,6 +92,44 @@ namespace Warehouse.Controllers
             {
                 _logger.LogError(ex, "Error updating Order with ID {Id}", id);
                 return StatusCode(500, "An error occurred while updating the order");
+            }
+        }
+
+        [HttpPatch("{id}/authorize")]
+        public async Task<IActionResult> Authorize(int id, [FromBody] AuthorizationCallbackDto dto)
+        {
+            if (dto == null)
+            {
+                return BadRequest("Authorization data is null.");
+            }
+
+            try
+            {
+                var result = await _service.UpdateAuthorization(id, dto);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Order {id} authorization updated to {dto.Status}",
+                    data = new
+                    {
+                        result.Id,
+                        result.IdAuthorize,
+                        result.AuthorizeName,
+                        result.AuthorizationStatus,
+                        result.RejectionReason,
+                        result.AuthorizedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating authorization for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the authorization");
             }
         }
 

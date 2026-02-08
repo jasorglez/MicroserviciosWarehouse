@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using Warehouse.Models;
+using Warehouse.Models.DTOs;
 
 namespace Warehouse.Service
 {
@@ -59,6 +60,10 @@ namespace Warehouse.Service
                         o.Discount,
                         o.Close,
                         o.Active,
+                        o.AuthorizeName,
+                        o.AuthorizationStatus,
+                        o.RejectionReason,
+                        o.AuthorizedAt,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
@@ -120,7 +125,11 @@ namespace Warehouse.Service
                         o.Phone,
                         o.Discount,
                         o.Close,
-                        o.Active
+                        o.Active,
+                        o.AuthorizeName,
+                        o.AuthorizationStatus,
+                        o.RejectionReason,
+                        o.AuthorizedAt
                     })
             .AsNoTracking()
             .FirstOrDefaultAsync();
@@ -173,6 +182,33 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<Ocandreq?> UpdateAuthorization(int id, AuthorizationCallbackDto dto)
+        {
+            var existingItem = await _context.Ocandreqs.FindAsync(id);
+            if (existingItem == null)
+            {
+                _logger.LogWarning("Attempted to update authorization for non-existent Order with ID {Id}", id);
+                return null;
+            }
+
+            try
+            {
+                existingItem.IdAuthorize = dto.IdAuthorize;
+                existingItem.AuthorizeName = dto.AuthorizeName;
+                existingItem.AuthorizationStatus = dto.Status == "APPROVED" ? "Autorizado" : "Rechazado";
+                existingItem.RejectionReason = dto.RejectionReason;
+                existingItem.AuthorizedAt = dto.RespondedAt;
+
+                await _context.SaveChangesAsync();
+                return existingItem;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating authorization for Order with ID {Id}", id);
+                throw;
+            }
+        }
+
         public async Task<bool> Delete(int id)
         {
             var existingItem = await _context.Ocandreqs.FindAsync(id);
@@ -202,6 +238,7 @@ namespace Warehouse.Service
         Task<object?> GetOrderById(int id);
         Task Save(Ocandreq ocandreq);
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
+        Task<Ocandreq?> UpdateAuthorization(int id, AuthorizationCallbackDto dto);
         Task<bool> Delete(int id);
     }
 }
