@@ -53,6 +53,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<SucursalByMaterialProveedor> SucursalByMaterialProveedor { get; set; }
     public virtual DbSet<TypexPrefixes> TypexPrefixes { get; set; }
     public virtual DbSet<VwListProvidersForRawMaterial> VwListProvidersForRawMaterials { get; set; }
+    public virtual DbSet<PrefixSetup> PrefixSetups { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 

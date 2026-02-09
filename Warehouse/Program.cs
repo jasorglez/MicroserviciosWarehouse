@@ -53,7 +53,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.10", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.10 Mod. 2025-02-05 22:30, BSK, Server 66.179.240.10 12:24" }); 
+   c.SwaggerDoc("v5.10", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.10 Mod. 2025-02-09 14:18, BSK, Server 66.179.240.10 12:24" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -109,6 +109,7 @@ builder.Services.AddScoped<IFamilySubFamilyDelisonService, FamilySubFamilyDeliso
 builder.Services.AddScoped<IMaterialDelisonService, MaterialDelisonService>();
 builder.Services.AddScoped<ISubfamilyxProviderService, SubfamilyxProviderService>();
 builder.Services.AddScoped<ITypexPrefixesService, TypexPrefixesService>();
+builder.Services.AddScoped<IPrefixSetupService, PrefixSetupService>();
 
 // MateriaByCatalog service registration
 builder.Services.AddScoped<IMateriaByCatalogService, MateriaByCatalogService>();
