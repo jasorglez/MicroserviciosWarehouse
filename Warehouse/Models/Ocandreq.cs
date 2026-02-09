@@ -13,8 +13,8 @@ namespace Warehouse.Models
         public int Id { get; set; }
 
         [Required]
-        [Column("folio", TypeName = "VARCHAR(20)")]
-        [StringLength(20)]
+        [Column("folio", TypeName = "VARCHAR(255)")]
+        [StringLength(255)]
         public string Folio { get; set; } = string.Empty;
 
         [Required]
@@ -47,7 +47,7 @@ namespace Warehouse.Models
         [Required]
         [Column("deliverytime", TypeName = "VARCHAR(20)")]
         [StringLength(20)]
-        public string DeliveryTime { get; set; } = "1 DAY";
+        public string? DeliveryTime { get; set; } = "1 DAY";
 
         [Required]
         [Column("typeoc", TypeName = "VARCHAR(20)")]
@@ -120,8 +120,29 @@ namespace Warehouse.Models
 
         [Column("close")]
         public bool? Close { get; set; } = false;
+        
+        [Column("countitem")]
+        public int? CountItem { get; set; }
+        
+        [Column("locked")]
+        public bool? Locked { get; set; } = false;
 
         [Column("active")]
         public bool? Active { get; set; } = true;
+
+        [Column("authorize_name", TypeName = "VARCHAR(100)")]
+        [StringLength(100)]
+        public string? AuthorizeName { get; set; }
+
+        [Column("authorization_status", TypeName = "VARCHAR(20)")]
+        [StringLength(20)]
+        public string? AuthorizationStatus { get; set; } = "Pendiente";
+
+        [Column("rejection_reason", TypeName = "VARCHAR(500)")]
+        [StringLength(500)]
+        public string? RejectionReason { get; set; }
+
+        [Column("authorized_at")]
+        public DateTime? AuthorizedAt { get; set; }
     }
 }

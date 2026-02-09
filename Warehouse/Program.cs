@@ -109,7 +109,6 @@ builder.Services.AddScoped<IFamilySubFamilyDelisonService, FamilySubFamilyDeliso
 builder.Services.AddScoped<IMaterialDelisonService, MaterialDelisonService>();
 builder.Services.AddScoped<ISubfamilyxProviderService, SubfamilyxProviderService>();
 builder.Services.AddScoped<ITypexPrefixesService, TypexPrefixesService>();
-builder.Services.AddScoped<IPrefixSetupService, PrefixSetupService>();
 
 // MateriaByCatalog service registration
 builder.Services.AddScoped<IMateriaByCatalogService, MateriaByCatalogService>();
