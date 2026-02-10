@@ -30,7 +30,8 @@ builder.Services.AddCors(options =>
                              "https://smp-beta.vercel.app",
                              "https://bi2.com.mx",
                              "https://pruebas.bi2.mx",
-                             "https://clinica-pruebas.bi2.mx") 
+                             "https://clinica-pruebas.bi2.mx",
+                             "https://www.hco-siaf.com") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
