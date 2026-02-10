@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Warehouse.Models;
+using Warehouse.Models.DTOs;
 using Warehouse.Service;
 
 namespace Warehouse.Controllers
@@ -94,6 +95,44 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpPatch("{id}/authorize")]
+        public async Task<IActionResult> Authorize(int id, [FromBody] AuthorizationCallbackDto dto)
+        {
+            if (dto == null)
+            {
+                return BadRequest("Authorization data is null.");
+            }
+
+            try
+            {
+                var result = await _service.UpdateAuthorization(id, dto);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+
+                return Ok(new
+                {
+                    success = true,
+                    message = $"Order {id} authorization updated to {dto.Status}",
+                    data = new
+                    {
+                        result.Id,
+                        result.IdAuthorize,
+                        result.AuthorizeName,
+                        result.AuthorizationStatus,
+                        result.RejectionReason,
+                        result.AuthorizedAt
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating authorization for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the authorization");
+            }
+        }
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
@@ -112,5 +151,53 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while deleting the order");
             }
         }
+
+        [HttpPatch("{id}/lock")]
+        public async Task<IActionResult> SetLocked(int id, [FromBody] LockRequest request)
+        {
+            try
+            {
+                var result = await _service.SetLocked(id, request.Locked);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting locked status for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the lock status");
+            }
+        }
+
+        [HttpPatch("{id}/countitem")]
+        public async Task<IActionResult> SetCountItem(int id, [FromBody] CountItemRequest request)
+        {
+            try
+            {
+                var result = await _service.SetCountItem(id, request.CountItem);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting countItem for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the countItem");
+            }
+        }
+    }
+
+    public class LockRequest
+    {
+        public bool Locked { get; set; }
+    }
+
+    public class CountItemRequest
+    {
+        public int CountItem { get; set; }
     }
 }

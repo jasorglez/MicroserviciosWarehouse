@@ -125,6 +125,7 @@ namespace Warehouse.Service
 
             try
             {
+                detail.Id = id;
                 _context.Entry(existingItem).CurrentValues.SetValues(detail);
                 await _context.SaveChangesAsync();
                 return existingItem;
