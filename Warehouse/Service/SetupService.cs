@@ -74,6 +74,7 @@ namespace Warehouse.Service
             {
                 existingSetup.Description = setup.Description;
                 existingSetup.ProjectOrBranch = setup.ProjectOrBranch;
+                existingSetup.ActivateOc = setup.ActivateOc;
                 await _context.SaveChangesAsync();
                 return true;
             }
