@@ -28,9 +28,8 @@ namespace Warehouse.Models
         [Column("prefix_cotiz")]
         public string? PrefixCotiz { get; set; }
 
-        [StringLength(7)]
         [Column("consecutive_cotiz")]
-        public string? ConsecutiveCotiz { get; set; }
+        public int? ConsecutiveCotiz { get; set; }
 
         [StringLength(7)]
         [Column("prefix_oc")]
