@@ -12,6 +12,9 @@ namespace Warehouse.Models
         [Column("id")]
         public int Id { get; set; }
 
+        [Column("id_businnes")]
+        public int? IdRoot { get; set; } = 0;
+
         [Required]
         [Column("folio", TypeName = "VARCHAR(255)")]
         [StringLength(255)]
