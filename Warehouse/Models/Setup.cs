@@ -19,6 +19,9 @@ namespace Warehouse.Models
 
         [Column("project_or_branch")]
         public bool? ProjectOrBranch { get; set; } = true;
+        
+        [Column("activate_oc")]
+        public bool? ActivateOc { get; set; } = true;
 
         [Column("active")]
         public bool Active { get; set; } = true;

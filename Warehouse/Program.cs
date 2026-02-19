@@ -30,7 +30,8 @@ builder.Services.AddCors(options =>
                              "https://smp-beta.vercel.app",
                              "https://bi2.com.mx",
                              "https://pruebas.bi2.mx",
-                             "https://clinica-pruebas.bi2.mx") 
+                             "https://clinica-pruebas.bi2.mx",
+                             "https://www.hco-siaf.com") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -109,6 +110,7 @@ builder.Services.AddScoped<IFamilySubFamilyDelisonService, FamilySubFamilyDeliso
 builder.Services.AddScoped<IMaterialDelisonService, MaterialDelisonService>();
 builder.Services.AddScoped<ISubfamilyxProviderService, SubfamilyxProviderService>();
 builder.Services.AddScoped<ITypexPrefixesService, TypexPrefixesService>();
+builder.Services.AddScoped<IPrefixSetupService, PrefixSetupService>();
 
 // MateriaByCatalog service registration
 builder.Services.AddScoped<IMateriaByCatalogService, MateriaByCatalogService>();
