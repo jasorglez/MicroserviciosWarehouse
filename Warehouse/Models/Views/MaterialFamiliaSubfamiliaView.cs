@@ -13,6 +13,8 @@ namespace Warehouse.Models.Views
         public string? FamiliaDescription { get; set; }
         public int? IdSubfamilia { get; set; }
         public string? SubfamiliaDescription { get; set; }
+        public int? IdMedida { get; set; }
+        public string? MedidaDescription { get; set; }
         public string? Barcode { get; set; }
         public string? Picture { get; set; }
         public decimal? CostoMN { get; set; }
