@@ -17,6 +17,9 @@ namespace Warehouse.Models.Views
         [Column("id_provider")]
         public int IdProvider { get; set; }
 
+        [Column("id_sucursal")]
+        public int IdSucursal { get; set; }
+
         [Column("codigo")]
         [StringLength(100)]
         public string? Codigo { get; set; }
