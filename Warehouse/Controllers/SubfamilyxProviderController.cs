@@ -21,6 +21,18 @@ namespace Warehouse.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        [HttpGet("subfamilyvig/{idProvider:int}")]
+        public async Task<ActionResult<IEnumerable<SubfamilyxProvider>>> GetBySubfamilyVig(int idProvider)
+        {
+            if (idProvider <= 0)
+            {
+                return BadRequest("Invalid provider ID");
+            }
+
+            var subfamilies = await _service.GetSubfamiliesByProvider(idProvider);
+            return Ok(subfamilies);
+        }
+
         /// <summary>
         /// Obtener todos los registros activos por IdProvider
         /// </summary>

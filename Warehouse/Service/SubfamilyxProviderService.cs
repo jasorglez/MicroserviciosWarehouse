@@ -25,6 +25,39 @@ namespace Warehouse.Service
                 .ToListAsync();
         }
 
+        // Obtener vigentes por IdProvider y sub-family
+        public async Task<List<object>> GetSubfamiliesByProvider(int idProvider)
+        {
+            try
+            {
+                var result = await (
+                    from p in _context.SubfamilyxProviders
+                    join c in _context.Catalogs
+                        on p.IdSubfamily equals c.Id
+                    where p.IdProvider == idProvider
+                          && p.Active == true
+                          && p.Vigente == true
+                          && c.Type == "SUB-FAM"
+                    orderby p.Vigente
+                    select new
+                    {
+                        p.Id,
+                        p.IdProvider,
+                        p.IdSubfamily,
+                        p.Active,
+                        p.Vigente,
+                        Description = c.Description
+                    }
+                ).ToListAsync();
+
+                return result.Cast<object>().ToList();
+            }
+            catch (Exception)
+            {
+                throw;
+            }
+        }
+
         // Obtener un registro por Id
         public async Task<SubfamilyxProvider?> GetById(int id)
         {
@@ -242,6 +275,7 @@ namespace Warehouse.Service
 
     public interface ISubfamilyxProviderService
     {
+        Task<List<object>> GetSubfamiliesByProvider(int idProvider);
         Task<List<SubfamilyxProvider>> GetByProvider(int idProvider);
         Task<SubfamilyxProvider?> GetById(int id);
         Task<SubfamilyxProvider> Create(SubfamilyxProvider subfamilyxProvider);
