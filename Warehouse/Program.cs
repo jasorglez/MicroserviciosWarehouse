@@ -31,6 +31,7 @@ builder.Services.AddCors(options =>
                              "https://bi2.com.mx",
                              "https://pruebas.bi2.mx",
                              "https://clinica-pruebas.bi2.mx",
+                             "https://hco-siaf-testing.bi2.mx",
                              "https://www.hco-siaf.com") 
                 .AllowAnyMethod()
                 .AllowAnyHeader()
