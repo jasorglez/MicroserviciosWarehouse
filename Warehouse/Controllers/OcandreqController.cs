@@ -36,6 +36,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("{idRoot}/{type}")]
+        public async Task<IActionResult> GetOcReqs(int idRoot, string type)
+        {
+            try
+            {
+                var result = await _service.GetOcReq(idRoot, type);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting Orders");
+                return StatusCode(500, "An error occurred while retrieving the orders");
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetOrderById(int id)
         {

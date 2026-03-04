@@ -36,6 +36,7 @@ namespace Warehouse.Service
                 foreach (var item in result)
                 {
                     item.Insumo = string.IsNullOrEmpty(item.Insumo) ? "N/A" : item.Insumo;
+                    item.MedidaDescription = string.IsNullOrEmpty(item.MedidaDescription) ? "Unidad" : item.MedidaDescription;
                     item.MaterialDescription = string.IsNullOrEmpty(item.MaterialDescription) ? "Sin descripción" : item.MaterialDescription;
                     item.FamiliaDescription = string.IsNullOrEmpty(item.FamiliaDescription) ? "Sin familia" : item.FamiliaDescription;
                     item.SubfamiliaDescription = string.IsNullOrEmpty(item.SubfamiliaDescription) ? "Sin subfamilia" : item.SubfamiliaDescription;

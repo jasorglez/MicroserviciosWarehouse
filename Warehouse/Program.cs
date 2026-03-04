@@ -54,7 +54,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.10", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.10 Mod. 2025-02-09 18:15, BSK, Server 76.13.28.145 12:24" }); 
+   c.SwaggerDoc("v5.20", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.20 Mod. 2025-02-23 21:09, BSK, Server 76.13.28.145 12:24" }); 
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -110,6 +110,7 @@ builder.Services.AddScoped<IFamilySubFamilyDelisonService, FamilySubFamilyDeliso
 builder.Services.AddScoped<IMaterialDelisonService, MaterialDelisonService>();
 builder.Services.AddScoped<ISubfamilyxProviderService, SubfamilyxProviderService>();
 builder.Services.AddScoped<ITypexPrefixesService, TypexPrefixesService>();
+builder.Services.AddScoped<IPrefixSetupService, PrefixSetupService>();
 
 // MateriaByCatalog service registration
 builder.Services.AddScoped<IMateriaByCatalogService, MateriaByCatalogService>();
@@ -147,7 +148,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v5.10/swagger.json", "Microservicio Warehouse V5.10");
+        c.SwaggerEndpoint("/swagger/v5.20/swagger.json", "Microservicio Warehouse V5.20");
         c.RoutePrefix = "swagger";
     });
 }

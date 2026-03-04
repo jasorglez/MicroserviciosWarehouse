@@ -16,6 +16,72 @@ namespace Warehouse.Service
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        public async Task<List<object>> GetOcReq( int idRoot, string type)
+        {
+            try
+            {
+                var result = await _context.Ocandreqs
+                    .Where(o =>
+                        o.Active == true &&
+                        o.IdRoot == idRoot &&
+                        o.Type == type)
+                    .OrderByDescending(o => o.Id)
+                    .Select(o => new
+                    {
+                        o.Id,
+                        o.IdRoot,
+                        o.Folio,
+                        o.TypeReference,
+                        o.IdReference,
+                        o.IdReq,
+                        o.DateCreate,
+                        o.IdDepartament,
+                        o.Delivery,
+                        o.DeliveryTime,
+                        o.TypeOc,
+                        o.DateSupply,
+                        o.IdPayment,
+                        o.IdCurrency,
+                        o.Conditions,
+                        o.IdAuthorize,
+                        o.IdSolicit,
+                        o.IdProvider,
+                        o.Solicit,
+                        o.Priority,
+                        o.Type,
+                        o.Pedimento,
+                        o.Comments,
+                        o.CompliancePedimento,
+                        o.ComplianceRequesicion,
+                        o.IvaRetention,
+                        o.Address,
+                        o.City,
+                        o.Phone,
+                        o.Discount,
+                        o.Close,
+                        o.CountItem,
+                        o.Locked,
+                        o.Active,
+                        o.AuthorizeName,
+                        o.AuthorizationStatus,
+                        o.RejectionReason,
+                        o.AuthorizedAt,
+                        countrow = _context.Detailsreqoc
+                            .Count(d => d.IdMovement == o.Id && d.Active == true)
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return result.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Orders");
+                throw;
+            }
+        }
+
+
         public async Task<List<object>> GetOrders(string typeReference, int idReference, string type)
         {
             try
@@ -80,7 +146,6 @@ namespace Warehouse.Service
                 throw;
             }
         }
-
 
 
         public async Task<object?> GetOrderById(int id)
@@ -283,6 +348,7 @@ namespace Warehouse.Service
     public interface IOcandreqService
     {
         Task<List<object>> GetOrders(string TypeReference, int idReference, string type);
+        Task<List<object>> GetOcReq(int idRoot, string type);
         Task<object?> GetOrderById(int id);
         Task Save(Ocandreq ocandreq);
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
