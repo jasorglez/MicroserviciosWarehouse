@@ -320,7 +320,7 @@ namespace Warehouse.Controllers
                     Active = cat.Active
                 };
                 await _catalogService.Save(catalogDB);
-                return Ok(new { Message = "Record New with Id", id = cat.Id, Catalog = cat });
+                return Ok(new { Message = "Record New with Id", id = catalogDB.Id, Catalog = cat });
             }
             catch (Exception ex)
             {
