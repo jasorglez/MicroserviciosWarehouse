@@ -251,26 +251,29 @@ namespace Warehouse.Service
             }
         }
 
+        private record MaterialApuDto(int Id, string? Articulo, string? Description, bool? Vigente, string? Measure, decimal? CostoMN);
+
         public async Task<List<object>> Get2Supplies(int idCompany)
         {
             try
             {
-                return await _context.MaterialsxProvExists
-                    .Where(s =>  s.Vigente == true && s.IdCompany == idCompany)
-                    .Select(s => new
-                    {
-                        s.Id,
-                        s.Articulo,
-                        s.Description,
-                        s.Vigente,
-                    //    s.Active,
-                        s.Measure,
-                        s.CostoMN,
-                    })
-                    .Distinct()
-                    .OrderBy(s => s.Articulo)
-                    .AsNoTracking()
-                    .ToListAsync<object>();
+                var rows = await _context.Database
+                    .SqlQuery<MaterialApuDto>($@"
+                        SELECT m.id          AS Id,
+                               m.articulo    AS Articulo,
+                               m.description AS Description,
+                               m.vigente     AS Vigente,
+                               ISNULL(ms.description, '') AS Measure,
+                               m.costoMN     AS CostoMN
+                        FROM   materials m
+                        LEFT JOIN measures ms ON ms.id = m.id_medida
+                        WHERE  m.id_company = {idCompany}
+                          AND  m.vigente  = 1
+                          AND  m.active   = 1
+                        ORDER  BY m.articulo")
+                    .ToListAsync();
+
+                return rows.Cast<object>().ToList();
             }
             catch (Exception ex)
             {
