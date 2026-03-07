@@ -286,7 +286,7 @@ namespace Warehouse.Service
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $@"
                     SELECT m.id,
-                           ISNULL(m.articulo, m.description) AS articulo,
+                           m.description,
                            ISNULL(ms.description, '')        AS measure,
                            ISNULL(m.costoMN, 0)              AS costoMN
                     FROM   materials m
@@ -303,7 +303,7 @@ namespace Warehouse.Service
                     result.Add(new
                     {
                         id       = reader.GetInt32(0),
-                        articulo = reader.GetString(1),
+                        description = reader.GetString(1),
                         measure  = reader.GetString(2),
                         costoMN  = reader.GetDecimal(3),
                     });
