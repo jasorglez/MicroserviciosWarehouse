@@ -290,7 +290,7 @@ namespace Warehouse.Service
                            ISNULL(ms.description, '')        AS measure,
                            ISNULL(m.costoMN, 0)              AS costoMN
                     FROM   materials m
-                    LEFT JOIN measures ms ON ms.id = m.id_medida
+                    LEFT JOIN catalog ms ON ms.id = m.id_medida AND ms.type = 'MEASURE'
                     WHERE  m.id_company = {idCompany}
                       AND  m.vigente = 1
                       AND  m.active  = 1
