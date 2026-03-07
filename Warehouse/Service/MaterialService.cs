@@ -255,20 +255,20 @@ namespace Warehouse.Service
         {
             try
             {
-                return await _context.Materials
-                    .Where(s => s.Active == true && idCompany == s.IdCompany)
-                    //.Include(s => s.PricesWithMaterial)
+                return await _context.MaterialsxProvExists
+                    .Where(s =>  s.Vigente == true && s.IdCompany == idCompany)
                     .Select(s => new
                     {
                         s.Id,
                         s.Articulo,
                         s.Description,
                         s.Vigente,
-                        s.Active,
+                    //    s.Active,
                         s.Measure,
                         s.CostoMN,
-                    }).OrderByDescending(s => s.Vigente)
-                      .ThenBy(s => s.Articulo)
+                    })
+                    .Distinct()
+                    .OrderBy(s => s.Articulo)
                     .AsNoTracking()
                     .ToListAsync<object>();
             }

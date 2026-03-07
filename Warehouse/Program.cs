@@ -54,7 +54,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.21", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.21 Mod. 05-03-2026 00:30 Fix CatalogController devuelve catalogDB.Id en POST" });
+   c.SwaggerDoc("v5.21", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.21 Mod. 07-03-2026 00:30 " });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
