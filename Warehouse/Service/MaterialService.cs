@@ -251,29 +251,39 @@ namespace Warehouse.Service
             }
         }
 
-        private record MaterialApuDto(int Id, string? Articulo, string? Description, bool? Vigente, string? Measure, decimal? CostoMN);
-
         public async Task<List<object>> Get2Supplies(int idCompany)
         {
             try
             {
-                var rows = await _context.Database
-                    .SqlQuery<MaterialApuDto>($@"
-                        SELECT m.id          AS Id,
-                               m.articulo    AS Articulo,
-                               m.description AS Description,
-                               m.vigente     AS Vigente,
-                               ISNULL(ms.description, '') AS Measure,
-                               m.costoMN     AS CostoMN
-                        FROM   materials m
-                        LEFT JOIN measures ms ON ms.id = m.id_medida
-                        WHERE  m.id_company = {idCompany}
-                          AND  m.vigente  = 1
-                          AND  m.active   = 1
-                        ORDER  BY m.articulo")
-                    .ToListAsync();
+                var conn = _context.Database.GetDbConnection();
+                await conn.OpenAsync();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = $@"
+                    SELECT m.id, m.articulo, m.description, m.vigente,
+                           ISNULL(ms.description, '') AS measure,
+                           m.costoMN
+                    FROM   materials m
+                    LEFT JOIN measures ms ON ms.id = m.id_medida
+                    WHERE  m.id_company = {idCompany}
+                      AND  m.vigente = 1
+                      AND  m.active  = 1
+                    ORDER  BY m.articulo";
 
-                return rows.Cast<object>().ToList();
+                using var reader = await cmd.ExecuteReaderAsync();
+                var result = new List<object>();
+                while (await reader.ReadAsync())
+                {
+                    result.Add(new
+                    {
+                        id          = reader.GetInt32(reader.GetOrdinal("id")),
+                        articulo    = reader.IsDBNull(reader.GetOrdinal("articulo"))    ? "" : reader.GetString(reader.GetOrdinal("articulo")),
+                        description = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString(reader.GetOrdinal("description")),
+                        vigente     = !reader.IsDBNull(reader.GetOrdinal("vigente")) && reader.GetBoolean(reader.GetOrdinal("vigente")),
+                        measure     = reader.IsDBNull(reader.GetOrdinal("measure"))     ? "" : reader.GetString(reader.GetOrdinal("measure")),
+                        costoMN     = reader.IsDBNull(reader.GetOrdinal("costoMN"))     ? 0m : reader.GetDecimal(reader.GetOrdinal("costoMN")),
+                    });
+                }
+                return result;
             }
             catch (Exception ex)
             {
