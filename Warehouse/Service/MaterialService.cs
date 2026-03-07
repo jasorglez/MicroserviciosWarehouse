@@ -260,19 +260,15 @@ namespace Warehouse.Service
                     //.Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
-                        s.Id,                        
-                        s.Description,s.Vigente,
-                        s.Active,
-                        /*PricePresentations = s.PricesWithMaterial.Select(s => new
-                        {
                         s.Id,
-                        s.IdCatalogs,
+                        s.Articulo,
                         s.Description,
-                        s.Price,
-                        s.Active
-                    }).ToList()*/
+                        s.Vigente,
+                        s.Active,
+                        s.Measure,
+                        s.CostoMN,
                     }).OrderByDescending(s => s.Vigente)
-                      .ThenBy(s => s.Description)
+                      .ThenBy(s => s.Articulo)
                     .AsNoTracking()
                     .ToListAsync<object>();
             }
