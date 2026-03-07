@@ -255,19 +255,46 @@ namespace Warehouse.Service
         {
             try
             {
+                return await _context.Materials
+                    .Where(s => s.Active == true && idCompany == s.IdCompany)
+                    .Select(s => new
+                    {
+                        s.Id,
+                        s.Description,
+                        s.Vigente,
+                        s.Active,
+                    })
+                    .OrderByDescending(s => s.Vigente)
+                    .ThenBy(s => s.Description)
+                    .AsNoTracking()
+                    .ToListAsync<object>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Supplies");
+                throw;
+            }
+        }
+
+        public async Task<List<object>> GetMaterialsForApu(int idCompany)
+        {
+            try
+            {
                 var conn = _context.Database.GetDbConnection();
-                await conn.OpenAsync();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = $@"
-                    SELECT m.id, m.articulo, m.description, m.vigente,
-                           ISNULL(ms.description, '') AS measure,
-                           m.costoMN
+                    SELECT m.id,
+                           ISNULL(m.articulo, m.description) AS articulo,
+                           ISNULL(ms.description, '')        AS measure,
+                           ISNULL(m.costoMN, 0)              AS costoMN
                     FROM   materials m
                     LEFT JOIN measures ms ON ms.id = m.id_medida
                     WHERE  m.id_company = {idCompany}
                       AND  m.vigente = 1
                       AND  m.active  = 1
-                    ORDER  BY m.articulo";
+                    ORDER  BY articulo";
 
                 using var reader = await cmd.ExecuteReaderAsync();
                 var result = new List<object>();
@@ -275,19 +302,17 @@ namespace Warehouse.Service
                 {
                     result.Add(new
                     {
-                        id          = reader.GetInt32(reader.GetOrdinal("id")),
-                        articulo    = reader.IsDBNull(reader.GetOrdinal("articulo"))    ? "" : reader.GetString(reader.GetOrdinal("articulo")),
-                        description = reader.IsDBNull(reader.GetOrdinal("description")) ? "" : reader.GetString(reader.GetOrdinal("description")),
-                        vigente     = !reader.IsDBNull(reader.GetOrdinal("vigente")) && reader.GetBoolean(reader.GetOrdinal("vigente")),
-                        measure     = reader.IsDBNull(reader.GetOrdinal("measure"))     ? "" : reader.GetString(reader.GetOrdinal("measure")),
-                        costoMN     = reader.IsDBNull(reader.GetOrdinal("costoMN"))     ? 0m : reader.GetDecimal(reader.GetOrdinal("costoMN")),
+                        id       = reader.GetInt32(0),
+                        articulo = reader.GetString(1),
+                        measure  = reader.GetString(2),
+                        costoMN  = reader.GetDecimal(3),
                     });
                 }
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving Supplies");
+                _logger.LogError(ex, "Error retrieving materials for APU company {IdCompany}", idCompany);
                 throw;
             }
         }
@@ -600,6 +625,7 @@ namespace Warehouse.Service
         Task<List<object>> GetSupplies(int idCompany, string typematerial);
         Task<bool> CatalogByMaterial(int idCatalog);
         Task<List<object>> Get2Supplies(int idCompany);
+        Task<List<object>> GetMaterialsForApu(int idCompany);
         Task<List<MaterialsxProvExist>> GetMaterialsView(int idCompany);
         Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
         Task<List<MaterialsByProviderView>> GetMaterialsByProvider(int idProvider);

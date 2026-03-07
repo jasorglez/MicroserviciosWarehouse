@@ -124,6 +124,20 @@ namespace Warehouse.Controllers
 
 
 
+        [HttpGet("for-apu")]
+        public async Task<ActionResult<List<object>>> GetMaterialsForApu(int idCompany)
+        {
+            try
+            {
+                return await _service.GetMaterialsForApu(idCompany);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving materials for APU company {IdCompany}", idCompany);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("2fields")]
         public async Task<ActionResult<List<object>>> Supplies(int idCompany)
         {
