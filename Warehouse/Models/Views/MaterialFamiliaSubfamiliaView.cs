@@ -21,6 +21,7 @@ namespace Warehouse.Models.Views
         public decimal? VentaMN { get; set; }
         public int? StockMin { get; set; }
         public int? StockMax { get; set; }
+        public decimal? Quantity { get; set; }
         public bool? Active { get; set; }
         public int IdCompany { get; set; }
     }

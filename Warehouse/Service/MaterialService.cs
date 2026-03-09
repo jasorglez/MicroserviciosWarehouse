@@ -47,6 +47,7 @@ namespace Warehouse.Service
                     item.VentaMN ??= 0;
                     item.StockMin ??= 0;
                     item.StockMax ??= 0;
+                    item.Quantity ??= 0;
                 }
 
                 return result;
