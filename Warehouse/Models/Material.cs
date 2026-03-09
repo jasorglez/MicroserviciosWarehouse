@@ -75,10 +75,16 @@ namespace Warehouse.Models
         [Column("ventaDLL", TypeName = "DECIMAL(16,2)")]
         public decimal? VentaDLL { get; set; }
 
+        [Column("quantity", TypeName = "DECIMAL(15,4)")]
+        [DefaultValue(0)]
+        public decimal? Quantity { get; set; }
+
         [Column("stockmin")]
+        [DefaultValue(0)]
         public int? StockMin { get; set; }
 
         [Column("stockmax")]
+        [DefaultValue(0)]
         public int? StockMax { get; set; }
 
         [Column("picture", TypeName = "VARCHAR")]
@@ -110,8 +116,12 @@ namespace Warehouse.Models
         [DefaultValue("CONSUMIBLE")]
         public string? TypeMaterial { get; set; }
 
-        [Column("merma")]
+        [Column("merma", TypeName = "DECIMAL(18,2)")]
         public decimal? Merma { get; set; }
+
+        [Column("requestquantity")]
+        [DefaultValue(0)]
+        public int? RequestQuantity { get; set; }
 
         [Column("fecha")]
         public DateTime? Fecha { get; set; }

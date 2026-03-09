@@ -26,16 +26,20 @@ public class CreateMaterialDTO
     public bool? AplicaResg { get; set; }
     
     public decimal CostoMN { get; set; }
-    
+
     public decimal CostoDLL { get; set; }
-    
+
     public decimal VentaMN { get; set; }
-    
+
     public decimal VentaDLL { get; set; }
-    
+
+    public decimal? Quantity { get; set; }
+
     public int StockMin { get; set; }
-    
+
     public int StockMax { get; set; }
+
+    public int? RequestQuantity { get; set; }
     
     public string Picture { get; set; } = string.Empty;
     
