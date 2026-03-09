@@ -516,6 +516,8 @@ namespace Warehouse.Service
                 if (material.VentaDLL.HasValue) existingItem.VentaDLL = material.VentaDLL;
                 if (material.StockMin.HasValue) existingItem.StockMin = material.StockMin;
                 if (material.StockMax.HasValue) existingItem.StockMax = material.StockMax;
+                if (material.Quantity.HasValue) existingItem.Quantity = material.Quantity;
+                if (material.RequestQuantity.HasValue) existingItem.RequestQuantity = material.RequestQuantity;
                 if (!string.IsNullOrEmpty(material.Picture)) existingItem.Picture = material.Picture;
                 if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
                 if (material.Vigente.HasValue) existingItem.Vigente = material.Vigente;
