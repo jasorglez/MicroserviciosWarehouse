@@ -463,12 +463,14 @@ namespace Warehouse.Service
                     VentaDLL = material.VentaDLL,
                     StockMin = material.StockMin,
                     StockMax = material.StockMax,
-                    Picture = material.Picture,                    
+                    Quantity = material.Quantity ?? 0,
+                    RequestQuantity = material.RequestQuantity ?? 0,
+                    Picture = material.Picture,
                     TypeMaterial = material.TypeMaterial,
                     Merma = material.Merma,
                     Fecha = material.Date ?? DateTime.UtcNow,
-                    Vigente = material.Vigente ?? true, // Valor por defecto si es null
-                    Active = material.Active ?? true // Valor por defecto si es null
+                    Vigente = material.Vigente ?? true,
+                    Active = material.Active ?? true
                 };
 
                 _context.Materials.Add(newMaterial);
@@ -516,8 +518,8 @@ namespace Warehouse.Service
                 if (material.VentaDLL.HasValue) existingItem.VentaDLL = material.VentaDLL;
                 if (material.StockMin.HasValue) existingItem.StockMin = material.StockMin;
                 if (material.StockMax.HasValue) existingItem.StockMax = material.StockMax;
-                if (material.Quantity.HasValue) existingItem.Quantity = material.Quantity;
-                if (material.RequestQuantity.HasValue) existingItem.RequestQuantity = material.RequestQuantity;
+                existingItem.Quantity = material.Quantity ?? 0;
+                existingItem.RequestQuantity = material.RequestQuantity ?? 0;
                 if (!string.IsNullOrEmpty(material.Picture)) existingItem.Picture = material.Picture;
                 if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
                 if (material.Vigente.HasValue) existingItem.Vigente = material.Vigente;
