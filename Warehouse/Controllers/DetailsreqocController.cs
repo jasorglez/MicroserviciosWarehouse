@@ -53,6 +53,22 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpPost("bulk")]
+        public async Task<IActionResult> SaveBulk([FromBody] List<Detailsreqoc> details)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+            try
+            {
+                await _service.SaveBulk(details);
+                return Ok(details);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving bulk Details");
+                return StatusCode(500, "An error occurred while saving the details");
+            }
+        }
+
         [HttpPost]
         public async Task<IActionResult> Save([FromBody] Detailsreqoc detail)
         {

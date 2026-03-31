@@ -79,6 +79,15 @@ namespace Warehouse.Models
         [Column("comment")]
         public string? Comment { get; set; }
 
+        [Column("tiempoentrega", TypeName = "varchar(20)")]
+        public string? TiempoEntrega { get; set; }
+
+        [Column("compraminima")]
+        public int? CompraMinima { get; set; }
+
+        [Column("autorizado")]
+        public bool? Autorizado { get; set; } = false;
+
         [Column("active")]
         public bool? Active { get; set; } = true;
     }

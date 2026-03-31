@@ -61,6 +61,9 @@ namespace Warehouse.Service
                             dmc.Details.NameArticle,
                             dmc.Details.NumArticle,
                             dmc.Details.TypePriority,
+                            dmc.Details.TiempoEntrega,
+                            dmc.Details.CompraMinima,
+                            dmc.Details.Autorizado,
                             dmc.Details.Active
                         })
                     .AsNoTracking()
@@ -110,6 +113,20 @@ namespace Warehouse.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving Detail");
+                throw;
+            }
+        }
+
+        public async Task SaveBulk(List<Detailsreqoc> details)
+        {
+            try
+            {
+                _context.Detailsreqoc.AddRange(details);
+                await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving bulk Details");
                 throw;
             }
         }
@@ -170,6 +187,7 @@ namespace Warehouse.Service
         Task<List<object>> GetDetails(int idMovement);
         Task<List<PurchaseOrderDetail>> GetPurchaseOrderDetailsQuery(int idProv);
         Task Save(Detailsreqoc detail);
+        Task SaveBulk(List<Detailsreqoc> details);
         Task<Detailsreqoc?> Update(int id, Detailsreqoc detail);
         Task<bool> Delete(int id);
     }
