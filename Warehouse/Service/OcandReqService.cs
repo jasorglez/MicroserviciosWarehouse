@@ -343,6 +343,28 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<Ocandreq?> SetTotal(int id, decimal total)
+        {
+            var existingItem = await _context.Ocandreqs.FindAsync(id);
+            if (existingItem == null)
+            {
+                _logger.LogWarning("Attempted to update total for non-existent Order with ID {Id}", id);
+                return null;
+            }
+
+            try
+            {
+                existingItem.Total = total;
+                await _context.SaveChangesAsync();
+                return existingItem;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting total for Order with ID {Id}", id);
+                throw;
+            }
+        }
     }
 
     public interface IOcandreqService
@@ -356,5 +378,6 @@ namespace Warehouse.Service
         Task<bool> Delete(int id);
         Task<Ocandreq?> SetLocked(int id, bool locked);
         Task<Ocandreq?> SetCountItem(int id, int countItem);
+        Task<Ocandreq?> SetTotal(int id, decimal total);
     }
 }
