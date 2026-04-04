@@ -86,6 +86,7 @@ namespace Warehouse.Service
             //existing.Type = proveedor.Type;
             existing.Vigente = proveedor.Vigente;
             existing.Principal = proveedor.Principal;
+            existing.Active = proveedor.Active;
 
             await _context.SaveChangesAsync();
             return existing;
