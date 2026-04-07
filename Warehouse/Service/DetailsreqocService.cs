@@ -66,7 +66,6 @@ namespace Warehouse.Service
                             dmc.Details.Autorizado,
                             dmc.Details.Active,
                             dmc.Details.TypeOc,
-                            dmc.Details.Comment,
                             dmc.Details.DatePostpone
                         })
                     .AsNoTracking()
