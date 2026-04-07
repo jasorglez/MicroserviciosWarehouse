@@ -54,7 +54,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.21", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.21 Mod. 2026-04-01 15:30, BSK, Server 76.13.28.145 12:24" });
+   c.SwaggerDoc("v5.21", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.22 Add typeoc to detailsreqoc 2026-04-07" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -159,6 +159,21 @@ app.UseCors("AllowWarehouseOrigin");
 
 //app.UseAuthorization();
 app.UseAuthorization();
+
+// ── Migración automática: typeoc en detailsreqoc ─────────────────────────────
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                       WHERE TABLE_NAME='detailsreqoc' AND COLUMN_NAME='typeoc')
+            ALTER TABLE detailsreqoc ADD typeoc VARCHAR(50) NULL;
+
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                       WHERE TABLE_NAME='detailsreqoc' AND COLUMN_NAME='datepostpone')
+            ALTER TABLE detailsreqoc ADD datepostpone DATE NULL;
+    ");
+}
 
 app.MapControllers();
 

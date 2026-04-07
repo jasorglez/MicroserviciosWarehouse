@@ -90,5 +90,11 @@ namespace Warehouse.Models
 
         [Column("active")]
         public bool? Active { get; set; } = true;
+
+        [Column("typeoc", TypeName = "varchar(50)")]
+        public string? TypeOc { get; set; }
+
+        [Column("datepostpone", TypeName = "date")]
+        public DateTime? DatePostpone { get; set; }
     }
 }

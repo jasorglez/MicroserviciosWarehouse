@@ -64,7 +64,10 @@ namespace Warehouse.Service
                             dmc.Details.TiempoEntrega,
                             dmc.Details.CompraMinima,
                             dmc.Details.Autorizado,
-                            dmc.Details.Active
+                            dmc.Details.Active,
+                            dmc.Details.TypeOc,
+                            dmc.Details.Comment,
+                            dmc.Details.DatePostpone
                         })
                     .AsNoTracking()
                     .ToListAsync<object>();
