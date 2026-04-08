@@ -54,7 +54,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.25", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.25 typeoc-flags endpoint para colores requisicion 2026-04-08" });
+   c.SwaggerDoc("v5.26", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.26 typeoc-flags POST por lista de IDs 2026-04-08" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -149,7 +149,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v5.25/swagger.json", "Microservicio Warehouse V5.25");
+        c.SwaggerEndpoint("/swagger/v5.26/swagger.json", "Microservicio Warehouse V5.26");
         c.RoutePrefix = "swagger";
     });
 }

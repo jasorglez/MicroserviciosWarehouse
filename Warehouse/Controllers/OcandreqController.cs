@@ -36,12 +36,12 @@ namespace Warehouse.Controllers
             }
         }
 
-        [HttpGet("{idRoot}/typeoc-flags")]
-        public async Task<IActionResult> GetTypeOcFlags(int idRoot)
+        [HttpPost("typeoc-flags")]
+        public async Task<IActionResult> GetTypeOcFlags([FromBody] List<int> reqIds)
         {
             try
             {
-                var result = await _service.GetTypeOcFlags(idRoot);
+                var result = await _service.GetTypeOcFlags(reqIds);
                 return Ok(result);
             }
             catch (Exception ex)

@@ -366,19 +366,19 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(int idRoot)
+        public async Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds)
         {
-            var cotizIds = await _context.Ocandreqs
-                .Where(c => c.Active == true && c.Type == "COTIZ" && c.IdReq != null)
-                .Join(_context.Ocandreqs.Where(r => r.Active == true && r.IdRoot == idRoot && r.Type == "REQUIS"),
-                    c => c.IdReq, r => r.Id,
-                    (c, r) => new { CotizId = c.Id, ReqId = c.IdReq })
+            if (reqIds == null || !reqIds.Any()) return new List<ReqTypeOcFlagDto>();
+
+            var cotizMap = await _context.Ocandreqs
+                .Where(c => c.Active == true && c.Type == "COTIZ" && c.IdReq != null && reqIds.Contains(c.IdReq!.Value))
+                .Select(c => new { CotizId = c.Id, ReqId = c.IdReq!.Value })
                 .ToListAsync();
 
-            if (!cotizIds.Any()) return new List<ReqTypeOcFlagDto>();
+            if (!cotizMap.Any()) return new List<ReqTypeOcFlagDto>();
 
-            var cotizIdList = cotizIds.Select(x => x.CotizId).ToList();
-            var cotizReqMap = cotizIds.ToDictionary(x => x.CotizId, x => x.ReqId);
+            var cotizIdList   = cotizMap.Select(x => x.CotizId).ToList();
+            var cotizReqMap   = cotizMap.ToDictionary(x => x.CotizId, x => x.ReqId);
 
             var details = await _context.Detailsreqoc
                 .Where(d => d.Active == true && d.TypeOc != null && cotizIdList.Contains(d.IdMovement))
@@ -389,7 +389,7 @@ namespace Warehouse.Service
                 .GroupBy(d => cotizReqMap[d.IdMovement])
                 .Select(g => new ReqTypeOcFlagDto
                 {
-                    ReqId         = g.Key ?? 0,
+                    ReqId         = g.Key,
                     HasNoAuth     = g.Any(d => d.TypeOc == "COMPRA NO AUTORIZADA"),
                     HasChangeSpec = g.Any(d => d.TypeOc == "CAMBIO DE ESPECIFICACIONES")
                 })
@@ -411,7 +411,7 @@ namespace Warehouse.Service
         Task<Ocandreq?> SetLocked(int id, bool locked);
         Task<Ocandreq?> SetCountItem(int id, int countItem);
         Task<Ocandreq?> SetTotal(int id, decimal total);
-        Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(int idRoot);
+        Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds);
     }
 
     public class ReqTypeOcFlagDto
