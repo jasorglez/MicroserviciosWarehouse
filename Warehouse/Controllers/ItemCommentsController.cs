@@ -1,0 +1,49 @@
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Warehouse.Models;
+using Warehouse.Service;
+
+namespace Warehouse.Controllers;
+
+[Authorize]
+[ApiController]
+[Route("api/[controller]")]
+public class ItemCommentsController : ControllerBase
+{
+    private readonly IItemCommentsService _service;
+
+    public ItemCommentsController(IItemCommentsService service)
+    {
+        _service = service;
+    }
+
+    // GET api/ItemComments?idRequisicion=5&numArticle=ABC-01
+    [HttpGet]
+    public async Task<IActionResult> Get([FromQuery] int idRequisicion, [FromQuery] string numArticle)
+    {
+        var comments = await _service.GetAsync(idRequisicion, numArticle);
+        return Ok(comments);
+    }
+
+    // POST api/ItemComments
+    [HttpPost]
+    public async Task<IActionResult> Post([FromBody] ItemComment comment)
+    {
+        var created = await _service.AddAsync(comment);
+        return Ok(created);
+    }
+
+    // PUT api/ItemComments/12
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Put(int id, [FromBody] EditCommentDto dto)
+    {
+        var updated = await _service.UpdateAsync(id, dto.Text);
+        if (updated == null) return NotFound();
+        return Ok(updated);
+    }
+}
+
+public class EditCommentDto
+{
+    public string Text { get; set; } = "";
+}
