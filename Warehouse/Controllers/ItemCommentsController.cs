@@ -17,11 +17,11 @@ public class ItemCommentsController : ControllerBase
         _service = service;
     }
 
-    // GET api/ItemComments?idRequisicion=5&numArticle=ABC-01
+    // GET api/ItemComments?documentType=REQ&idDocument=5&numArticle=ABC-01
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] int idRequisicion, [FromQuery] string numArticle)
+    public async Task<IActionResult> Get([FromQuery] string documentType, [FromQuery] int idDocument, [FromQuery] string numArticle)
     {
-        var comments = await _service.GetAsync(idRequisicion, numArticle);
+        var comments = await _service.GetAsync(documentType, idDocument, numArticle);
         return Ok(comments);
     }
 

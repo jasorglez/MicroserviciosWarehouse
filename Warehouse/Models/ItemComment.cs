@@ -3,15 +3,18 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Warehouse.Models;
 
-[Table("item_comments")]
+[Table("item_comments", Schema = "Delison")]
 public class ItemComment
 {
     [Key]
     [Column("id")]
     public int Id { get; set; }
 
-    [Column("id_requisicion")]
-    public int IdRequisicion { get; set; }
+    [Column("document_type")]
+    public string DocumentType { get; set; } = "";  // 'REQ', 'COTIZ', 'PROVEEDOR'
+
+    [Column("id_document")]
+    public int IdDocument { get; set; }
 
     [Column("num_article")]
     public string NumArticle { get; set; } = "";

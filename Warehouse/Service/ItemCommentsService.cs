@@ -5,7 +5,7 @@ namespace Warehouse.Service;
 
 public interface IItemCommentsService
 {
-    Task<List<ItemComment>> GetAsync(int idRequisicion, string numArticle);
+    Task<List<ItemComment>> GetAsync(string documentType, int idDocument, string numArticle);
     Task<ItemComment> AddAsync(ItemComment comment);
     Task<ItemComment?> UpdateAsync(int id, string text);
 }
@@ -19,10 +19,11 @@ public class ItemCommentsService : IItemCommentsService
         _context = context;
     }
 
-    public async Task<List<ItemComment>> GetAsync(int idRequisicion, string numArticle)
+    public async Task<List<ItemComment>> GetAsync(string documentType, int idDocument, string numArticle)
     {
         return await _context.ItemComments
-            .Where(c => c.IdRequisicion == idRequisicion
+            .Where(c => c.DocumentType == documentType
+                     && c.IdDocument == idDocument
                      && c.NumArticle == numArticle
                      && c.Active)
             .OrderBy(c => c.CreatedAt)
