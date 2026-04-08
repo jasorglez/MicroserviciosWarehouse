@@ -8,6 +8,13 @@ public interface IItemCommentsService
     Task<List<ItemComment>> GetAsync(string documentType, int idDocument, string numArticle);
     Task<ItemComment> AddAsync(ItemComment comment);
     Task<ItemComment?> UpdateAsync(int id, string text);
+    Task<DocumentCommentFlags> GetFlagsAsync(string documentType, int idDocument);
+}
+
+public class DocumentCommentFlags
+{
+    public bool HasNoAuth    { get; set; }
+    public bool HasChangeSpec { get; set; }
 }
 
 public class ItemCommentsService : IItemCommentsService
@@ -45,5 +52,18 @@ public class ItemCommentsService : IItemCommentsService
         comment.Text = text;
         await _context.SaveChangesAsync();
         return comment;
+    }
+
+    public async Task<DocumentCommentFlags> GetFlagsAsync(string documentType, int idDocument)
+    {
+        var texts = await _context.ItemComments
+            .Where(c => c.DocumentType == documentType && c.IdDocument == idDocument && c.Active)
+            .Select(c => c.Text)
+            .ToListAsync();
+
+        bool hasNoAuth    = texts.Any(t => t != null && t.StartsWith("COMPRA NO AUTORIZADA"));
+        bool hasChangeSpec = texts.Any(t => t != null && t.StartsWith("CAMBIO DE ESPECIFICACIONES"));
+
+        return new DocumentCommentFlags { HasNoAuth = hasNoAuth, HasChangeSpec = hasChangeSpec };
     }
 }

@@ -365,6 +365,38 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(int idRoot)
+        {
+            var cotizIds = await _context.Ocandreqs
+                .Where(c => c.Active == true && c.Type == "COTIZ" && c.IdReq != null)
+                .Join(_context.Ocandreqs.Where(r => r.Active == true && r.IdRoot == idRoot && r.Type == "REQUIS"),
+                    c => c.IdReq, r => r.Id,
+                    (c, r) => new { CotizId = c.Id, ReqId = c.IdReq })
+                .ToListAsync();
+
+            if (!cotizIds.Any()) return new List<ReqTypeOcFlagDto>();
+
+            var cotizIdList = cotizIds.Select(x => x.CotizId).ToList();
+            var cotizReqMap = cotizIds.ToDictionary(x => x.CotizId, x => x.ReqId);
+
+            var details = await _context.Detailsreqoc
+                .Where(d => d.Active == true && d.TypeOc != null && cotizIdList.Contains(d.IdMovement))
+                .Select(d => new { d.IdMovement, d.TypeOc })
+                .ToListAsync();
+
+            var result = details
+                .GroupBy(d => cotizReqMap[d.IdMovement])
+                .Select(g => new ReqTypeOcFlagDto
+                {
+                    ReqId         = g.Key ?? 0,
+                    HasNoAuth     = g.Any(d => d.TypeOc == "COMPRA NO AUTORIZADA"),
+                    HasChangeSpec = g.Any(d => d.TypeOc == "CAMBIO DE ESPECIFICACIONES")
+                })
+                .ToList();
+
+            return result;
+        }
     }
 
     public interface IOcandreqService
@@ -379,5 +411,13 @@ namespace Warehouse.Service
         Task<Ocandreq?> SetLocked(int id, bool locked);
         Task<Ocandreq?> SetCountItem(int id, int countItem);
         Task<Ocandreq?> SetTotal(int id, decimal total);
+        Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(int idRoot);
+    }
+
+    public class ReqTypeOcFlagDto
+    {
+        public int ReqId       { get; set; }
+        public bool HasNoAuth    { get; set; }
+        public bool HasChangeSpec { get; set; }
     }
 }

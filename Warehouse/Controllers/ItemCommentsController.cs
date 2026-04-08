@@ -19,8 +19,13 @@ public class ItemCommentsController : ControllerBase
 
     // GET api/ItemComments?documentType=REQ&idDocument=5&numArticle=ABC-01
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] string documentType, [FromQuery] int idDocument, [FromQuery] string numArticle)
+    public async Task<IActionResult> Get([FromQuery] string documentType, [FromQuery] int idDocument, [FromQuery] string? numArticle)
     {
+        if (string.IsNullOrEmpty(numArticle))
+        {
+            var flags = await _service.GetFlagsAsync(documentType, idDocument);
+            return Ok(flags);
+        }
         var comments = await _service.GetAsync(documentType, idDocument, numArticle);
         return Ok(comments);
     }

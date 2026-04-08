@@ -36,6 +36,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("{idRoot}/typeoc-flags")]
+        public async Task<IActionResult> GetTypeOcFlags(int idRoot)
+        {
+            try
+            {
+                var result = await _service.GetTypeOcFlags(idRoot);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting typeOC flags");
+                return StatusCode(500, "An error occurred while retrieving typeOC flags");
+            }
+        }
+
         [HttpGet("{idRoot}/{type}")]
         public async Task<IActionResult> GetOcReqs(int idRoot, string type)
         {
