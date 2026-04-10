@@ -18,10 +18,32 @@ public class MateriaByCatalogService : IMateriaByCatalogService
     {
         try
         {
-            return await _context.MateriaByCatalog
-                .Where(rm => rm.Active == true && rm.IdCompany == idCompany && rm.IdConcep == idMaterial)
-                .OrderByDescending(rm => rm.FechaCambio)
-                .ToListAsync<object>();
+            return await (
+                from m in _context.MateriaByCatalog
+                join mat in _context.Materials on m.IdCatalog equals mat.Id into matJoin
+                from mat in matJoin.DefaultIfEmpty()
+                where m.Active == true && m.IdCompany == idCompany && m.IdConcep == idMaterial
+                orderby m.FechaCambio descending
+                select (object)new
+                {
+                    m.Id,
+                    m.IdCompany,
+                    m.Check,
+                    m.IdConcep,
+                    m.IdCatalog,
+                    articulo = mat != null ? mat.Description : null,
+                    m.CostoUni,
+                    m.Cantidad,
+                    m.Proporcion,
+                    m.CostoTot,
+                    m.Merma,
+                    m.CostoFin,
+                    m.FechaCambio,
+                    m.Parametros,
+                    m.Total,
+                    m.Active
+                }
+            ).ToListAsync();
         }
         catch (Exception ex)
         {
