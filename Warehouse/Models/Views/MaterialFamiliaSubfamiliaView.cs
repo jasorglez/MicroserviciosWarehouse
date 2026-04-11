@@ -21,5 +21,7 @@ namespace Warehouse.Models.Views
         public int? StockMax { get; set; }
         public bool? Active { get; set; }
         public int IdCompany { get; set; }
+        public int? IdMedida { get; set; }
+        public string? Measure { get; set; }
     }
 }
