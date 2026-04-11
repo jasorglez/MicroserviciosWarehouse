@@ -123,5 +123,8 @@ namespace Warehouse.Models
         [Column("active")]
         [DefaultValue(true)]
         public bool? Active { get; set; }
+
+        [Column("costo", TypeName = "DECIMAL(18,2)")]
+        public decimal? Costo { get; set; }
     }
 }

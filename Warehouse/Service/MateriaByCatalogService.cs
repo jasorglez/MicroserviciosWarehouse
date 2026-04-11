@@ -60,6 +60,7 @@ public class MateriaByCatalogService : IMateriaByCatalogService
             _context.MateriaByCatalog.Add(MateriaByCatalog);
             await _context.SaveChangesAsync();
             await ActualizarPorcentaje(MateriaByCatalog.IdCompany, MateriaByCatalog.IdConcep);
+            await ActualizarCostoMaterial(MateriaByCatalog.IdCompany, MateriaByCatalog.IdConcep);
             return MateriaByCatalog;
         }
         catch (Exception ex)
@@ -96,6 +97,7 @@ public class MateriaByCatalogService : IMateriaByCatalogService
 
             await _context.SaveChangesAsync();
             await ActualizarPorcentaje(existingItem.IdCompany, existingItem.IdConcep);
+            await ActualizarCostoMaterial(existingItem.IdCompany, existingItem.IdConcep);
             return existingItem;
         }
         catch (Exception ex)
@@ -116,8 +118,15 @@ public class MateriaByCatalogService : IMateriaByCatalogService
 
         try
         {
+            var idCompany = existingItem.IdCompany;
+            var idConcep = existingItem.IdConcep;
+            
             existingItem.Active = false;
             await _context.SaveChangesAsync();
+            
+            await ActualizarPorcentaje(idCompany, idConcep);
+            await ActualizarCostoMaterial(idCompany, idConcep);
+            
             return true;
         }
         catch (Exception ex)
@@ -157,6 +166,38 @@ public class MateriaByCatalogService : IMateriaByCatalogService
         await _context.SaveChangesAsync();
         return true;
     }
+
+    public async Task<bool> ActualizarCostoMaterial(int? IdCompany, int? IdConcep)
+    {
+        try
+        {
+            // Buscar el material por IdConcep (que es el id del material)
+            var material = await _context.Materials.FirstOrDefaultAsync(m => m.Id == IdConcep);
+            if (material == null)
+            {
+                _logger.LogWarning("Material no encontrado con Id {Id}", IdConcep);
+                return false;
+            }
+
+            // Calcular la suma de CostoTot de todos los MateriaByCatalog activos para este material
+            var costoTotal = await _context.MateriaByCatalog
+                .Where(mbc => mbc.Active == true && mbc.IdConcep == IdConcep && mbc.Check == true)
+                .SumAsync(mbc => mbc.CostoTot ?? 0);
+
+            // Actualizar el campo Costo del material
+            material.Costo = costoTotal;
+            _context.Materials.Update(material);
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Costo actualizado para material {Id}: {Costo}", IdConcep, costoTotal);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error actualizando costo del material {Id}", IdConcep);
+            return false;
+        }
+    }
 }
 
 public interface IMateriaByCatalogService
@@ -166,4 +207,5 @@ public interface IMateriaByCatalogService
     Task<MateriaByCatalog?> UpdateMateriaByCatalogAsync(int id, MateriaByCatalog MateriaByCatalog);
     Task<bool> DeleteMateriaByCatalogAsync(int id);
     Task<bool> ActualizarPorcentaje(int? IdCompany, int? IdConcep);
+    Task<bool> ActualizarCostoMaterial(int? IdCompany, int? IdConcep);
 }
