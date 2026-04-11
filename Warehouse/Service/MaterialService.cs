@@ -256,20 +256,17 @@ namespace Warehouse.Service
             {
                 return await _context.Materials
                     .Where(s => s.Active == true && idCompany == s.IdCompany)
-                    //.Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
-                        s.Id,                        
-                        s.Description,s.Vigente,
-                        s.Active,
-                        /*PricePresentations = s.PricesWithMaterial.Select(s => new
-                        {
                         s.Id,
-                        s.IdCatalogs,
                         s.Description,
-                        s.Price,
-                        s.Active
-                    }).ToList()*/
+                        s.Vigente,
+                        s.Active,
+                        s.IdMedida,
+                        Measure = _context.Catalogs
+                            .Where(c => c.Id == s.IdMedida && c.Type == "MEASURE")
+                            .Select(c => c.Description)
+                            .FirstOrDefault()
                     }).OrderByDescending(s => s.Vigente)
                       .ThenBy(s => s.Description)
                     .AsNoTracking()
