@@ -38,6 +38,7 @@ namespace Warehouse.Service;
                             detailMaterial.detail.Quantity,
                             detailMaterial.detail.Pending,
                             detailMaterial.detail.Total,
+                            detailMaterial.detail.Type,
                             detailMaterial.detail.Active
                         })
                     .ToListAsync<object>();

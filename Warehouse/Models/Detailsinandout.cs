@@ -30,6 +30,9 @@ public class Detailsinandout
     [Column("total", TypeName = "decimal(9,2)")]
     public decimal Total { get; set; }
 
+    [Column("type")]
+    public string? Type  { get; set; }
+
     [Column("active")] public bool Active { get; set; } = true;
 
 
