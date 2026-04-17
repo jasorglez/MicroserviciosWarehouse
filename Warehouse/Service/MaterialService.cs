@@ -559,20 +559,34 @@ namespace Warehouse.Service
         {
             try
             {
-                var query = _context.VwListProvidersForRawMaterials
-                    .Where(p => p.IdMaterial == idMaterial);
+                // Join entre ProveedorXTabla (relación material-proveedor) y ProveedoresxtypeView (información de proveedor)
+                var providers = await (from pxt in _context.ProveedorXTablas
+                                      join ptv in _context.ProveedoresxtypeViews
+                                        on pxt.IdTabla equals ptv.Id
+                                      where pxt.Campo1 == idMaterial && pxt.Active && ptv.Vigente == true
+                                      select new VwListProvidersForRawMaterial
+                                      {
+                                          IdProvider = pxt.IdTabla.Value,
+                                          ProviderName = ptv.Company,
+                                          TypeIntOrExt = ptv.TypeIntOrExt,
+                                          IdMaterial = pxt.Campo1.Value,
+                                          Active = true
+                                      }).AsNoTracking().ToListAsync();
+
+                _logger.LogInformation("🔍 [GetProvidersByMaterialAndType] Material: {IdMaterial}, Total providers from join: {Count}", idMaterial, providers.Count);
+                foreach (var p in providers)
+                {
+                    _logger.LogInformation("  - Provider: {Id} ({Name}), TypeIntOrExt: '{Type}'", p.IdProvider, p.ProviderName, p.TypeIntOrExt ?? "NULL");
+                }
 
                 if (!string.IsNullOrEmpty(typeIntOrExt))
                 {
-                    query = query.Where(p => p.TypeIntOrExt == typeIntOrExt);
+                    _logger.LogInformation("🔍 Filtering for typeIntOrExt = '{RequestedType}'", typeIntOrExt);
+                    providers = providers.Where(p => p.TypeIntOrExt == typeIntOrExt).ToList();
+                    _logger.LogInformation("  ✅ After filter: {Count} providers match", providers.Count);
                 }
 
-                var providers = await query
-                    .OrderBy(p => p.ProviderName)
-                    .AsNoTracking()
-                    .ToListAsync();
-
-                return providers;
+                return providers.OrderBy(p => p.ProviderName).ToList();
             }
             catch (Exception ex)
             {
