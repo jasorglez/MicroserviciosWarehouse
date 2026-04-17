@@ -182,6 +182,44 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<FrequentArticleDto>> GetFrequentArticles(string solicit, int idDepartment, int idBranch)
+        {
+            try
+            {
+                var result = await _context.Detailsreqoc
+                    .Where(d => d.Active == true)
+                    .Join(_context.Ocandreqs,
+                        d => d.IdMovement,
+                        o => o.Id,
+                        (d, o) => new { Detail = d, Order = o })
+                    .Where(x => x.Order.Solicit == solicit
+                        && x.Order.IdDepartament == idDepartment
+                        && x.Order.IdReference == idBranch
+                        && x.Order.Active == true
+                        && x.Order.Type == "REQUIS")
+                    .GroupBy(x => new { x.Detail.IdSupplie, x.Detail.NameArticle })
+                    .Select(g => new FrequentArticleDto
+                    {
+                        IdSupplie = g.Key.IdSupplie,
+                        NameArticle = g.Key.NameArticle ?? string.Empty,
+                        CountRequested = g.Count(),
+                        TotalQuantity = g.Sum(x => x.Detail.Quantity)
+                    })
+                    .OrderByDescending(x => x.CountRequested)
+                    .Take(3)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving frequent articles for solicit {Solicit}, department {IdDepartment}, branch {IdBranch}",
+                    solicit, idDepartment, idBranch);
+                throw;
+            }
+        }
     }
 
     public interface IDetailsreqocService
@@ -192,5 +230,6 @@ namespace Warehouse.Service
         Task SaveBulk(List<Detailsreqoc> details);
         Task<Detailsreqoc?> Update(int id, Detailsreqoc detail);
         Task<bool> Delete(int id);
+        Task<List<FrequentArticleDto>> GetFrequentArticles(string solicit, int idDepartment, int idBranch);
     }
 }

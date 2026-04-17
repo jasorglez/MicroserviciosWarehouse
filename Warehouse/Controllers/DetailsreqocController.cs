@@ -131,5 +131,21 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while deleting the detail");
             }
         }
+
+        [HttpGet("frequent")]
+        public async Task<IActionResult> GetFrequentArticles(string solicit, int idDepartment, int idBranch)
+        {
+            try
+            {
+                var result = await _service.GetFrequentArticles(solicit, idDepartment, idBranch);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving frequent articles for solicit {Solicit}, department {IdDepartment}, branch {IdBranch}",
+                    solicit, idDepartment, idBranch);
+                return StatusCode(500, "An error occurred while retrieving frequent articles");
+            }
+        }
     }
 }
