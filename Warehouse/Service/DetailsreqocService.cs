@@ -183,11 +183,28 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<List<FrequentArticleDto>> GetFrequentArticles(string solicit, int idDepartment, int idBranch)
+        public async Task<FrequentArticlesResponse> GetFrequentArticles(string solicit, int idDepartment, int idBranch)
         {
             try
             {
-                var result = await _context.Detailsreqoc
+                // Calcular el total de requisiciones que tienen artículos registrados
+                var totalRequisitions = await _context.Detailsreqoc
+                    .Where(d => d.Active == true)
+                    .Join(_context.Ocandreqs,
+                        d => d.IdMovement,
+                        o => o.Id,
+                        (d, o) => new { Detail = d, Order = o })
+                    .Where(x => x.Order.Solicit == solicit
+                        && x.Order.IdDepartament == idDepartment
+                        && x.Order.IdReference == idBranch
+                        && x.Order.Active == true
+                        && x.Order.Type == "REQUIS")
+                    .Select(x => x.Order.Id)
+                    .Distinct()
+                    .CountAsync();
+
+                // Obtener los TOP 3 artículos más solicitados
+                var frequentArticles = await _context.Detailsreqoc
                     .Where(d => d.Active == true)
                     .Join(_context.Ocandreqs,
                         d => d.IdMovement,
@@ -211,7 +228,11 @@ namespace Warehouse.Service
                     .AsNoTracking()
                     .ToListAsync();
 
-                return result;
+                return new FrequentArticlesResponse
+                {
+                    Articles = frequentArticles,
+                    TotalRequisitions = totalRequisitions
+                };
             }
             catch (Exception ex)
             {
@@ -230,6 +251,6 @@ namespace Warehouse.Service
         Task SaveBulk(List<Detailsreqoc> details);
         Task<Detailsreqoc?> Update(int id, Detailsreqoc detail);
         Task<bool> Delete(int id);
-        Task<List<FrequentArticleDto>> GetFrequentArticles(string solicit, int idDepartment, int idBranch);
+        Task<FrequentArticlesResponse> GetFrequentArticles(string solicit, int idDepartment, int idBranch);
     }
 }

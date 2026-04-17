@@ -133,7 +133,7 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet("frequent")]
-        public async Task<IActionResult> GetFrequentArticles(string solicit, int idDepartment, int idBranch)
+        public async Task<ActionResult<FrequentArticlesResponse>> GetFrequentArticles(string solicit, int idDepartment, int idBranch)
         {
             try
             {
