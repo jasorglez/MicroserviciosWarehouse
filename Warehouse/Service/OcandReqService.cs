@@ -343,6 +343,60 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<Ocandreq?> SetTotal(int id, decimal total)
+        {
+            var existingItem = await _context.Ocandreqs.FindAsync(id);
+            if (existingItem == null)
+            {
+                _logger.LogWarning("Attempted to update total for non-existent Order with ID {Id}", id);
+                return null;
+            }
+
+            try
+            {
+                existingItem.Total = total;
+                await _context.SaveChangesAsync();
+                return existingItem;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting total for Order with ID {Id}", id);
+                throw;
+            }
+        }
+
+        public async Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds)
+        {
+            if (reqIds == null || !reqIds.Any()) return new List<ReqTypeOcFlagDto>();
+
+            var cotizMap = await _context.Ocandreqs
+                .Where(c => c.Active == true && c.Type == "COTIZ" && c.IdReq != null && reqIds.Contains(c.IdReq!.Value))
+                .Select(c => new { CotizId = c.Id, ReqId = c.IdReq!.Value })
+                .ToListAsync();
+
+            if (!cotizMap.Any()) return new List<ReqTypeOcFlagDto>();
+
+            var cotizIdList   = cotizMap.Select(x => x.CotizId).ToList();
+            var cotizReqMap   = cotizMap.ToDictionary(x => x.CotizId, x => x.ReqId);
+
+            var details = await _context.Detailsreqoc
+                .Where(d => d.Active == true && d.TypeOc != null && cotizIdList.Contains(d.IdMovement))
+                .Select(d => new { d.IdMovement, d.TypeOc })
+                .ToListAsync();
+
+            var result = details
+                .GroupBy(d => cotizReqMap[d.IdMovement])
+                .Select(g => new ReqTypeOcFlagDto
+                {
+                    ReqId         = g.Key,
+                    HasNoAuth     = g.Any(d => d.TypeOc == "COMPRA NO AUTORIZADA"),
+                    HasChangeSpec = g.Any(d => d.TypeOc == "CAMBIO DE ESPECIFICACIONES")
+                })
+                .ToList();
+
+            return result;
+        }
     }
 
     public interface IOcandreqService
@@ -356,5 +410,14 @@ namespace Warehouse.Service
         Task<bool> Delete(int id);
         Task<Ocandreq?> SetLocked(int id, bool locked);
         Task<Ocandreq?> SetCountItem(int id, int countItem);
+        Task<Ocandreq?> SetTotal(int id, decimal total);
+        Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds);
+    }
+
+    public class ReqTypeOcFlagDto
+    {
+        public int ReqId       { get; set; }
+        public bool HasNoAuth    { get; set; }
+        public bool HasChangeSpec { get; set; }
     }
 }

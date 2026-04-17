@@ -82,9 +82,11 @@ namespace Warehouse.Service
             existing.Campo6 = proveedor.Campo6;
             existing.Campo7 = proveedor.Campo7;
             existing.Campo8 = proveedor.Campo8;
+            existing.Campo11 = proveedor.Campo11;
             //existing.Type = proveedor.Type;
             existing.Vigente = proveedor.Vigente;
             existing.Principal = proveedor.Principal;
+            existing.Active = proveedor.Active;
 
             await _context.SaveChangesAsync();
             return existing;

@@ -14,6 +14,7 @@ public partial class DbWarehouseContext : DbContext
         : base(options)
     { }
 
+    public virtual DbSet<ItemComment> ItemComments { get; set; }
     public virtual DbSet<Catalog> Catalogs { get; set; }
     public virtual DbSet<Configuration> Configurations { get; set; }
     public virtual DbSet<Detailsreqoc> Detailsreqoc { get; set; }

@@ -36,6 +36,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpPost("typeoc-flags")]
+        public async Task<IActionResult> GetTypeOcFlags([FromBody] List<int> reqIds)
+        {
+            try
+            {
+                var result = await _service.GetTypeOcFlags(reqIds);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting typeOC flags");
+                return StatusCode(500, "An error occurred while retrieving typeOC flags");
+            }
+        }
+
         [HttpGet("{idRoot}/{type}")]
         public async Task<IActionResult> GetOcReqs(int idRoot, string type)
         {
@@ -204,6 +219,25 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while updating the countItem");
             }
         }
+
+        [HttpPatch("{id}/total")]
+        public async Task<IActionResult> SetTotal(int id, [FromBody] TotalRequest request)
+        {
+            try
+            {
+                var result = await _service.SetTotal(id, request.Total);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting total for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the total");
+            }
+        }
     }
 
     public class LockRequest
@@ -214,5 +248,10 @@ namespace Warehouse.Controllers
     public class CountItemRequest
     {
         public int CountItem { get; set; }
+    }
+
+    public class TotalRequest
+    {
+        public decimal Total { get; set; }
     }
 }

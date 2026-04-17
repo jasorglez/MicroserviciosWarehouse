@@ -53,6 +53,11 @@ namespace Warehouse.Models
         [Column("campo8")]
         public DateTime? Campo8 { get; set; }
 
+        [Column("campo11")]
+        [StringLength(99)]
+        [DefaultValue("NA")]
+        public string? Campo11 { get; set; } = "NA";
+
         [Column("campo9", TypeName = "DECIMAL(16,2)")]
         public decimal Campo9 { get; set; }
 

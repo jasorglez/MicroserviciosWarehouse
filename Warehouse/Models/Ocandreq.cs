@@ -126,6 +126,9 @@ namespace Warehouse.Models
         
         [Column("countitem")]
         public int? CountItem { get; set; }
+
+        [Column("total", TypeName = "DECIMAL(18,2)")]
+        public decimal? Total { get; set; } = 0;
         
         [Column("locked")]
         public bool? Locked { get; set; } = false;

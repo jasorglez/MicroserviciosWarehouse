@@ -54,7 +54,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.20", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.20 Mod. 2025-02-23 21:09, BSK, Server 76.13.28.145 12:24" }); 
+   c.SwaggerDoc("v5.26", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.26 typeoc-flags POST por lista de IDs 2026-04-08" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -95,6 +95,7 @@ builder.Services.AddScoped<IMaterialxFinalProductService, MaterialxFinalProductS
 builder.Services.AddScoped<IFinalProductService, FinalProductService>();
 builder.Services.AddScoped<IProviderTypeService, ProviderTypeService>();
 
+builder.Services.AddScoped<IItemCommentsService, ItemCommentsService>();
 builder.Services.AddScoped<IOcandreqService, OcandreqService>();
 builder.Services.AddScoped<IInandoutService, InandoutService>();
 builder.Services.AddScoped<IDetailsreqocService, DetailsreqocService>();
@@ -148,7 +149,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v5.20/swagger.json", "Microservicio Warehouse V5.20");
+        c.SwaggerEndpoint("/swagger/v5.26/swagger.json", "Microservicio Warehouse V5.26");
         c.RoutePrefix = "swagger";
     });
 }
@@ -159,6 +160,27 @@ app.UseCors("AllowWarehouseOrigin");
 
 //app.UseAuthorization();
 app.UseAuthorization();
+
+// ── Migración automática: typeoc / datepostpone en detailsreqoc ───────────────
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                       WHERE TABLE_NAME='detailsreqoc' AND COLUMN_NAME='typeoc')
+            ALTER TABLE detailsreqoc ADD typeoc VARCHAR(50) NULL;
+
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                       WHERE TABLE_NAME='detailsreqoc' AND COLUMN_NAME='datepostpone')
+            ALTER TABLE detailsreqoc ADD datepostpone DATE NULL;
+    ");
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Auto-migration detailsreqoc falló — corre el ALTER TABLE manualmente.");
+}
 
 app.MapControllers();
 
