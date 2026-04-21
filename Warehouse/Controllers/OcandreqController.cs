@@ -238,6 +238,21 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while updating the total");
             }
         }
+
+        [HttpGet("{pedimentoId}/comparison")]
+        public async Task<IActionResult> GetComparisonData(int pedimentoId)
+        {
+            try
+            {
+                var result = await _service.GetComparisonData(pedimentoId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting comparison data for pedimento {PedimentoId}", pedimentoId);
+                return StatusCode(500, "An error occurred while retrieving comparison data");
+            }
+        }
     }
 
     public class LockRequest

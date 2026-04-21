@@ -54,7 +54,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.26", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.26 typeoc-flags POST por lista de IDs 2026-04-08" });
+   c.SwaggerDoc("v5.27", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.27 comparison comprasMinimas por proveedor 2026-04-20" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

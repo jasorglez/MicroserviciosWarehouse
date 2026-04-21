@@ -397,6 +397,134 @@ namespace Warehouse.Service
 
             return result;
         }
+
+        public async Task<object> GetComparisonData(int pedimentoId)
+        {
+            try
+            {
+                // Obtener el pedimento
+                var pedimento = await _context.Ocandreqs
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(o => o.Id == pedimentoId && o.Active == true);
+
+                if (pedimento == null)
+                {
+                    return new { error = "Pedimento no encontrado" };
+                }
+
+                // Obtener los 3 proveedores del pedimento (slots A/B/C)
+                var proveedorCotizs = await _context.Ocandreqs
+                    .Where(o => o.TypeReference == "delison" &&
+                                o.IdReference == pedimentoId &&
+                                o.Type == "COTIZ" &&
+                                o.Active == true)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                var slotA = proveedorCotizs.FirstOrDefault(c => c.Folio.Contains("-A-"));
+                var slotB = proveedorCotizs.FirstOrDefault(c => c.Folio.Contains("-B-"));
+                var slotC = proveedorCotizs.FirstOrDefault(c => c.Folio.Contains("-C-"));
+
+                var proveedores = new List<object>();
+                if (slotA != null && slotA.IdProvider.HasValue && slotA.IdProvider > 0)
+                    proveedores.Add(new { id = slotA.IdProvider.Value, nombre = slotA.Solicit ?? $"Proveedor {slotA.IdProvider}" });
+                if (slotB != null && slotB.IdProvider.HasValue && slotB.IdProvider > 0)
+                    proveedores.Add(new { id = slotB.IdProvider.Value, nombre = slotB.Solicit ?? $"Proveedor {slotB.IdProvider}" });
+                if (slotC != null && slotC.IdProvider.HasValue && slotC.IdProvider > 0)
+                    proveedores.Add(new { id = slotC.IdProvider.Value, nombre = slotC.Solicit ?? $"Proveedor {slotC.IdProvider}" });
+
+                // Obtener items del pedimento (solo los solicitados)
+                var items = await _context.Detailsreqoc
+                    .Where(d => d.IdMovement == pedimentoId &&
+                                d.Active == true &&
+                                d.Pedimento == true)
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                // Precargar todos los items de los 3 slots para evitar N+1 queries
+                var itemsSlotA = slotA != null ? await _context.Detailsreqoc
+                    .Where(d => d.IdMovement == slotA.Id && d.Active == true)
+                    .AsNoTracking().ToListAsync() : new List<Detailsreqoc>();
+                var itemsSlotB = slotB != null ? await _context.Detailsreqoc
+                    .Where(d => d.IdMovement == slotB.Id && d.Active == true)
+                    .AsNoTracking().ToListAsync() : new List<Detailsreqoc>();
+                var itemsSlotC = slotC != null ? await _context.Detailsreqoc
+                    .Where(d => d.IdMovement == slotC.Id && d.Active == true)
+                    .AsNoTracking().ToListAsync() : new List<Detailsreqoc>();
+
+                // Construir estructura de artículos con precios por proveedor
+                var articulos = new List<object>();
+
+                foreach (var item in items)
+                {
+                    var precios = new Dictionary<int, decimal>();
+                    var comprasMinimas = new Dictionary<int, int>();
+                    var tiemposEntrega = new Dictionary<int, string>();
+                    var itemName = (item.NameArticle ?? item.Observation ?? "").Trim().ToLower();
+
+                    Detailsreqoc? FindMatch(List<Detailsreqoc> slotItems) =>
+                        // 1. Match exacto por IdSupplie (si no es 0)
+                        (item.IdSupplie > 0 ? slotItems.FirstOrDefault(d => d.IdSupplie == item.IdSupplie) : null)
+                        // 2. Fallback: match por nombre del artículo
+                        ?? (!string.IsNullOrEmpty(itemName)
+                            ? slotItems.FirstOrDefault(d =>
+                                (d.NameArticle ?? d.Observation ?? "").Trim().ToLower() == itemName)
+                            : null);
+
+                    // Obtener precios, compra mínima y tiempo de entrega de cada proveedor
+                    if (slotA != null && slotA.IdProvider.HasValue && slotA.IdProvider > 0)
+                    {
+                        var precioA = FindMatch(itemsSlotA);
+                        precios[slotA.IdProvider.Value] = precioA?.Price ?? item.Price;
+                        comprasMinimas[slotA.IdProvider.Value] = (int)(precioA?.CompraMinima ?? item.CompraMinima ?? 1);
+                        tiemposEntrega[slotA.IdProvider.Value] = precioA?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                    }
+
+                    if (slotB != null && slotB.IdProvider.HasValue && slotB.IdProvider > 0)
+                    {
+                        var precioB = FindMatch(itemsSlotB);
+                        precios[slotB.IdProvider.Value] = precioB?.Price ?? item.Price;
+                        comprasMinimas[slotB.IdProvider.Value] = (int)(precioB?.CompraMinima ?? item.CompraMinima ?? 1);
+                        tiemposEntrega[slotB.IdProvider.Value] = precioB?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                    }
+
+                    if (slotC != null && slotC.IdProvider.HasValue && slotC.IdProvider > 0)
+                    {
+                        var precioC = FindMatch(itemsSlotC);
+                        precios[slotC.IdProvider.Value] = precioC?.Price ?? item.Price;
+                        comprasMinimas[slotC.IdProvider.Value] = (int)(precioC?.CompraMinima ?? item.CompraMinima ?? 1);
+                        tiemposEntrega[slotC.IdProvider.Value] = precioC?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                    }
+
+                    articulos.Add(new
+                    {
+                        id = item.Id,
+                        idSupplie = item.IdSupplie,
+                        nombre = item.NameArticle ?? item.Observation ?? "",
+                        numArticle = item.NumArticle ?? "",
+                        cantidad = item.Quantity,
+                        compraMinima = (int)(item.CompraMinima ?? 1),
+                        recurrent = item.Recurrent ?? "Recurrente",
+                        tiempoEntrega = item.TiempoEntrega ?? "",
+                        comprasMinimas = comprasMinimas,
+                        tiemposEntrega = tiemposEntrega,
+                        precios = precios
+                    });
+                }
+
+                return new
+                {
+                    pedimentoId = pedimentoId,
+                    proveedores = proveedores,
+                    articulos = articulos
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting comparison data for pedimento {PedimentoId}", pedimentoId);
+                throw;
+            }
+        }
     }
 
     public interface IOcandreqService
@@ -412,6 +540,7 @@ namespace Warehouse.Service
         Task<Ocandreq?> SetCountItem(int id, int countItem);
         Task<Ocandreq?> SetTotal(int id, decimal total);
         Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds);
+        Task<object> GetComparisonData(int pedimentoId);
     }
 
     public class ReqTypeOcFlagDto
