@@ -36,7 +36,7 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader()
                 .AllowCredentials();
         });
-});
+});               
 
 // Añadir HttpClient para Twilio
 //builder.Services.AddHttpClient();
@@ -120,6 +120,7 @@ builder.Services.AddScoped<ISucursalByMaterialProveedorService, SucursalByMateri
 
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>();
 
 builder.Services.AddHttpContextAccessor();
 

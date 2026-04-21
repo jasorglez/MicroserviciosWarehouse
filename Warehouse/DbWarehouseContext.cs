@@ -56,6 +56,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<VwListProvidersForRawMaterial> VwListProvidersForRawMaterials { get; set; }
     public virtual DbSet<VwProveedoresParaMaterial> VwProveedoresParaMaterials { get; set; }
     public virtual DbSet<PrefixSetup> PrefixSetups { get; set; }
+    public virtual DbSet<AutorizacionMonto> AutorizacionMontos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
