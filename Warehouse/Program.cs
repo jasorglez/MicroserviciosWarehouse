@@ -36,7 +36,7 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader()
                 .AllowCredentials();
         });
-});
+});               
 
 // Añadir HttpClient para Twilio
 //builder.Services.AddHttpClient();
@@ -54,7 +54,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.26", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.26 typeoc-flags POST por lista de IDs 2026-04-08" });
+   c.SwaggerDoc("v5.26", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.26 typeoc-flags POST por lista de IDs 2026-04-20x " });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -120,6 +120,7 @@ builder.Services.AddScoped<ISucursalByMaterialProveedorService, SucursalByMateri
 
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>();
 
 builder.Services.AddHttpContextAccessor();
 
