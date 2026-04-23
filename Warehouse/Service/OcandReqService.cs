@@ -25,7 +25,7 @@ namespace Warehouse.Service
                         o.Active == true &&
                         o.IdRoot == idRoot &&
                         o.Type == type)
-                    .OrderByDescending(o => o.Id)
+                    .OrderByDescending(o => o.DateModified)
                     .Select(o => new
                     {
                         o.Id,
@@ -35,6 +35,7 @@ namespace Warehouse.Service
                         o.IdReference,
                         o.IdReq,
                         o.DateCreate,
+                        o.DateModified,
                         o.IdDepartament,
                         o.Delivery,
                         o.DeliveryTime,
@@ -92,7 +93,7 @@ namespace Warehouse.Service
                         o.TypeReference == typeReference &&
                         o.IdReference == idReference &&
                         o.Type == type)
-                    .OrderByDescending(o => o.Id)
+                    .OrderByDescending(o => o.DateModified)
                     .Select(o => new
                     {
                         o.Id,
@@ -101,6 +102,7 @@ namespace Warehouse.Service
                         o.IdReference,
                         o.IdReq,
                         o.DateCreate,
+                        o.DateModified,
                         o.IdDepartament,
                         o.Delivery,
                         o.DeliveryTime,
@@ -168,6 +170,7 @@ namespace Warehouse.Service
                         o.IdReference,
                         o.IdReq,
                         o.DateCreate,
+                        o.DateModified,
                         o.IdDepartament,
                         o.Delivery,
                         o.DeliveryTime,

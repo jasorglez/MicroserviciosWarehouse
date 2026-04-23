@@ -150,5 +150,8 @@ namespace Warehouse.Models
 
         [Column("authorized_at")]
         public DateTime? AuthorizedAt { get; set; }
+
+        [Column("datemodified", TypeName = "DATETIME")]
+        public DateTime DateModified { get; set; } = DateTime.Now;
     }
 }

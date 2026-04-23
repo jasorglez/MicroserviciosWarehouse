@@ -111,6 +111,9 @@ namespace Warehouse.Service
             {
                 _context.Detailsreqoc.Add(detail);
                 await _context.SaveChangesAsync();
+
+                // ✅ Actualizar DateModified de la requisición padre
+                await UpdateParentRequisitionModified(detail.IdMovement);
             }
             catch (Exception ex)
             {
@@ -147,6 +150,10 @@ namespace Warehouse.Service
                 detail.Id = id;
                 _context.Entry(existingItem).CurrentValues.SetValues(detail);
                 await _context.SaveChangesAsync();
+
+                // ✅ Actualizar DateModified de la requisición padre
+                await UpdateParentRequisitionModified(existingItem.IdMovement);
+
                 return existingItem;
             }
             catch (DbUpdateConcurrencyException ex)
@@ -174,6 +181,10 @@ namespace Warehouse.Service
             {
                 existingItem.Active = false;
                 await _context.SaveChangesAsync();
+
+                // ✅ Actualizar DateModified de la requisición padre
+                await UpdateParentRequisitionModified(existingItem.IdMovement);
+
                 return true;
             }
             catch (Exception ex)
@@ -239,6 +250,39 @@ namespace Warehouse.Service
                 _logger.LogError(ex, "Error retrieving frequent articles for solicit {Solicit}, department {IdDepartment}, branch {IdBranch}",
                     solicit, idDepartment, idBranch);
                 throw;
+            }
+        }
+
+        // ✅ Método privado para actualizar DateModified de la requisición padre (y del abuelo si es COTIZ)
+        private async Task UpdateParentRequisitionModified(int idMovement)
+        {
+            try
+            {
+                var parentDocument = await _context.Ocandreqs.FindAsync(idMovement);
+                if (parentDocument != null)
+                {
+                    // Actualizar el documento directo (COTIZ o REQUIS)
+                    parentDocument.DateModified = DateTime.Now;
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("Updated DateModified for document {IdMovement}", idMovement);
+
+                    // Si es una COTIZ, también actualizar el REQUIS padre
+                    if (parentDocument.Type == "COTIZ" && parentDocument.IdReq.HasValue && parentDocument.IdReq > 0)
+                    {
+                        var grandparentRequisition = await _context.Ocandreqs.FindAsync(parentDocument.IdReq);
+                        if (grandparentRequisition != null)
+                        {
+                            grandparentRequisition.DateModified = DateTime.Now;
+                            await _context.SaveChangesAsync();
+                            _logger.LogInformation("Updated DateModified for parent requisition {IdReq}", parentDocument.IdReq);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating DateModified for document {IdMovement}", idMovement);
+                // No lanzar excepción para no bloquear la operación principal
             }
         }
     }

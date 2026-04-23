@@ -42,10 +42,11 @@ builder.Services.AddCors(options =>
 //builder.Services.AddHttpClient();
 
 // Add services to the container.
-builder.Services.AddControllers().AddJsonOptions(x => 
+builder.Services.AddControllers().AddJsonOptions(x =>
 {
     x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     x.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    x.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 

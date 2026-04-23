@@ -120,5 +120,25 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "Internal server error.");
             }
         }
+
+        [HttpGet("next-requisition/{idBranch}")]
+        public async Task<ActionResult<dynamic>> GetNextRequisitionNumber(int idBranch)
+        {
+            try
+            {
+                var nextNumber = await _service.GetNextRequisitionNumber(idBranch);
+                return Ok(new { requisitionNumber = nextNumber });
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "Prefix not found for branch {IdBranch}.", idBranch);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating next requisition number for branch {IdBranch}.", idBranch);
+                return StatusCode(500, "Internal server error.");
+            }
+        }
     }
 }
