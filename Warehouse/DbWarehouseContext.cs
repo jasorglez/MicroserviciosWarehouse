@@ -3,6 +3,7 @@ using Warehouse.Models;
 using Warehouse.Models.Delison;
 using Warehouse.Models.Views;
 
+
 namespace Warehouse;
 
 public partial class DbWarehouseContext : DbContext
@@ -55,6 +56,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<TypexPrefixes> TypexPrefixes { get; set; }
     public virtual DbSet<VwListProvidersForRawMaterial> VwListProvidersForRawMaterials { get; set; }
     public virtual DbSet<PrefixSetup> PrefixSetups { get; set; }
+    public virtual DbSet<MaterialXModulo> MaterialXModulos { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
