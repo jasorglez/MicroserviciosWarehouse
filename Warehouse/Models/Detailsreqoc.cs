@@ -96,5 +96,8 @@ namespace Warehouse.Models
 
         [Column("datepostpone", TypeName = "date")]
         public DateTime? DatePostpone { get; set; }
+
+        [Column("cantidadconceptualizada", TypeName = "decimal(16,2)")]
+        public decimal? CantidadConceptualizada { get; set; }
     }
 }

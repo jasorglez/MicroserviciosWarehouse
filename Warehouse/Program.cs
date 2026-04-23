@@ -55,7 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.27", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.27 comparison comprasMinimas por proveedor 2026-04-20" });
+   c.SwaggerDoc("v5.30", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.30 cantidadconceptualizada 2026-04-23" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -151,7 +151,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v5.26/swagger.json", "Microservicio Warehouse V5.26");
+        c.SwaggerEndpoint("/swagger/v5.30/swagger.json", "Microservicio Warehouse V5.30");
         c.RoutePrefix = "swagger";
     });
 }
@@ -176,6 +176,7 @@ try
         IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
                        WHERE TABLE_NAME='detailsreqoc' AND COLUMN_NAME='datepostpone')
             ALTER TABLE detailsreqoc ADD datepostpone DATE NULL;
+
     ");
 }
 catch (Exception ex)

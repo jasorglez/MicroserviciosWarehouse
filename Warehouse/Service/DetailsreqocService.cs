@@ -253,6 +253,45 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task PatchTypeOc(int id, string typeOc)
+        {
+            var item = await _context.Detailsreqoc.FindAsync(id);
+            if (item == null) return;
+            item.TypeOc = typeOc;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task PatchCantidadConceptualizada(int id, decimal cantidad)
+        {
+            var item = await _context.Detailsreqoc.FindAsync(id);
+            if (item == null) return;
+            item.CantidadConceptualizada = cantidad;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task SyncObservationBySupplieAndProvider(int idSupplie, int idProvider, string observation)
+        {
+            try
+            {
+                var rows = await _context.Detailsreqoc
+                    .Where(d => d.Active == true && d.IdSupplie == idSupplie && d.IdProvider == idProvider)
+                    .ToListAsync();
+
+                foreach (var row in rows)
+                {
+                    row.Observation = observation;
+                }
+
+                if (rows.Count > 0)
+                    await _context.SaveChangesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error syncing observation for supplie {IdSupplie} provider {IdProvider}", idSupplie, idProvider);
+                throw;
+            }
+        }
+
         // ✅ Método privado para actualizar DateModified de la requisición padre (y del abuelo si es COTIZ)
         private async Task UpdateParentRequisitionModified(int idMovement)
         {
@@ -296,5 +335,8 @@ namespace Warehouse.Service
         Task<Detailsreqoc?> Update(int id, Detailsreqoc detail);
         Task<bool> Delete(int id);
         Task<FrequentArticlesResponse> GetFrequentArticles(string solicit, int idDepartment, int idBranch);
+        Task PatchTypeOc(int id, string typeOc);
+        Task PatchCantidadConceptualizada(int id, decimal cantidad);
+        Task SyncObservationBySupplieAndProvider(int idSupplie, int idProvider, string observation);
     }
 }

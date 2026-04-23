@@ -463,6 +463,9 @@ namespace Warehouse.Service
                     var precios = new Dictionary<int, decimal>();
                     var comprasMinimas = new Dictionary<int, int>();
                     var tiemposEntrega = new Dictionary<int, string>();
+                    var cantidades = new Dictionary<int, decimal>();
+                    var slotItemIds = new Dictionary<int, int>();
+                    var tiposOc = new Dictionary<int, string>();
                     var itemName = (item.NameArticle ?? item.Observation ?? "").Trim().ToLower();
 
                     Detailsreqoc? FindMatch(List<Detailsreqoc> slotItems) =>
@@ -474,13 +477,16 @@ namespace Warehouse.Service
                                 (d.NameArticle ?? d.Observation ?? "").Trim().ToLower() == itemName)
                             : null);
 
-                    // Obtener precios, compra mínima y tiempo de entrega de cada proveedor
+                    // Obtener precios, compra mínima, tiempo de entrega, cantidadConceptualizada y tipoOc de cada proveedor
                     if (slotA != null && slotA.IdProvider.HasValue && slotA.IdProvider > 0)
                     {
                         var precioA = FindMatch(itemsSlotA);
                         precios[slotA.IdProvider.Value] = precioA?.Price ?? item.Price;
                         comprasMinimas[slotA.IdProvider.Value] = (int)(precioA?.CompraMinima ?? item.CompraMinima ?? 1);
                         tiemposEntrega[slotA.IdProvider.Value] = precioA?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                        cantidades[slotA.IdProvider.Value] = precioA?.CantidadConceptualizada ?? 0;
+                        tiposOc[slotA.IdProvider.Value] = precioA?.TypeOc ?? "";
+                        if (precioA != null) slotItemIds[slotA.IdProvider.Value] = precioA.Id;
                     }
 
                     if (slotB != null && slotB.IdProvider.HasValue && slotB.IdProvider > 0)
@@ -489,6 +495,9 @@ namespace Warehouse.Service
                         precios[slotB.IdProvider.Value] = precioB?.Price ?? item.Price;
                         comprasMinimas[slotB.IdProvider.Value] = (int)(precioB?.CompraMinima ?? item.CompraMinima ?? 1);
                         tiemposEntrega[slotB.IdProvider.Value] = precioB?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                        cantidades[slotB.IdProvider.Value] = precioB?.CantidadConceptualizada ?? 0;
+                        tiposOc[slotB.IdProvider.Value] = precioB?.TypeOc ?? "";
+                        if (precioB != null) slotItemIds[slotB.IdProvider.Value] = precioB.Id;
                     }
 
                     if (slotC != null && slotC.IdProvider.HasValue && slotC.IdProvider > 0)
@@ -497,6 +506,9 @@ namespace Warehouse.Service
                         precios[slotC.IdProvider.Value] = precioC?.Price ?? item.Price;
                         comprasMinimas[slotC.IdProvider.Value] = (int)(precioC?.CompraMinima ?? item.CompraMinima ?? 1);
                         tiemposEntrega[slotC.IdProvider.Value] = precioC?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                        cantidades[slotC.IdProvider.Value] = precioC?.CantidadConceptualizada ?? 0;
+                        tiposOc[slotC.IdProvider.Value] = precioC?.TypeOc ?? "";
+                        if (precioC != null) slotItemIds[slotC.IdProvider.Value] = precioC.Id;
                     }
 
                     articulos.Add(new
@@ -511,7 +523,10 @@ namespace Warehouse.Service
                         tiempoEntrega = item.TiempoEntrega ?? "",
                         comprasMinimas = comprasMinimas,
                         tiemposEntrega = tiemposEntrega,
-                        precios = precios
+                        precios = precios,
+                        cantidades = cantidades,
+                        tiposOc = tiposOc,
+                        slotItemIds = slotItemIds
                     });
                 }
 
