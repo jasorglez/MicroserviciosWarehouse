@@ -131,5 +131,66 @@ namespace Warehouse.Controllers
                 return StatusCode(500, "An error occurred while deleting the detail");
             }
         }
+
+        [HttpPatch("{id}/typeoc")]
+        public async Task<IActionResult> PatchTypeOc(int id, [FromBody] string typeOc)
+        {
+            try
+            {
+                await _service.PatchTypeOc(id, typeOc ?? "");
+                return Ok(new { message = "TypeOc updated" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error patching typeOc for detail {Id}", id);
+                return StatusCode(500, "An error occurred while updating typeOc");
+            }
+        }
+
+        [HttpPatch("{id}/cantidad-conceptualizada")]
+        public async Task<IActionResult> PatchCantidadConceptualizada(int id, [FromBody] decimal cantidad)
+        {
+            try
+            {
+                await _service.PatchCantidadConceptualizada(id, cantidad);
+                return Ok(new { message = "CantidadConceptualizada updated" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error patching cantidadConceptualizada for detail {Id}", id);
+                return StatusCode(500, "An error occurred while updating cantidadConceptualizada");
+            }
+        }
+
+        [HttpPatch("sync-observation")]
+        public async Task<IActionResult> SyncObservation([FromQuery] int idSupplie, [FromQuery] int idProvider, [FromQuery] string observation = "")
+        {
+            try
+            {
+                await _service.SyncObservationBySupplieAndProvider(idSupplie, idProvider, observation);
+                return Ok(new { message = "Observation synced" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error syncing observation for supplie {IdSupplie} provider {IdProvider}", idSupplie, idProvider);
+                return StatusCode(500, "An error occurred while syncing observation");
+            }
+        }
+
+        [HttpGet("frequent")]
+        public async Task<ActionResult<FrequentArticlesResponse>> GetFrequentArticles(string solicit, int idDepartment, int idBranch)
+        {
+            try
+            {
+                var result = await _service.GetFrequentArticles(solicit, idDepartment, idBranch);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving frequent articles for solicit {Solicit}, department {IdDepartment}, branch {IdBranch}",
+                    solicit, idDepartment, idBranch);
+                return StatusCode(500, "An error occurred while retrieving frequent articles");
+            }
+        }
     }
 }

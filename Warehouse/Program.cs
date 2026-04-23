@@ -36,16 +36,17 @@ builder.Services.AddCors(options =>
                 .AllowAnyHeader()
                 .AllowCredentials();
         });
-});
+});               
 
 // Añadir HttpClient para Twilio
 //builder.Services.AddHttpClient();
 
 // Add services to the container.
-builder.Services.AddControllers().AddJsonOptions(x => 
+builder.Services.AddControllers().AddJsonOptions(x =>
 {
     x.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
     x.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+    x.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
     x.JsonSerializerOptions.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
 });
 
@@ -54,7 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.27", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.27 MaterialXModulo CRUD 2026-04-23" });
+   c.SwaggerDoc("v5.31", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.31 MaterialXModulo CRUD + cantidadconceptualizada 2026-04-23" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -121,6 +122,7 @@ builder.Services.AddScoped<ISucursalByMaterialProveedorService, SucursalByMateri
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IMaterialXModuloService, MaterialXModuloService>();
+builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -150,7 +152,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v5.27/swagger.json", "Microservicio Warehouse V5.27");
+        c.SwaggerEndpoint("/swagger/v5.31/swagger.json", "Microservicio Warehouse V5.31");
         c.RoutePrefix = "swagger";
     });
 }
@@ -175,6 +177,7 @@ try
         IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
                        WHERE TABLE_NAME='detailsreqoc' AND COLUMN_NAME='datepostpone')
             ALTER TABLE detailsreqoc ADD datepostpone DATE NULL;
+
     ");
 }
 catch (Exception ex)

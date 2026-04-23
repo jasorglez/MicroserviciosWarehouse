@@ -154,8 +154,9 @@ namespace Warehouse.Controllers
                 var cat = await _catalogService.GetTypeVigente(type, idCompany);
                 if (cat == null || !cat.Any())
                 {
-                    _logger.LogWarning("No found Catalog the result is empty");
-                    return NotFound(new { Message = "No Catalog Found or the result is empty", catalog = new List<object>() });
+                    // 200 + []: sin datos no es "recurso inexistente"; evita 404 en el front (HttpErrorResponse).
+                    _logger.LogWarning("Catálogo vigente vacío para idCompany={IdCompany} type={Type}", idCompany, type);
+                    return Ok(new List<object>());
                 }
                 return Ok(cat);
             }

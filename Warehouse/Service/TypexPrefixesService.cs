@@ -117,6 +117,99 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<string> GetNextRequisitionNumber(int idBranch)
+        {
+            try
+            {
+                // Obtener el prefijo configurado para esta sucursal
+                var prefixConfig = await _context.TypexPrefixes
+                    .FirstOrDefaultAsync(t => t.ReqType == "branch" && t.IdReqType == idBranch && t.Active);
+
+                if (prefixConfig == null)
+                {
+                    throw new InvalidOperationException($"No prefix configuration found for branch {idBranch}");
+                }
+
+                _logger.LogInformation($"DEBUG - Getting next number for branch {idBranch}, prefix: {prefixConfig.Prefix}");
+
+                // Obtener la última requisición de esta sucursal
+                var lastRequisition = await _context.Ocandreqs
+                    .Where(o => o.IdReference == idBranch && o.Type == "REQUIS")
+                    .OrderByDescending(o => o.Id)
+                    .FirstOrDefaultAsync();
+
+                var countReqs = await _context.Ocandreqs
+                    .Where(o => o.IdReference == idBranch && o.Type == "REQUIS")
+                    .CountAsync();
+
+                _logger.LogInformation($"DEBUG - Found {countReqs} REQUIS documents for branch {idBranch}");
+
+                int nextNumber = 1;
+
+                if (lastRequisition != null && !string.IsNullOrEmpty(lastRequisition.Folio))
+                {
+                    _logger.LogInformation($"DEBUG - Last requisition folio: {lastRequisition.Folio}");
+
+                    // Extraer el número del folio anterior
+                    int lastNumber = ExtractNumberFromFolio(lastRequisition.Folio);
+
+                    _logger.LogInformation($"DEBUG - Extracted number from folio: {lastNumber}");
+
+                    if (lastNumber > 0)
+                    {
+                        nextNumber = lastNumber + 1;
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation($"DEBUG - No last requisition found, starting from 1");
+                }
+
+                _logger.LogInformation($"DEBUG - Next number to be assigned: {nextNumber}");
+
+                // Actualizar el consecutivo en TypexPrefixes
+                prefixConfig.Consecutive = nextNumber;
+                await _context.SaveChangesAsync();
+
+                // Generar y retornar el número completo
+                return $"{prefixConfig.Prefix}-{nextNumber:D5}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating next requisition number for branch {IdBranch}.", idBranch);
+                throw;
+            }
+        }
+
+        private int ExtractNumberFromFolio(string folio)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(folio))
+                    return 0;
+
+                // Folio format: "BOD-00005" o "DELI-00001"
+                // Separar por guion y tomar la segunda parte
+                var parts = folio.Split('-');
+
+                if (parts.Length >= 2)
+                {
+                    var numberPart = parts[parts.Length - 1];  // Última parte (los números)
+
+                    if (int.TryParse(numberPart, out int number))
+                    {
+                        return number;
+                    }
+                }
+
+                return 0;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
     }
 
     public interface ITypexPrefixesService
@@ -126,5 +219,6 @@ namespace Warehouse.Service
         Task Save(TypexPrefixes typexPrefixes);
         Task<bool> Update(string reqType, int idReqType, TypexPrefixes typexPrefixes);
         Task<bool> Delete(string reqType, int idReqType);
+        Task<string> GetNextRequisitionNumber(int idBranch);
     }
 }
