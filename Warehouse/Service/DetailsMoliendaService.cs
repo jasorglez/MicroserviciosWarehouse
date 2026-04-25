@@ -105,7 +105,7 @@ public class DetailsMoliendaService : IDetailsMoliendaService
         }
     }
 
-    // Recalcula entradas y salidas en el registro maestro
+    // Recalcula conteos y totalInventarios en el registro maestro
     private async Task UpdateParentCountAsync(int idMolienda)
     {
         var parent = await _context.Molienda.FindAsync(idMolienda);
@@ -113,8 +113,19 @@ public class DetailsMoliendaService : IDetailsMoliendaService
 
         parent.Entradas = await _context.DetailsMolienda
             .CountAsync(d => d.IdMolienda == idMolienda && d.Type == "ENTRADA" && d.Active);
+
         parent.Salidas = await _context.DetailsMolienda
             .CountAsync(d => d.IdMolienda == idMolienda && d.Type == "SALIDA" && d.Active);
+
+        var sumEntradas = await _context.DetailsMolienda
+            .Where(d => d.IdMolienda == idMolienda && d.Type == "ENTRADA" && d.Active)
+            .SumAsync(d => (decimal?)d.Cantidad) ?? 0;
+
+        var sumSalidas = await _context.DetailsMolienda
+            .Where(d => d.IdMolienda == idMolienda && d.Type == "SALIDA" && d.Active)
+            .SumAsync(d => (decimal?)d.Cantidad) ?? 0;
+
+        parent.TotalInventarios = sumEntradas - sumSalidas;
         parent.DateModified = DateTime.Now;
 
         await _context.SaveChangesAsync();

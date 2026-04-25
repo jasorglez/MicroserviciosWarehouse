@@ -27,9 +27,17 @@ public class MoliendaService : IMoliendaService
                     m.IdCompany,
                     m.IdSucursal,
                     m.IdMaterial,
-                    m.Entradas,
-                    m.Salidas,
-                    m.TotalInventarios,
+                    Entradas = _context.DetailsMolienda
+                        .Count(d => d.IdMolienda == m.Id && d.Type == "ENTRADA" && d.Active),
+                    Salidas = _context.DetailsMolienda
+                        .Count(d => d.IdMolienda == m.Id && d.Type == "SALIDA" && d.Active),
+                    TotalInventarios =
+                        _context.DetailsMolienda
+                            .Where(d => d.IdMolienda == m.Id && d.Type == "ENTRADA" && d.Active)
+                            .Sum(d => (decimal?)d.Cantidad) -
+                        _context.DetailsMolienda
+                            .Where(d => d.IdMolienda == m.Id && d.Type == "SALIDA" && d.Active)
+                            .Sum(d => (decimal?)d.Cantidad),
                     m.AjustesInventarios,
                     m.Comentarios,
                     m.DateModified,
