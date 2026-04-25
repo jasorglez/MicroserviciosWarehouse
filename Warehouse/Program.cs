@@ -55,7 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.31", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.31 MaterialXModulo CRUD + cantidadconceptualizada 2026-04-23" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.32 Molienda + DetailsMolienda CRUD 2026-04-24" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -123,6 +123,8 @@ builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsP
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IMaterialXModuloService, MaterialXModuloService>();
 builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>();
+builder.Services.AddScoped<IMoliendaService, MoliendaService>();
+builder.Services.AddScoped<IDetailsMoliendaService, DetailsMoliendaService>();
 
 builder.Services.AddHttpContextAccessor();
 
