@@ -125,6 +125,8 @@ public class DetailsMoliendaService : IDetailsMoliendaService
             .Where(d => d.IdMolienda == idMolienda && d.Type == "SALIDA" && d.Active)
             .SumAsync(d => (decimal?)d.Cantidad) ?? 0;
 
+        parent.TotalEntradas    = sumEntradas;
+        parent.TotalSalidas     = sumSalidas;
         parent.TotalInventarios = (int)(sumEntradas - sumSalidas);
         parent.DateModified = DateTime.Now;
 

@@ -26,6 +26,12 @@ public class Molienda
     [Column("salidas")]
     public int Salidas { get; set; } = 0;
 
+    [Column("total_entradas")]
+    public decimal? TotalEntradas { get; set; } = 0;
+
+    [Column("total_salidas")]
+    public decimal? TotalSalidas { get; set; } = 0;
+
     [Column("total_inventarios")]
     public int? TotalInventarios { get; set; } = 0;
 

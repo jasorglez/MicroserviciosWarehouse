@@ -31,6 +31,12 @@ public class MoliendaService : IMoliendaService
                         .Count(d => d.IdMolienda == m.Id && d.Type == "ENTRADA" && d.Active),
                     Salidas = _context.DetailsMolienda
                         .Count(d => d.IdMolienda == m.Id && d.Type == "SALIDA" && d.Active),
+                    TotalEntradas = _context.DetailsMolienda
+                        .Where(d => d.IdMolienda == m.Id && d.Type == "ENTRADA" && d.Active)
+                        .Sum(d => (decimal?)d.Cantidad) ?? 0,
+                    TotalSalidas = _context.DetailsMolienda
+                        .Where(d => d.IdMolienda == m.Id && d.Type == "SALIDA" && d.Active)
+                        .Sum(d => (decimal?)d.Cantidad) ?? 0,
                     TotalInventarios = (int?)(
                         _context.DetailsMolienda
                             .Where(d => d.IdMolienda == m.Id && d.Type == "ENTRADA" && d.Active)
@@ -92,9 +98,6 @@ public class MoliendaService : IMoliendaService
 
             existing.IdSucursal          = molienda.IdSucursal;
             existing.IdMaterial          = molienda.IdMaterial;
-            existing.Entradas            = molienda.Entradas;
-            existing.Salidas             = molienda.Salidas;
-            existing.TotalInventarios    = molienda.TotalInventarios;
             existing.AjustesInventarios  = molienda.AjustesInventarios;
             existing.Comentarios         = molienda.Comentarios;
             existing.Active              = molienda.Active;
