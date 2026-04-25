@@ -27,7 +27,7 @@ public class Molienda
     public int Salidas { get; set; } = 0;
 
     [Column("total_inventarios")]
-    public decimal? TotalInventarios { get; set; } = 0;
+    public int? TotalInventarios { get; set; } = 0;
 
     [Column("ajustes_inventarios")]
     public decimal? AjustesInventarios { get; set; } = 0;
