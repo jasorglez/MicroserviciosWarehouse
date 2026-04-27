@@ -1,11 +1,14 @@
+name: warehouses-delison
+
 services:
   api:
+    image: warehouses-delison-api
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: Warehouse
+    container_name: Warehouse-delison
     ports:
-      - "5007:80"
+      - "6007:80"
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
       ASPNETCORE_URLS: "http://+:80"
