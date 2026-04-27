@@ -71,9 +71,10 @@ public class DetailsMoliendaService : IDetailsMoliendaService
             var existing = await _context.DetailsMolienda.FindAsync(id);
             if (existing == null) return null;
 
-            existing.Fecha    = detail.Fecha;
-            existing.Cantidad = detail.Cantidad;
-            existing.Type     = detail.Type.ToUpper();
+            existing.Fecha     = detail.Fecha;
+            existing.Cantidad  = detail.Cantidad;
+            existing.Type      = detail.Type.ToUpper();
+            existing.IdCatalog = detail.IdCatalog;
 
             await _context.SaveChangesAsync();
             return existing;

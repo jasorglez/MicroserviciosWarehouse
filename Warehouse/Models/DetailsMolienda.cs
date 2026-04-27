@@ -23,6 +23,9 @@ public class DetailsMolienda
     [Column("cantidad")]
     public decimal Cantidad { get; set; } = 0;
 
+    [Column("id_catalog")]
+    public int? IdCatalog { get; set; }
+
     [Column("active")]
     public bool Active { get; set; } = true;
 }
