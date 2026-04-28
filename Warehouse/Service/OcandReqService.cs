@@ -217,6 +217,7 @@ namespace Warehouse.Service
         {
             try
             {
+                ocandreq.DateModified = DateTime.Now;
                 _context.Ocandreqs.Add(ocandreq);
                 await _context.SaveChangesAsync();
             }

@@ -124,6 +124,18 @@ namespace Warehouse.Service
             return true;
         }
 
+        public async Task<bool> PatchCampo11(int campo1, int idTabla, string valor)
+        {
+            var proveedor = await _context.ProveedorXTablas
+                .FirstOrDefaultAsync(p => p.Campo1 == campo1 && p.IdTabla == idTabla);
+
+            if (proveedor == null) return false;
+
+            proveedor.Campo11 = valor;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
         public async Task<bool> DeactivateForMaterial(int campo1, int idTabla)
         {
             var proveedor = await _context.ProveedorXTablas
@@ -208,6 +220,7 @@ namespace Warehouse.Service
         Task<bool> Delete(int id);
         Task<bool> ToggleActive(int id);
         Task<bool> PatchCampo7(int campo1, int idTabla, bool valor);
+        Task<bool> PatchCampo11(int campo1, int idTabla, string valor);
         Task<bool> DeactivateForMaterial(int campo1, int idTabla);
     }
 
