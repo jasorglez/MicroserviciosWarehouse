@@ -124,6 +124,10 @@ namespace Warehouse.Models
         [DefaultValue(true)]
         public bool? Active { get; set; }
 
+        [Column("porAutorizar")]
+        [DefaultValue(false)]
+        public bool? PorAutorizar { get; set; }
+
         [Column("costo", TypeName = "DECIMAL(18,2)")]
         public decimal? Costo { get; set; }
     }
