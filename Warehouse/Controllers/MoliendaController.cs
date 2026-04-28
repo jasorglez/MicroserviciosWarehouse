@@ -20,11 +20,11 @@ public class MoliendaController : ControllerBase
     }
 
     [HttpGet("byCompany/{idCompany}")]
-    public async Task<ActionResult<List<MoliendaDelison>>> GetAll(int idCompany)
+    public async Task<ActionResult<List<MoliendaDelison>>> GetAll(int idCompany, [FromQuery] string? type = null)
     {
         try
         {
-            return Ok(await _service.GetByCompany(idCompany));
+            return Ok(await _service.GetByCompany(idCompany, type));
         }
         catch (Exception ex)
         {

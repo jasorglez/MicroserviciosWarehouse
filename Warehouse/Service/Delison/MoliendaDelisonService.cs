@@ -14,12 +14,15 @@ namespace Warehouse.Service.Delison
             _logger  = logger;
         }
 
-        public async Task<List<MoliendaDelison>> GetByCompany(int idCompany)
+        public async Task<List<MoliendaDelison>> GetByCompany(int idCompany, string? type = null)
         {
-            return await _context.MoliendaDelison
-                .Where(m => m.IdCompany == idCompany && m.Active)
-                .AsNoTracking()
-                .ToListAsync();
+            var query = _context.MoliendaDelison
+                .Where(m => m.IdCompany == idCompany && m.Active);
+
+            if (!string.IsNullOrEmpty(type))
+                query = query.Where(m => m.Type == type);
+
+            return await query.AsNoTracking().ToListAsync();
         }
 
         public async Task<MoliendaDelison?> GetById(int id)
@@ -72,7 +75,7 @@ namespace Warehouse.Service.Delison
 
     public interface IMoliendaDelisonService
     {
-        Task<List<MoliendaDelison>> GetByCompany(int idCompany);
+        Task<List<MoliendaDelison>> GetByCompany(int idCompany, string? type = null);
         Task<MoliendaDelison?> GetById(int id);
         Task<MoliendaDelison> Create(MoliendaDelison data);
         Task<MoliendaDelison?> Update(int id, MoliendaDelison data);
