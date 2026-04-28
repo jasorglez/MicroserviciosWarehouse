@@ -154,5 +154,29 @@ namespace Warehouse.Controllers
             var result = await _service.ToggleActive(id);
             return result ? NoContent() : NotFound();
         }
+
+        [HttpPatch("campo7/by-material-provider/{campo1:int}/{idTabla:int}")]
+        public async Task<ActionResult> PatchCampo7(int campo1, int idTabla, [FromBody] bool valor)
+        {
+            if (campo1 <= 0 || idTabla <= 0)
+            {
+                return BadRequest("Invalid campo1 or idTabla");
+            }
+
+            var result = await _service.PatchCampo7(campo1, idTabla, valor);
+            return result ? Ok(new { message = "Campo7 updated" }) : NotFound();
+        }
+
+        [HttpPatch("deactivate-for-material/{campo1:int}/{idTabla:int}")]
+        public async Task<ActionResult> DeactivateForMaterial(int campo1, int idTabla)
+        {
+            if (campo1 <= 0 || idTabla <= 0)
+            {
+                return BadRequest("Invalid campo1 or idTabla");
+            }
+
+            var result = await _service.DeactivateForMaterial(campo1, idTabla);
+            return result ? Ok(new { message = "Proveedor y sucursales desactivados" }) : NotFound();
+        }
     }
 }
