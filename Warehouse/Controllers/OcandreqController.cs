@@ -239,6 +239,36 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("oc-by-req-material")]
+        public async Task<IActionResult> GetOcsByReqMaterial([FromQuery] int idReq, [FromQuery] int idMaterial)
+        {
+            try
+            {
+                var result = await _service.GetOcsByReqMaterial(idReq, idMaterial);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for req {IdReq} material {IdMaterial}", idReq, idMaterial);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("reqs-by-branch-material")]
+        public async Task<IActionResult> GetReqsByBranchMaterial([FromQuery] int idBranch, [FromQuery] int idMaterial)
+        {
+            try
+            {
+                var result = await _service.GetReqsByBranchMaterial(idBranch, idMaterial);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reqs for branch {IdBranch} material {IdMaterial}", idBranch, idMaterial);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("{pedimentoId}/comparison")]
         public async Task<IActionResult> GetComparisonData(int pedimentoId)
         {

@@ -59,6 +59,8 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<PrefixSetup> PrefixSetups { get; set; }
     public virtual DbSet<MaterialXModulo> MaterialXModulos { get; set; }
     public virtual DbSet<AutorizacionMonto> AutorizacionMontos { get; set; }
+    public virtual DbSet<MoliendaDelison> MoliendaDelison { get; set; }
+    public virtual DbSet<DetailsMoliendaDelison> DetailsMoliendaDelison { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
