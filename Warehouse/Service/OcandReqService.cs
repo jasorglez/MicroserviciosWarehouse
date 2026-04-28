@@ -700,7 +700,7 @@ namespace Warehouse.Service
         Task<object> GetComparisonData(int pedimentoId);
         Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial);
         Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial);
-        Task<List<object>> GetOcsByRequisition(int idRequisition);
+        Task<List<object>> GetOcsByRequisition(int? idRequisition);
     }
 
     public class ReqTypeOcFlagDto
