@@ -615,10 +615,13 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<List<object>> GetOcsByRequisition(int idRequisition)
+        public async Task<List<object>> GetOcsByRequisition(int? idRequisition)
         {
             try
             {
+                if (!idRequisition.HasValue || idRequisition <= 0)
+                    return new List<object>();
+
                 var result = await _context.Ocandreqs
                     .Where(o =>
                         o.Active == true &&

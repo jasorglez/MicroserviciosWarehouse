@@ -270,7 +270,7 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet("ocs-by-requisition")]
-        public async Task<IActionResult> GetOcsByRequisition([FromQuery] int idRequisition)
+        public async Task<IActionResult> GetOcsByRequisition([FromQuery] int? idRequisition)
         {
             try
             {
