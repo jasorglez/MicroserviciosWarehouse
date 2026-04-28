@@ -66,7 +66,8 @@ namespace Warehouse.Service
                             dmc.Details.Autorizado,
                             dmc.Details.Active,
                             dmc.Details.TypeOc,
-                            dmc.Details.DatePostpone
+                            dmc.Details.DatePostpone,
+                            dmc.Details.Caducidad
                         })
                     .AsNoTracking()
                     .ToListAsync<object>();
