@@ -543,6 +543,44 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial)
+        {
+            try
+            {
+                var result = await (
+                    from o in _context.Ocandreqs
+                    join d in _context.Detailsreqoc on o.Id equals d.IdMovement
+                    where o.Active == true
+                       && o.TypeReference == "branch"
+                       && o.IdReference   == idBranch
+                       && o.Type          == "REQUIS"
+                       && d.IdSupplie     == idMaterial
+                       && d.Active        == true
+                    select new
+                    {
+                        o.Id,
+                        o.Folio,
+                        CantidadReq = d.Quantity,
+                        NumCantidadOc = _context.Ocandreqs
+                            .Count(oc => oc.Active == true
+                                      && oc.Type   == "OC"
+                                      && oc.IdReq  == o.Id
+                                      && _context.Detailsreqoc
+                                            .Any(dd => dd.IdMovement == oc.Id
+                                                    && dd.IdSupplie  == idMaterial
+                                                    && dd.Active     == true))
+                    }
+                ).Distinct().AsNoTracking().ToListAsync();
+
+                return result.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reqs by branch {IdBranch} and material {IdMaterial}", idBranch, idMaterial);
+                throw;
+            }
+        }
     }
 
     public interface IOcandreqService
@@ -559,6 +597,7 @@ namespace Warehouse.Service
         Task<Ocandreq?> SetTotal(int id, decimal total);
         Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds);
         Task<object> GetComparisonData(int pedimentoId);
+        Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial);
     }
 
     public class ReqTypeOcFlagDto

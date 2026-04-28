@@ -38,11 +38,14 @@ namespace Warehouse.Service.Delison
             var existing = await _context.DetailsMoliendaDelison.FindAsync(id);
             if (existing == null) return null;
 
-            existing.Type      = data.Type;
-            existing.Fecha     = data.Fecha;
-            existing.Cantidad  = data.Cantidad;
-            existing.IdCatalog = data.IdCatalog;
-            existing.Active    = data.Active;
+            existing.Type          = data.Type;
+            existing.IdRequisition = data.IdRequisition;
+            existing.CantidadReq   = data.CantidadReq;
+            existing.NumCantidadOc = data.NumCantidadOc;
+            existing.Fecha         = data.Fecha;
+            existing.Cantidad      = data.Cantidad;
+            existing.IdCatalog     = data.IdCatalog;
+            existing.Active        = data.Active;
 
             await _context.SaveChangesAsync();
             return existing;
