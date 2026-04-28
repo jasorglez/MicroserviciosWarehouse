@@ -552,11 +552,12 @@ namespace Warehouse.Service
                     from o in _context.Ocandreqs
                     join d in _context.Detailsreqoc on o.Id equals d.IdMovement
                     where o.Active == true
-                       && o.TypeReference == "branch"
-                       && o.IdReference   == idBranch
-                       && o.Type          == "REQUIS"
-                       && d.IdSupplie     == idMaterial
-                       && d.Active        == true
+                       && o.TypeReference  == "branch"
+                       && o.IdReference    == idBranch
+                       && o.Type           == "REQUIS"
+                       && o.IdDepartament  == 62   // EXTRACCION Y FERMENTACION
+                       && d.IdSupplie      == idMaterial
+                       && d.Active         == true
                     select new
                     {
                         o.Id,
@@ -581,6 +582,38 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial)
+        {
+            try
+            {
+                var result = await (
+                    from oc in _context.Ocandreqs
+                    join d in _context.Detailsreqoc on oc.Id equals d.IdMovement
+                    where oc.Active == true
+                       && oc.Type      == "OC"
+                       && oc.IdReq     == idReq
+                       && d.IdSupplie  == idMaterial
+                       && d.Active     == true
+                    select new
+                    {
+                        oc.Id,
+                        oc.Folio,
+                        Proveedor    = d.NameProvider ?? d.ProvInt ?? "",
+                        Cantidad     = d.Quantity,
+                        CondEspecial = oc.Conditions ?? "",
+                        Resta        = 0
+                    }
+                ).AsNoTracking().ToListAsync();
+
+                return result.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for req {IdReq} material {IdMaterial}", idReq, idMaterial);
+                throw;
+            }
+        }
     }
 
     public interface IOcandreqService
@@ -598,6 +631,7 @@ namespace Warehouse.Service
         Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds);
         Task<object> GetComparisonData(int pedimentoId);
         Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial);
+        Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial);
     }
 
     public class ReqTypeOcFlagDto
