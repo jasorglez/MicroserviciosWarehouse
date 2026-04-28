@@ -69,5 +69,8 @@ namespace Warehouse.Models.Views
         
         [Column("vigente")]
         public bool? Vigente { get; set; }
+
+        [Column("porAutorizar")]
+        public bool? PorAutorizar { get; set; }
     }
 }

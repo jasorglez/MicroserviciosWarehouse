@@ -190,9 +190,9 @@ namespace Warehouse.Controllers
                         return BadRequest("Material data is required");
                     }
 
-                    await _service.Save(material);
+                    var createdMaterial = await _service.Save(material);
 
-                    return CreatedAtAction(nameof(CreateMaterial), new { id = material.Id }, material);
+                    return CreatedAtAction(nameof(CreateMaterial), new { id = createdMaterial.Id }, createdMaterial);
                 }
                 catch (Exception ex)
                 {

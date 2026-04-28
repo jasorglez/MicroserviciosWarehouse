@@ -337,10 +337,12 @@ namespace Warehouse.Service
         }
 
 
-        public async Task Save(Material material)
+        public async Task<Material> Save(Material material)
         {
             try
             {
+                _logger.LogInformation("🔍 Save() recibió material con: IdCategory={IdCategory}, IdFamilia={IdFamilia}, IdSubfamilia={IdSubfamilia}, PorAutorizar={PorAutorizar}",
+                    material.IdCategory, material.IdFamilia, material.IdSubfamilia, material.PorAutorizar);
 
                var materials = await _context.Materials
                     .Where(m => m.Active == true &&
@@ -429,16 +431,22 @@ namespace Warehouse.Service
                     VentaDLL = material.VentaDLL,
                     StockMin = material.StockMin,
                     StockMax = material.StockMax,
-                    Picture = material.Picture,                    
+                    Picture = material.Picture,
                     TypeMaterial = material.TypeMaterial,
                     Merma = material.Merma,
                     Fecha = material.Date ?? DateTime.UtcNow,
                     Vigente = material.Vigente ?? true, // Valor por defecto si es null
-                    Active = material.Active ?? true // Valor por defecto si es null
+                    Active = material.Active ?? true, // Valor por defecto si es null
+                    PorAutorizar = material.PorAutorizar ?? false // Mapear porAutorizar
                 };
 
                 _context.Materials.Add(newMaterial);
                 await _context.SaveChangesAsync();
+
+                // ✅ Asegurar que el ID se actualiza después de SaveChangesAsync
+                _logger.LogInformation("✅ Material guardado en BD. ID generado: {Id}", newMaterial.Id);
+
+                return newMaterial;
             }
             catch (Exception ex)
             {
@@ -458,6 +466,8 @@ namespace Warehouse.Service
 
             try
             {
+                _logger.LogInformation("🔍 Update() Material {Id}: PorAutorizar recibido={PorAutorizar}", id, material.PorAutorizar);
+
                 // Solo actualizar campos que vienen con valor (partial update / merge)
                 // Esto permite ediciones parciales sin perder datos existentes
                 if (material.IdCompany.HasValue) existingItem.IdCompany = material.IdCompany;
@@ -486,6 +496,7 @@ namespace Warehouse.Service
                 if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
                 if (material.Vigente.HasValue) existingItem.Vigente = material.Vigente;
                 if (material.Active.HasValue) existingItem.Active = material.Active;
+                if (material.PorAutorizar.HasValue) existingItem.PorAutorizar = material.PorAutorizar;
 
                 await _context.SaveChangesAsync();
                 return existingItem;
@@ -609,7 +620,7 @@ namespace Warehouse.Service
         Task<List<object>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode);
         Task<List<MaterialsByProviderView>> GetMaterialsByProvider(int idProvider);
         Task<List<VwListProvidersForRawMaterial>> GetProvidersByMaterialAndType(int idMaterial, string? typeIntOrExt);
-        Task Save(Material material);
+        Task<Material> Save(Material material);
         Task<Material?> Update(int id, Material material);
         Task<bool> Delete(int id);
     }
