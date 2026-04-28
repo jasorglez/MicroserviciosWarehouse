@@ -99,5 +99,8 @@ namespace Warehouse.Models
 
         [Column("cantidadconceptualizada", TypeName = "decimal(16,2)")]
         public decimal? CantidadConceptualizada { get; set; }
+
+        [Column("caducidad", TypeName = "varchar(40)")]
+        public string? Caducidad { get; set; }
     }
 }

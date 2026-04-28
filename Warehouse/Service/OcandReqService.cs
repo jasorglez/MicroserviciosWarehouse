@@ -615,6 +615,74 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<object>> GetOcsByRequisition(int? idRequisition)
+        {
+            try
+            {
+                if (!idRequisition.HasValue || idRequisition <= 0)
+                    return new List<object>();
+
+                var result = await _context.Ocandreqs
+                    .Where(o =>
+                        o.Active == true &&
+                        o.Type == "OC" &&
+                        o.IdReq == idRequisition)
+                    .OrderByDescending(o => o.DateModified)
+                    .Select(o => new
+                    {
+                        o.Id,
+                        o.Folio,
+                        o.TypeReference,
+                        o.IdReference,
+                        o.IdReq,
+                        o.DateCreate,
+                        o.DateModified,
+                        o.IdDepartament,
+                        o.Delivery,
+                        o.DeliveryTime,
+                        o.TypeOc,
+                        o.DateSupply,
+                        o.IdPayment,
+                        o.IdCurrency,
+                        o.Conditions,
+                        o.IdAuthorize,
+                        o.IdSolicit,
+                        o.IdProvider,
+                        o.Solicit,
+                        o.Priority,
+                        o.Type,
+                        o.Pedimento,
+                        o.Comments,
+                        o.CompliancePedimento,
+                        o.ComplianceRequesicion,
+                        o.IvaRetention,
+                        o.Address,
+                        o.City,
+                        o.Phone,
+                        o.Discount,
+                        o.Close,
+                        o.CountItem,
+                        o.Locked,
+                        o.Active,
+                        o.AuthorizeName,
+                        o.AuthorizationStatus,
+                        o.RejectionReason,
+                        o.AuthorizedAt,
+                        countrow = _context.Detailsreqoc
+                            .Count(d => d.IdMovement == o.Id && d.Active == true)
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return result.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for requisition {IdRequisition}", idRequisition);
+                throw;
+            }
+        }
     }
 
     public interface IOcandreqService
@@ -633,6 +701,7 @@ namespace Warehouse.Service
         Task<object> GetComparisonData(int pedimentoId);
         Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial);
         Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial);
+        Task<List<object>> GetOcsByRequisition(int? idRequisition);
     }
 
     public class ReqTypeOcFlagDto

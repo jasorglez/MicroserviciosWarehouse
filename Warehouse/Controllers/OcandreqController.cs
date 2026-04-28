@@ -269,6 +269,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("ocs-by-requisition")]
+        public async Task<IActionResult> GetOcsByRequisition([FromQuery] int? idRequisition)
+        {
+            try
+            {
+                var result = await _service.GetOcsByRequisition(idRequisition);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for requisition {IdRequisition}", idRequisition);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("{pedimentoId}/comparison")]
         public async Task<IActionResult> GetComparisonData(int pedimentoId)
         {
