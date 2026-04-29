@@ -333,14 +333,7 @@ namespace Warehouse.Service
                         s.Insumo,
                         s.Description,
                         s.Active,
-                        /*    PricePresentations = s.PricesWithMaterial.Select(s => new
-                            {
-                                s.Id,
-                                s.IdCatalogs,
-                                s.Description,
-                                s.Price,
-                                s.Active
-                            }).ToList()*/
+                        price = (decimal)(s.SellingPrice ?? 0),
                     }).OrderBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
