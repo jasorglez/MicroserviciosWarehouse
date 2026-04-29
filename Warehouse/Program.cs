@@ -55,7 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.21", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.21 Mod. 2026-03-10 11:44 " });
+   c.SwaggerDoc("v5.21", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.22 Programa de Lealtad 2026-04-28" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -120,6 +120,8 @@ builder.Services.AddScoped<ISucursalByMaterialProveedorService, SucursalByMateri
 
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
+builder.Services.AddScoped<ILoyaltyProgramService, LoyaltyProgramService>();
+builder.Services.AddScoped<ICustomerLoyaltyCardService, CustomerLoyaltyCardService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -149,7 +151,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v5.21/swagger.json", "Microservicio Warehouse V5.21");
+        c.SwaggerEndpoint("/swagger/v5.21/swagger.json", "Microservicio Warehouse V5.22");
         c.RoutePrefix = "swagger";
     });
 }
@@ -160,6 +162,47 @@ app.UseCors("AllowWarehouseOrigin");
 
 //app.UseAuthorization();
 app.UseAuthorization();
+
+// ── Migración automática: tablas de Programa de Lealtad ──────────────────────
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES
+                       WHERE TABLE_NAME='loyalty_programs')
+        BEGIN
+            CREATE TABLE loyalty_programs (
+                id                  INT IDENTITY(1,1) PRIMARY KEY,
+                id_company          INT NOT NULL,
+                name                VARCHAR(100) NOT NULL,
+                id_product          INT NULL,
+                stamps_required     INT NOT NULL DEFAULT 5,
+                reward_description  VARCHAR(200) NOT NULL DEFAULT '',
+                active              BIT NOT NULL DEFAULT 1,
+                created_at          DATETIME NOT NULL DEFAULT GETDATE()
+            );
+        END
+
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.TABLES
+                       WHERE TABLE_NAME='customer_loyalty_cards')
+        BEGIN
+            CREATE TABLE customer_loyalty_cards (
+                id                  INT IDENTITY(1,1) PRIMARY KEY,
+                id_loyalty_program  INT NOT NULL,
+                id_customer         INT NOT NULL,
+                current_stamps      INT NOT NULL DEFAULT 0,
+                total_rewards_earned INT NOT NULL DEFAULT 0,
+                last_stamp_date     DATETIME NULL
+            );
+        END
+    ");
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Auto-migration loyalty tables falló — corre el CREATE TABLE manualmente.");
+}
 
 app.MapControllers();
 

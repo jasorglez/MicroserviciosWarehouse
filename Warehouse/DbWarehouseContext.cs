@@ -54,6 +54,8 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<TypexPrefixes> TypexPrefixes { get; set; }
     public virtual DbSet<VwListProvidersForRawMaterial> VwListProvidersForRawMaterials { get; set; }
     public virtual DbSet<PrefixSetup> PrefixSetups { get; set; }
+    public virtual DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
+    public virtual DbSet<CustomerLoyaltyCard> CustomerLoyaltyCards { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
