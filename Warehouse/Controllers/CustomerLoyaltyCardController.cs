@@ -81,6 +81,7 @@ namespace Warehouse.Controllers
             }
         }
 
+        [AllowAnonymous]
         [HttpPost("addStamp")]
         public async Task<ActionResult<StampResult>> AddStamp(
             [FromQuery] int idCustomer, [FromQuery] int idLoyaltyProgram)

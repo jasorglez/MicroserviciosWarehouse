@@ -19,6 +19,23 @@ namespace Warehouse.Controllers
             _logger  = logger;
         }
 
+        [AllowAnonymous]
+        [HttpGet("byProduct")]
+        public async Task<ActionResult<LoyaltyProgram>> GetByProduct([FromQuery] int idCompany, [FromQuery] int idProduct)
+        {
+            try
+            {
+                var program = await _service.GetByProductAsync(idCompany, idProduct);
+                if (program == null) return NotFound();
+                return Ok(program);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting loyalty program for product {IdProduct}", idProduct);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("{idCompany}")]
         public async Task<ActionResult<List<LoyaltyProgram>>> GetAll(int idCompany)
         {
