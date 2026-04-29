@@ -56,6 +56,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<PrefixSetup> PrefixSetups { get; set; }
     public virtual DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
     public virtual DbSet<CustomerLoyaltyCard> CustomerLoyaltyCards { get; set; }
+    public virtual DbSet<LoyaltyProgramProduct> LoyaltyProgramProducts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 

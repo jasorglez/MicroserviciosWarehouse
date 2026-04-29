@@ -7,7 +7,7 @@ namespace Warehouse.Service
     {
         Task<List<LoyaltyProgram>> GetAllAsync(int idCompany);
         Task<LoyaltyProgram?> GetByIdAsync(int id);
-        Task<LoyaltyProgram?> GetByProductAsync(int idCompany, int idProduct);
+        Task<List<LoyaltyProgram>> GetByProductAsync(int idCompany, int idProduct);
         Task<LoyaltyProgram> CreateAsync(LoyaltyProgram program);
         Task<LoyaltyProgram?> UpdateAsync(int id, LoyaltyProgram program);
         Task<bool> DeleteAsync(int id);
@@ -34,9 +34,18 @@ namespace Warehouse.Service
         public async Task<LoyaltyProgram?> GetByIdAsync(int id)
             => await _context.LoyaltyPrograms.FindAsync(id);
 
-        public async Task<LoyaltyProgram?> GetByProductAsync(int idCompany, int idProduct)
-            => await _context.LoyaltyPrograms
-                .FirstOrDefaultAsync(p => p.IdCompany == idCompany && p.IdProduct == idProduct && p.Active);
+        public async Task<List<LoyaltyProgram>> GetByProductAsync(int idCompany, int idProduct)
+        {
+            return await _context.LoyaltyProgramProducts
+                .Where(lpp => lpp.IdProduct == idProduct)
+                .Join(_context.LoyaltyPrograms,
+                    lpp => lpp.IdLoyaltyProgram,
+                    lp => lp.Id,
+                    (lpp, lp) => lp)
+                .Where(lp => lp.IdCompany == idCompany && lp.Active)
+                .AsNoTracking()
+                .ToListAsync();
+        }
 
         public async Task<LoyaltyProgram> CreateAsync(LoyaltyProgram program)
         {

@@ -122,6 +122,7 @@ builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsP
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<ILoyaltyProgramService, LoyaltyProgramService>();
 builder.Services.AddScoped<ICustomerLoyaltyCardService, CustomerLoyaltyCardService>();
+builder.Services.AddScoped<ILoyaltyProgramProductService, LoyaltyProgramProductService>();
 
 builder.Services.AddHttpContextAccessor();
 

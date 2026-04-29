@@ -21,17 +21,16 @@ namespace Warehouse.Controllers
 
         [AllowAnonymous]
         [HttpGet("byProduct")]
-        public async Task<ActionResult<LoyaltyProgram>> GetByProduct([FromQuery] int idCompany, [FromQuery] int idProduct)
+        public async Task<ActionResult<List<LoyaltyProgram>>> GetByProduct([FromQuery] int idCompany, [FromQuery] int idProduct)
         {
             try
             {
-                var program = await _service.GetByProductAsync(idCompany, idProduct);
-                if (program == null) return NotFound();
-                return Ok(program);
+                var programs = await _service.GetByProductAsync(idCompany, idProduct);
+                return Ok(programs);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting loyalty program for product {IdProduct}", idProduct);
+                _logger.LogError(ex, "Error getting loyalty programs for product {IdProduct}", idProduct);
                 return StatusCode(500, "Internal server error");
             }
         }
