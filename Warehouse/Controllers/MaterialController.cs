@@ -168,6 +168,7 @@ namespace Warehouse.Controllers
         }
 
 
+        [AllowAnonymous]
         [HttpGet("byNameOrBarcode")]
         public async Task<ActionResult<List<object>>> GetSuppliesByNameOrBarCode(int idCompany, string nameOrBarCode)
         {
