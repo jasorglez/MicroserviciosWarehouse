@@ -69,7 +69,8 @@ namespace Warehouse.Service
                             active = dmc.Details.Active,
                             typeoc = dmc.Details.TypeOc,
                             datepostpone = dmc.Details.DatePostpone,
-                            caducidad = dmc.Details.Caducidad
+                            caducidad = dmc.Details.Caducidad,
+                            compraRapida = dmc.Details.CompraRapida
                         })
                     .AsNoTracking()
                     .ToListAsync<object>();
