@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json.Serialization;
 using Warehouse.Service;
 
 namespace Warehouse.Controllers
@@ -68,7 +69,10 @@ namespace Warehouse.Controllers
 
     public class AddProductRequest
     {
+        [JsonPropertyName("idLoyaltyProgram")]
         public int IdLoyaltyProgram { get; set; }
+
+        [JsonPropertyName("idProduct")]
         public int IdProduct { get; set; }
     }
 }
