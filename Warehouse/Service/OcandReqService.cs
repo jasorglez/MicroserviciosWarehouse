@@ -534,6 +534,7 @@ namespace Warehouse.Service
                 return new
                 {
                     pedimentoId = pedimentoId,
+                    locked = pedimento.Locked == true,
                     proveedores = proveedores,
                     articulos = articulos
                 };
