@@ -1,4 +1,4 @@
-﻿
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -48,13 +48,13 @@ namespace Warehouse.Models
 
         [Column("numarticle", TypeName = "varchar(20)")]
         public string? NumArticle { get; set; } = "numarticle";
-        
+
         [Column("description_new_article")]
         public string? DescriptionNewArticle { get; set; }
-        
+
         [Column("url_new_article")]
         public string? UrlNewArticle { get; set; }
-        
+
         [Column("justification_new_article")]
         public string? JustificationNewArticle { get; set; }
 
@@ -102,5 +102,8 @@ namespace Warehouse.Models
 
         [Column("caducidad", TypeName = "varchar(40)")]
         public string? Caducidad { get; set; }
+
+        [Column("comprarapida")]
+        public bool? CompraRapida { get; set; } = false;
     }
 }
