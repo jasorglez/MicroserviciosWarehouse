@@ -25,11 +25,11 @@ builder.Services.AddCors(options =>
                              "http://localhost:5173",
                              "https://be-app-five.vercel.app", "http://localhost:8100",
                              "https://localhost:7089", "https://biapp.com.mx", 
-                             "https://localhost:4200", "https://www.bi2.com.mx",
-                             "https://smp-git-main-jasorglezs-projects.vercel.app",
+                             "https://localhost:4200", "https://www.bi2.com.mx",                 
                              "https://smp-beta.vercel.app",
                              "https://bi2.com.mx",
                              "https://pruebas.bi2.mx",
+                              "https://delison-pruebas.bi2.mx",
                              "https://clinica-pruebas.bi2.mx",
                              "https://www.hco-siaf.com") 
                 .AllowAnyMethod()
