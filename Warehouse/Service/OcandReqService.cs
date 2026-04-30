@@ -728,6 +728,95 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<List<object>> GetOcsByPedimento(int idPedimento)
+        {
+            try
+            {
+                if (idPedimento <= 0) return new List<object>();
+
+                // Obtener el pedimento para saber su requisición padre (idReq)
+                var pedimento = await _context.Ocandreqs
+                    .AsNoTracking()
+                    .Where(p => p.Id == idPedimento && p.Active == true)
+                    .FirstOrDefaultAsync();
+
+                if (pedimento == null) return new List<object>();
+
+                // Obtener los proveedores asociados al pedimento via sus sub-cotizaciones
+                var providerIds = await _context.Ocandreqs
+                    .AsNoTracking()
+                    .Where(c => c.Type == "COTIZ"
+                             && c.TypeReference == "delison"
+                             && c.IdReference == idPedimento
+                             && c.Active == true)
+                    .Select(c => c.IdProvider)
+                    .Where(id => id > 0)
+                    .ToListAsync();
+
+                if (!providerIds.Any()) return new List<object>();
+
+                // OCs de la requisición padre que tengan alguno de esos proveedores
+                var result = await _context.Ocandreqs
+                    .Where(o => o.Type == "OC"
+                             && o.IdReq == pedimento.IdReq
+                             && providerIds.Contains(o.IdProvider)
+                             && o.Active == true)
+                    .OrderByDescending(o => o.DateModified)
+                    .Select(o => new
+                    {
+                        o.Id,
+                        o.Folio,
+                        o.TypeReference,
+                        o.IdReference,
+                        o.IdReq,
+                        o.DateCreate,
+                        o.DateModified,
+                        o.IdDepartament,
+                        o.Delivery,
+                        o.DeliveryTime,
+                        o.TypeOc,
+                        o.DateSupply,
+                        o.IdPayment,
+                        o.IdCurrency,
+                        o.Conditions,
+                        o.IdAuthorize,
+                        o.IdSolicit,
+                        o.IdProvider,
+                        o.Solicit,
+                        o.Priority,
+                        o.Type,
+                        o.Pedimento,
+                        o.Comments,
+                        o.CompliancePedimento,
+                        o.ComplianceRequesicion,
+                        o.IvaRetention,
+                        o.Address,
+                        o.City,
+                        o.Phone,
+                        o.Discount,
+                        o.Close,
+                        o.CountItem,
+                        o.Locked,
+                        o.Active,
+                        o.AuthorizeName,
+                        o.AuthorizationStatus,
+                        o.RejectionReason,
+                        o.AuthorizedAt,
+                        countrow = _context.Detailsreqoc
+                            .Count(d => d.IdMovement == o.Id && d.Active == true)
+                    })
+                    .AsNoTracking()
+                    .ToListAsync();
+
+                return result.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for pedimento {IdPedimento}", idPedimento);
+                throw;
+            }
+        }
     }
 
     public interface IOcandreqService
@@ -747,6 +836,7 @@ namespace Warehouse.Service
         Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial, string? depts = null);
         Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial, string? depts = null);
         Task<List<object>> GetOcsByRequisition(int? idRequisition);
+        Task<List<object>> GetOcsByPedimento(int idPedimento);
     }
 
     public class ReqTypeOcFlagDto
