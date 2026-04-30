@@ -69,7 +69,8 @@ namespace Warehouse.Service
                             active = dmc.Details.Active,
                             typeoc = dmc.Details.TypeOc,
                             datepostpone = dmc.Details.DatePostpone,
-                            caducidad = dmc.Details.Caducidad
+                            caducidad = dmc.Details.Caducidad,
+                            compraRapida = dmc.Details.CompraRapida
                         })
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -108,7 +109,7 @@ namespace Warehouse.Service
             return result;
         }
 
-        public async Task Save(Detailsreqoc detail)
+        public async Task<Detailsreqoc?> Save(Detailsreqoc detail)
         {
             try
             {
@@ -117,6 +118,8 @@ namespace Warehouse.Service
 
                 // ✅ Actualizar DateModified de la requisición padre
                 await UpdateParentRequisitionModified(detail.IdMovement);
+
+                return detail;
             }
             catch (Exception ex)
             {
@@ -333,7 +336,7 @@ namespace Warehouse.Service
     {
         Task<List<object>> GetDetails(int idMovement);
         Task<List<PurchaseOrderDetail>> GetPurchaseOrderDetailsQuery(int idProv);
-        Task Save(Detailsreqoc detail);
+        Task<Detailsreqoc?> Save(Detailsreqoc detail);
         Task SaveBulk(List<Detailsreqoc> details);
         Task<Detailsreqoc?> Update(int id, Detailsreqoc detail);
         Task<bool> Delete(int id);
