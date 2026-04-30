@@ -240,11 +240,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet("oc-by-req-material")]
-        public async Task<IActionResult> GetOcsByReqMaterial([FromQuery] int idReq, [FromQuery] int idMaterial)
+        public async Task<IActionResult> GetOcsByReqMaterial([FromQuery] int idReq, [FromQuery] int idMaterial, [FromQuery] string? depts = null)
         {
             try
             {
-                var result = await _service.GetOcsByReqMaterial(idReq, idMaterial);
+                var result = await _service.GetOcsByReqMaterial(idReq, idMaterial, depts);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -255,11 +255,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet("reqs-by-branch-material")]
-        public async Task<IActionResult> GetReqsByBranchMaterial([FromQuery] int idBranch, [FromQuery] int idMaterial)
+        public async Task<IActionResult> GetReqsByBranchMaterial([FromQuery] int idBranch, [FromQuery] int idMaterial, [FromQuery] string? depts = null)
         {
             try
             {
-                var result = await _service.GetReqsByBranchMaterial(idBranch, idMaterial);
+                var result = await _service.GetReqsByBranchMaterial(idBranch, idMaterial, depts);
                 return Ok(result);
             }
             catch (Exception ex)

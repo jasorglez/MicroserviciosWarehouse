@@ -22,14 +22,49 @@ namespace Warehouse.Service.Delison
             if (!string.IsNullOrEmpty(type))
                 query = query.Where(m => m.Type == type);
 
-            return await query.AsNoTracking().ToListAsync();
+            var items = await query.AsNoTracking().ToListAsync();
+
+            var ids = items.Select(m => m.Id).ToList();
+            if (ids.Count == 0) return items;
+
+            var entradaCounts = await _context.DetailsMoliendaDelison
+                .Where(d => ids.Contains(d.IdMolienda) && d.Type == "ENTRADA" && d.Active)
+                .GroupBy(d => d.IdMolienda)
+                .Select(g => new { IdMolienda = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var salidaCounts = await _context.DetailsMoliendaDelison
+                .Where(d => ids.Contains(d.IdMolienda) && d.Type == "SALIDA" && d.Active)
+                .GroupBy(d => d.IdMolienda)
+                .Select(g => new { IdMolienda = g.Key, Count = g.Count() })
+                .ToListAsync();
+
+            var entradaMap = entradaCounts.ToDictionary(x => x.IdMolienda, x => x.Count);
+            var salidaMap  = salidaCounts.ToDictionary(x => x.IdMolienda, x => x.Count);
+
+            foreach (var item in items)
+            {
+                item.Entradas = entradaMap.TryGetValue(item.Id, out var e) ? e : 0;
+                item.Salidas  = salidaMap.TryGetValue(item.Id, out var s)  ? s : 0;
+            }
+
+            return items;
         }
 
         public async Task<MoliendaDelison?> GetById(int id)
         {
-            return await _context.MoliendaDelison
+            var item = await _context.MoliendaDelison
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id);
+
+            if (item == null) return null;
+
+            item.Entradas = await _context.DetailsMoliendaDelison
+                .CountAsync(d => d.IdMolienda == id && d.Type == "ENTRADA" && d.Active);
+            item.Salidas = await _context.DetailsMoliendaDelison
+                .CountAsync(d => d.IdMolienda == id && d.Type == "SALIDA" && d.Active);
+
+            return item;
         }
 
         public async Task<MoliendaDelison> Create(MoliendaDelison data)

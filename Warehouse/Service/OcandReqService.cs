@@ -545,10 +545,23 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial)
+        public async Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial, string? depts = null)
         {
             try
             {
+                var departmentList = new List<int>();
+                if (!string.IsNullOrEmpty(depts))
+                {
+                    departmentList = depts.Split(',')
+                        .Select(d => int.TryParse(d.Trim(), out var result) ? result : 0)
+                        .Where(d => d > 0)
+                        .ToList();
+                }
+                else
+                {
+                    departmentList.Add(62);
+                }
+
                 var result = await (
                     from o in _context.Ocandreqs
                     join d in _context.Detailsreqoc on o.Id equals d.IdMovement
@@ -556,7 +569,7 @@ namespace Warehouse.Service
                        && o.TypeReference  == "branch"
                        && o.IdReference    == idBranch
                        && o.Type           == "REQUIS"
-                       && o.IdDepartament  == 62   // EXTRACCION Y FERMENTACION
+                       && departmentList.Contains(o.IdDepartament)
                        && d.IdSupplie      == idMaterial
                        && d.Active         == true
                     select new
@@ -579,21 +592,35 @@ namespace Warehouse.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting reqs by branch {IdBranch} and material {IdMaterial}", idBranch, idMaterial);
+                _logger.LogError(ex, "Error getting reqs by branch {IdBranch} and material {IdMaterial} depts {Depts}", idBranch, idMaterial, depts);
                 throw;
             }
         }
 
-        public async Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial)
+        public async Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial, string? depts = null)
         {
             try
             {
+                var departmentList = new List<int>();
+                if (!string.IsNullOrEmpty(depts))
+                {
+                    departmentList = depts.Split(',')
+                        .Select(d => int.TryParse(d.Trim(), out var result) ? result : 0)
+                        .Where(d => d > 0)
+                        .ToList();
+                }
+                else
+                {
+                    departmentList.Add(62);
+                }
+
                 var result = await (
                     from oc in _context.Ocandreqs
                     join d in _context.Detailsreqoc on oc.Id equals d.IdMovement
                     where oc.Active == true
                        && oc.Type      == "OC"
                        && oc.IdReq     == idReq
+                       && departmentList.Contains(oc.IdDepartament)
                        && d.IdSupplie  == idMaterial
                        && d.Active     == true
                     select new
@@ -611,7 +638,7 @@ namespace Warehouse.Service
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting OCs for req {IdReq} material {IdMaterial}", idReq, idMaterial);
+                _logger.LogError(ex, "Error getting OCs for req {IdReq} material {IdMaterial} depts {Depts}", idReq, idMaterial, depts);
                 throw;
             }
         }
@@ -699,8 +726,8 @@ namespace Warehouse.Service
         Task<Ocandreq?> SetTotal(int id, decimal total);
         Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds);
         Task<object> GetComparisonData(int pedimentoId);
-        Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial);
-        Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial);
+        Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial, string? depts = null);
+        Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial, string? depts = null);
         Task<List<object>> GetOcsByRequisition(int? idRequisition);
     }
 
