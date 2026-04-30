@@ -563,33 +563,50 @@ namespace Warehouse.Service
                     departmentList.Add(62);
                 }
 
-                var result = await (
+                // Query 1: obtener las requisiciones que aplican
+                var reqs = await (
                     from o in _context.Ocandreqs
                     join d in _context.Detailsreqoc on o.Id equals d.IdMovement
                     where o.Active == true
-                       && o.TypeReference  == "branch"
-                       && o.IdReference    == idBranch
-                       && o.Type           == "REQUIS"
+                       && o.TypeReference == "branch"
+                       && o.IdReference   == idBranch
+                       && o.Type          == "REQUIS"
                        && departmentList.Contains(o.IdDepartament)
-                       && d.IdSupplie      == idMaterial
-                       && d.Active         == true
-                    select new
-                    {
-                        o.Id,
-                        o.Folio,
-                        CantidadReq = d.Quantity,
-                        NumCantidadOc = _context.Ocandreqs
-                            .Count(oc => oc.Active == true
-                                      && oc.Type   == "OC"
-                                      && oc.IdReq  == o.Id
-                                      && _context.Detailsreqoc
-                                            .Any(dd => dd.IdMovement == oc.Id
-                                                    && dd.IdSupplie  == idMaterial
-                                                    && dd.Active     == true))
-                    }
+                       && d.IdSupplie     == idMaterial
+                       && d.Active        == true
+                    select new { o.Id, o.Folio, CantidadReq = d.Quantity }
                 ).Distinct().AsNoTracking().ToListAsync();
 
-                return result.Cast<object>().ToList();
+                if (!reqs.Any())
+                    return new List<object>();
+
+                var reqIds = reqs.Select(r => r.Id).ToList();
+
+                // Query 2: contar OCs por requisición en una sola pasada (sin subquery por fila)
+                var ocCounts = await (
+                    from oc in _context.Ocandreqs
+                    join d in _context.Detailsreqoc on oc.Id equals d.IdMovement
+                    where oc.Active == true
+                       && oc.Type   == "OC"
+                       && oc.IdReq  != null
+                       && reqIds.Contains(oc.IdReq.Value)
+                       && d.IdSupplie == idMaterial
+                       && d.Active    == true
+                    group oc by oc.IdReq into g
+                    select new { IdReq = g.Key, Count = g.Count() }
+                ).AsNoTracking().ToListAsync();
+
+                var ocCountMap = ocCounts.ToDictionary(x => x.IdReq, x => x.Count);
+
+                var result = reqs.Select(r => (object)new
+                {
+                    r.Id,
+                    r.Folio,
+                    r.CantidadReq,
+                    NumCantidadOc = ocCountMap.TryGetValue(r.Id, out var cnt) ? cnt : 0
+                }).ToList();
+
+                return result;
             }
             catch (Exception ex)
             {
