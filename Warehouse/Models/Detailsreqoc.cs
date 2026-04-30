@@ -47,7 +47,7 @@ namespace Warehouse.Models
         public string? NameArticle { get; set; }
 
         [Column("numarticle", TypeName = "varchar(20)")]
-        public string? NumArticle { get; set; } = "numarticle";
+        public string? NumArticle { get; set; }
 
         [Column("description_new_article")]
         public string? DescriptionNewArticle { get; set; }
