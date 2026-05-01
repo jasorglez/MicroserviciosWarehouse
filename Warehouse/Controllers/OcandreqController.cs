@@ -284,6 +284,36 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("ocs-details-by-requisition")]
+        public async Task<IActionResult> GetOcsDetailsForRequisition([FromQuery] int? idRequisition)
+        {
+            try
+            {
+                var result = await _service.GetOcsDetailsForRequisition(idRequisition);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OC details for requisition {IdRequisition}", idRequisition);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("ocs-by-branch")]
+        public async Task<IActionResult> GetOcsByBranch([FromQuery] int idBranch)
+        {
+            try
+            {
+                var result = await _service.GetOcsByBranch(idBranch);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for branch {IdBranch}", idBranch);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("ocs-by-pedimento")]
         public async Task<IActionResult> GetOcsByPedimento([FromQuery] int idPedimento)
         {

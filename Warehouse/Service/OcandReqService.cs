@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using Warehouse.Models;
 using Warehouse.Models.DTOs;
@@ -582,19 +582,16 @@ namespace Warehouse.Service
 
                 var reqIds = reqs.Select(r => r.Id).ToList();
 
-                // Query 2: contar OCs por requisición en una sola pasada (sin subquery por fila)
-                var ocCounts = await (
-                    from oc in _context.Ocandreqs
-                    join d in _context.Detailsreqoc on oc.Id equals d.IdMovement
-                    where oc.Active == true
-                       && oc.Type   == "OC"
-                       && oc.IdReq  != null
-                       && reqIds.Contains(oc.IdReq.Value)
-                       && d.IdSupplie == idMaterial
-                       && d.Active    == true
-                    group oc by oc.IdReq into g
-                    select new { IdReq = g.Key, Count = g.Count() }
-                ).AsNoTracking().ToListAsync();
+                // Query 2: contar OCs por requisición — groupBy int (no nullable) evita mismatch en Dictionary
+                var ocCounts = await _context.Ocandreqs
+                    .Where(oc => oc.Active == true
+                               && oc.Type == "OC"
+                               && oc.IdReq.HasValue
+                               && reqIds.Contains(oc.IdReq!.Value))
+                    .GroupBy(oc => oc.IdReq!.Value)
+                    .Select(g => new { IdReq = g.Key, Count = g.Count() })
+                    .AsNoTracking()
+                    .ToListAsync();
 
                 var ocCountMap = ocCounts.ToDictionary(x => x.IdReq, x => x.Count);
 
@@ -638,7 +635,6 @@ namespace Warehouse.Service
                     where oc.Active == true
                        && oc.Type      == "OC"
                        && oc.IdReq     == idReq
-                       && departmentList.Contains(oc.IdDepartament)
                        && d.IdSupplie  == idMaterial
                        && d.Active     == true
                     select new
@@ -725,6 +721,89 @@ namespace Warehouse.Service
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting OCs for requisition {IdRequisition}", idRequisition);
+                throw;
+            }
+        }
+
+        public async Task<List<object>> GetOcsDetailsForRequisition(int? idRequisition)
+        {
+            try
+            {
+                if (!idRequisition.HasValue || idRequisition <= 0)
+                    return new List<object>();
+
+                var result = await (
+                    from oc in _context.Ocandreqs
+                    join d in _context.Detailsreqoc on oc.Id equals d.IdMovement
+                    where oc.Active == true
+                       && oc.Type == "OC"
+                       && oc.IdReq == idRequisition
+                       && d.Active == true
+                    select new
+                    {
+                        oc.Id,
+                        oc.Folio,
+                        Proveedor = d.NameProvider ?? d.ProvInt ?? "",
+                        Cantidad = d.Quantity,
+                        CondEspecial = oc.Conditions ?? "",
+                        Resta = 0
+                    }
+                ).OrderByDescending(x => x.Id)
+                 .AsNoTracking()
+                 .ToListAsync();
+
+                return result.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OC details for requisition {IdRequisition}", idRequisition);
+                throw;
+            }
+        }
+
+        public async Task<List<object>> GetOcsByBranch(int idBranch)
+        {
+            try
+            {
+                if (idBranch <= 0) return new List<object>();
+
+                // Obtener OCs que estén bajo requisiciones de esa sucursal
+                var result = await (
+                    from oc in _context.Ocandreqs
+                    join req in _context.Ocandreqs on oc.IdReq equals req.Id
+                    where oc.Active == true
+                       && oc.Type == "OC"
+                       && req.Active == true
+                       && req.Type == "REQUIS"
+                       && req.TypeReference == "branch"
+                       && req.IdReference == idBranch
+                    orderby oc.DateModified descending
+                    select new
+                    {
+                        oc.Id,
+                        oc.Folio,
+                        oc.IdReq,
+                        ReqFolio = req.Folio,
+                        oc.IdProvider,
+                        oc.Solicit,
+                        oc.DateCreate,
+                        oc.DateModified,
+                        oc.Active,
+                        oc.TypeOc,
+                        oc.Conditions,
+                        oc.Priority,
+                        oc.Delivery,
+                        oc.DeliveryTime,
+                        CountItems = _context.Detailsreqoc
+                            .Count(d => d.IdMovement == oc.Id && d.Active == true)
+                    }
+                ).AsNoTracking().ToListAsync();
+
+                return result.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for branch {IdBranch}", idBranch);
                 throw;
             }
         }
@@ -836,6 +915,8 @@ namespace Warehouse.Service
         Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial, string? depts = null);
         Task<List<object>> GetOcsByReqMaterial(int idReq, int idMaterial, string? depts = null);
         Task<List<object>> GetOcsByRequisition(int? idRequisition);
+        Task<List<object>> GetOcsDetailsForRequisition(int? idRequisition);
+        Task<List<object>> GetOcsByBranch(int idBranch);
         Task<List<object>> GetOcsByPedimento(int idPedimento);
     }
 
