@@ -7,6 +7,7 @@ namespace Warehouse.Service.Delison
     {
         Task<List<MaterialXModulo>> GetAll(int idCompany);
         Task<List<MaterialXModulo>> GetByType(int idCompany, string type);
+        Task<List<MaterialXModulo>> GetByCatalog(int idCompany, int idCatalog);
         Task<MaterialXModulo?> GetById(int id);
         Task<MaterialXModulo> Create(MaterialXModulo entity);
         Task<MaterialXModulo?> Update(int id, MaterialXModulo entity);
@@ -39,6 +40,13 @@ namespace Warehouse.Service.Delison
                 .ToListAsync();
         }
 
+        public async Task<List<MaterialXModulo>> GetByCatalog(int idCompany, int idCatalog)
+        {
+            return await _context.MaterialXModulos
+                .Where(m => m.Active && m.IdCompany == idCompany && m.IdCatalog == idCatalog)
+                .ToListAsync();
+        }
+
         public async Task<MaterialXModulo?> GetById(int id)
         {
             return await _context.MaterialXModulos.FindAsync(id);
@@ -61,6 +69,7 @@ namespace Warehouse.Service.Delison
             existing.IdArticulo = entity.IdArticulo;
             existing.Cantidad   = entity.Cantidad;
             existing.Type       = entity.Type;
+            existing.IdCatalog  = entity.IdCatalog;
             existing.Active     = entity.Active;
 
             await _context.SaveChangesAsync();

@@ -21,6 +21,9 @@ namespace Warehouse.Models.Delison
         [Column("type")]
         public string Type { get; set; } = string.Empty;
 
+        [Column("id_catalog")]
+        public int? IdCatalog { get; set; }
+
         [Column("active")]
         public bool Active { get; set; } = true;
     }

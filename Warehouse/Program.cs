@@ -122,6 +122,7 @@ builder.Services.AddScoped<ISucursalByMaterialProveedorService, SucursalByMateri
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IMaterialXModuloService, MaterialXModuloService>();
+builder.Services.AddScoped<IExtractionFermentationCatalogService, ExtractionFermentationCatalogService>();
 builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>();
 builder.Services.AddScoped<IMoliendaDelisonService, MoliendaDelisonService>();
 builder.Services.AddScoped<IDetailsMoliendaDelisonService, DetailsMoliendaDelisonService>();
@@ -186,6 +187,34 @@ catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogWarning(ex, "Auto-migration detailsreqoc falló — corre el ALTER TABLE manualmente.");
+}
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'Delison')
+            EXEC('CREATE SCHEMA Delison');
+
+        IF OBJECT_ID('Delison.extractionfermentationcatalog', 'U') IS NULL
+        BEGIN
+            CREATE TABLE Delison.extractionfermentationcatalog (
+                Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                id_company INT NOT NULL,
+                description VARCHAR(150) NOT NULL,
+                active BIT NOT NULL CONSTRAINT DF_extractionfermentationcatalog_active DEFAULT(1)
+            );
+
+            CREATE INDEX IX_extractionfermentationcatalog_id_company
+                ON Delison.extractionfermentationcatalog (id_company);
+        END
+    ");
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Auto-migration extractionfermentationcatalog falló — corre el CREATE TABLE manualmente.");
 }
 
 app.MapControllers();
