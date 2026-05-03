@@ -126,6 +126,7 @@ builder.Services.AddScoped<IExtractionFermentationCatalogService, ExtractionFerm
 builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>();
 builder.Services.AddScoped<IMoliendaDelisonService, MoliendaDelisonService>();
 builder.Services.AddScoped<IDetailsMoliendaDelisonService, DetailsMoliendaDelisonService>();
+builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -215,6 +216,53 @@ catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogWarning(ex, "Auto-migration extractionfermentationcatalog falló — corre el CREATE TABLE manualmente.");
+}
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF OBJECT_ID('Delison.entradas_molienda', 'U') IS NULL
+        BEGIN
+            CREATE TABLE Delison.entradas_molienda (
+                Id               INT IDENTITY(1,1) NOT NULL,
+                id_oc            INT NOT NULL,
+                fecha_recepcion  DATE NULL,
+                cantidad_entrada DECIMAL(12,2) NULL,
+                bultos           INT NULL,
+                revision_configu DECIMAL(12,2) NULL,
+                pago             DECIMAL(12,2) NULL,
+                usuario          NVARCHAR(100) NULL,
+                liberacion       BIT NOT NULL CONSTRAINT DF_entradas_molienda_liberacion DEFAULT(0),
+                active           BIT NOT NULL CONSTRAINT DF_entradas_molienda_active DEFAULT(1),
+                datemodified     DATETIME NOT NULL CONSTRAINT DF_entradas_molienda_datemodified DEFAULT(GETDATE()),
+                CONSTRAINT PK_entradas_molienda PRIMARY KEY (Id)
+            );
+            CREATE INDEX IX_entradas_molienda_id_oc ON Delison.entradas_molienda (id_oc);
+        END
+    ");
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Auto-migration entradas_molienda falló — corre el CREATE TABLE manualmente.");
+}
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                       WHERE TABLE_SCHEMA='Delison' AND TABLE_NAME='entradas_molienda' AND COLUMN_NAME='id_material')
+            ALTER TABLE Delison.entradas_molienda ADD id_material INT NULL;
+    ");
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Auto-migration id_material en entradas_molienda falló — corre el ALTER TABLE manualmente.");
 }
 
 app.MapControllers();
