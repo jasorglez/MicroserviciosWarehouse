@@ -582,26 +582,34 @@ namespace Warehouse.Service
 
                 var reqIds = reqs.Select(r => r.Id).ToList();
 
-                // Query 2: contar OCs por requisición — groupBy int (no nullable) evita mismatch en Dictionary
-                var ocCounts = await _context.Ocandreqs
-                    .Where(oc => oc.Active == true
-                               && oc.Type == "OC"
-                               && oc.IdReq.HasValue
-                               && reqIds.Contains(oc.IdReq!.Value))
-                    .GroupBy(oc => oc.IdReq!.Value)
-                    .Select(g => new { IdReq = g.Key, Count = g.Count() })
-                    .AsNoTracking()
-                    .ToListAsync();
+                // Query 2: contar OCs que tengan el material específico (JOIN con Detailsreqoc)
+                var ocCounts = await (
+                    from oc in _context.Ocandreqs
+                    join details in _context.Detailsreqoc on oc.Id equals details.IdMovement
+                    where oc.Active == true
+                       && oc.Type == "OC"
+                       && oc.IdReq.HasValue
+                       && reqIds.Contains(oc.IdReq!.Value)
+                       && details.IdSupplie == idMaterial
+                       && details.Active == true
+                    group oc by oc.IdReq into g
+                    select new { IdReq = g.Key, Count = g.Count() }
+                )
+                .AsNoTracking()
+                .ToListAsync();
 
                 var ocCountMap = ocCounts.ToDictionary(x => x.IdReq, x => x.Count);
 
-                var result = reqs.Select(r => (object)new
-                {
-                    r.Id,
-                    r.Folio,
-                    r.CantidadReq,
-                    NumCantidadOc = ocCountMap.TryGetValue(r.Id, out var cnt) ? cnt : 0
-                }).ToList();
+                // Filtrar solo requisiciones que tengan OCs (NumCantidadOc > 0)
+                var result = reqs
+                    .Where(r => ocCountMap.ContainsKey(r.Id))
+                    .Select(r => (object)new
+                    {
+                        r.Id,
+                        r.Folio,
+                        r.CantidadReq,
+                        NumCantidadOc = ocCountMap[r.Id]
+                    }).ToList();
 
                 return result;
             }
