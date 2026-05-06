@@ -776,8 +776,8 @@ namespace Warehouse.Service
             {
                 if (idBranch <= 0) return new List<object>();
 
-                // Obtener OCs que estén bajo requisiciones de esa sucursal
-                var result = await (
+                // 1. Obtener requisiciones que tienen al menos un OC
+                var groupedOcs = await (
                     from oc in _context.Ocandreqs
                     join req in _context.Ocandreqs on oc.IdReq equals req.Id
                     where oc.Active == true
@@ -786,35 +786,167 @@ namespace Warehouse.Service
                        && req.Type == "REQUIS"
                        && req.TypeReference == "branch"
                        && req.IdReference == idBranch
-                    orderby oc.DateModified descending
+                    group oc by new
+                    {
+                        req.Id,
+                        req.Folio,
+                        req.IdReference,
+                        oc.IdDepartament
+                    } into grp
+                    orderby grp.Max(x => x.DateModified) descending
                     select new
                     {
-                        oc.Id,
-                        oc.Folio,
-                        oc.IdReq,
-                        ReqFolio = req.Folio,
-                        oc.IdProvider,
-                        oc.Solicit,
-                        oc.DateCreate,
-                        oc.DateModified,
-                        oc.Active,
-                        oc.TypeOc,
-                        oc.Conditions,
-                        oc.Priority,
-                        oc.Delivery,
-                        oc.DeliveryTime,
-                        CountItems = _context.Detailsreqoc
-                            .Count(d => d.IdMovement == oc.Id && d.Active == true)
+                        ReqId    = grp.Key.Id,
+                        ReqFolio = grp.Key.Folio,
+                        IdReference  = grp.Key.IdReference,
+                        IdDepartament = grp.Key.IdDepartament,
+                        DateModified = grp.Max(x => x.DateModified)
                     }
                 ).AsNoTracking().ToListAsync();
 
-                return result.Cast<object>().ToList();
+                // 2. Contar pedimentos reales con OCs por requisición (misma lógica que GetPedimentosByRequisicion)
+                var reqIds = groupedOcs.Select(x => x.ReqId).Distinct().ToList();
+
+                var pedimentoCounts = await (
+                    from cotiz in _context.Ocandreqs
+                    where cotiz.Active == true
+                       && cotiz.Type == "COTIZ"
+                       && cotiz.Pedimento > 0
+                       && cotiz.IdReq != null && reqIds.Contains(cotiz.IdReq.Value)
+                       && _context.Ocandreqs.Any(oc =>
+                              oc.Active == true
+                           && oc.Type == "OC"
+                           && oc.IdReq == cotiz.IdReq
+                           && _context.Detailsreqoc.Any(d => d.IdMovement == oc.Id && d.Active == true)
+                           && _context.Ocandreqs.Any(dc =>
+                                  dc.Active == true
+                               && dc.Type == "COTIZ"
+                               && dc.TypeReference == "delison"
+                               && dc.IdReference == cotiz.Id
+                               && dc.IdProvider == oc.IdProvider))
+                    group cotiz by cotiz.IdReq into grp
+                    select new { ReqId = grp.Key, Count = grp.Count() }
+                ).AsNoTracking().ToListAsync();
+
+                var countMap = pedimentoCounts.ToDictionary(x => x.ReqId, x => x.Count);
+
+                // 3. Obtener nombres de departamentos desde security.dbo.Roles
+                var deptIds = groupedOcs.Select(x => x.IdDepartament).Distinct().Where(id => id > 0).ToList();
+                var deptMap = new Dictionary<int, string>();
+
+                if (deptIds.Any())
+                {
+                    var connection = _context.Database.GetDbConnection();
+                    if (connection.State != System.Data.ConnectionState.Open)
+                        await connection.OpenAsync();
+
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = $"SELECT id, description FROM security.dbo.Roles WHERE id IN ({string.Join(",", deptIds)})";
+
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                        deptMap[reader.GetInt32(0)] = reader.GetString(1);
+                }
+
+                // 4. Mapear en memoria con departamentos y contador correcto
+                return groupedOcs.Select(grp => (object)new
+                {
+                    ReqId         = grp.ReqId,
+                    ReqFolio      = grp.ReqFolio,
+                    IdReference   = grp.IdReference,
+                    IdDepartament = grp.IdDepartament,
+                    DepartmentName   = deptMap.TryGetValue(grp.IdDepartament, out var deptName) ? deptName : "Sin Departamento",
+                    CountPedimentos  = countMap.TryGetValue(grp.ReqId, out var cnt) ? cnt : 0,
+                    DateModified  = grp.DateModified
+                }).ToList();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting OCs for branch {IdBranch}", idBranch);
                 throw;
             }
+        }
+
+        public async Task<List<object>> GetPedimentosByRequisicion(int idRequisicion)
+        {
+            try
+            {
+                if (idRequisicion <= 0) return new List<object>();
+
+                // Buscar las COTIZs que son pedimentos (pedimento > 0) de la requisición
+                // Solo mostrar las que tengan al menos un OC asignado, buscando via la cadena:
+                // COTIZ pedimento → COTIZ delison (type_reference='delison', id_reference=cotiz.Id) → OC (mismo proveedor)
+                var pedimentos = await (
+                    from cotiz in _context.Ocandreqs
+                    where cotiz.Active == true
+                       && cotiz.Type == "COTIZ"
+                       && cotiz.IdReq == idRequisicion
+                       && cotiz.Pedimento > 0
+                       && _context.Ocandreqs.Any(oc =>
+                              oc.Active == true
+                           && oc.Type == "OC"
+                           && oc.IdReq == idRequisicion
+                           && _context.Detailsreqoc.Any(d => d.IdMovement == oc.Id && d.Active == true)
+                           && _context.Ocandreqs.Any(dc =>
+                                  dc.Active == true
+                               && dc.Type == "COTIZ"
+                               && dc.TypeReference == "delison"
+                               && dc.IdReference == cotiz.Id
+                               && dc.IdProvider == oc.IdProvider))
+                    orderby cotiz.Pedimento ascending
+                    select new
+                    {
+                        cotiz.Id,
+                        cotiz.Folio,
+                        cotiz.IdReq,
+                        cotiz.Pedimento,
+                        cotiz.DateCreate,
+                        cotiz.DateModified,
+                        cotiz.Active
+                    }
+                ).AsNoTracking().ToListAsync();
+
+                return pedimentos.Cast<object>().ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pedimentos for requisicion {IdRequisicion}", idRequisicion);
+                throw;
+            }
+        }
+
+        public async Task<bool> ShouldLockRequisicion(int idReq)
+        {
+            if (idReq <= 0) return false;
+
+            // Total de pedimentos de la requisición
+            var totalPedimentos = await _context.Ocandreqs
+                .CountAsync(c => c.Active == true && c.Type == "COTIZ" && c.Pedimento > 0 && c.IdReq == idReq);
+
+            if (totalPedimentos == 0) return false;
+
+            // Pedimentos que ya tienen OC generada (misma lógica que GetPedimentosByRequisicion)
+            var pedimentosConOc = await (
+                from cotiz in _context.Ocandreqs
+                where cotiz.Active == true
+                   && cotiz.Type == "COTIZ"
+                   && cotiz.IdReq == idReq
+                   && cotiz.Pedimento > 0
+                   && _context.Ocandreqs.Any(oc =>
+                          oc.Active == true
+                       && oc.Type == "OC"
+                       && oc.IdReq == idReq
+                       && _context.Detailsreqoc.Any(d => d.IdMovement == oc.Id && d.Active == true)
+                       && _context.Ocandreqs.Any(dc =>
+                              dc.Active == true
+                           && dc.Type == "COTIZ"
+                           && dc.TypeReference == "delison"
+                           && dc.IdReference == cotiz.Id
+                           && dc.IdProvider == oc.IdProvider))
+                select cotiz.Id
+            ).CountAsync();
+
+            return totalPedimentos == pedimentosConOc;
         }
 
         public async Task<List<object>> GetOcsByPedimento(int idPedimento)
@@ -926,6 +1058,8 @@ namespace Warehouse.Service
         Task<List<object>> GetOcsByRequisition(int? idRequisition);
         Task<List<object>> GetOcsDetailsForRequisition(int? idRequisition);
         Task<List<object>> GetOcsByBranch(int idBranch);
+        Task<List<object>> GetPedimentosByRequisicion(int idRequisicion);
+        Task<bool> ShouldLockRequisicion(int idReq);
         Task<List<object>> GetOcsByPedimento(int idPedimento);
     }
 

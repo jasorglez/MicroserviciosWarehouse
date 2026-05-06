@@ -314,6 +314,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("pedimentos-by-requisicion")]
+        public async Task<IActionResult> GetPedimentosByRequisicion([FromQuery] int idRequisicion)
+        {
+            try
+            {
+                var result = await _service.GetPedimentosByRequisicion(idRequisicion);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pedimentos for requisicion {IdRequisicion}", idRequisicion);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("ocs-by-pedimento")]
         public async Task<IActionResult> GetOcsByPedimento([FromQuery] int idPedimento)
         {
@@ -325,6 +340,21 @@ namespace Warehouse.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting OCs for pedimento {IdPedimento}", idPedimento);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("{idReq}/should-lock")]
+        public async Task<IActionResult> ShouldLockRequisicion(int idReq)
+        {
+            try
+            {
+                var result = await _service.ShouldLockRequisicion(idReq);
+                return Ok(new { shouldLock = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking should-lock for requisicion {IdReq}", idReq);
                 return StatusCode(500, "Internal server error");
             }
         }
