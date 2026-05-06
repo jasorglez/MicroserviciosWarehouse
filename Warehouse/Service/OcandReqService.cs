@@ -213,13 +213,14 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task Save(Ocandreq ocandreq)
+        public async Task<Ocandreq> Save(Ocandreq ocandreq)
         {
             try
             {
                 ocandreq.DateModified = DateTime.Now;
                 _context.Ocandreqs.Add(ocandreq);
                 await _context.SaveChangesAsync();
+                return ocandreq;
             }
             catch (Exception ex)
             {
@@ -484,7 +485,7 @@ namespace Warehouse.Service
                         var precioA = FindMatch(itemsSlotA);
                         precios[slotA.IdProvider.Value] = precioA?.Price ?? item.Price;
                         comprasMinimas[slotA.IdProvider.Value] = (int)(precioA?.CompraMinima ?? item.CompraMinima ?? 1);
-                        tiemposEntrega[slotA.IdProvider.Value] = precioA?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                        tiemposEntrega[slotA.IdProvider.Value] = precioA?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
                         cantidades[slotA.IdProvider.Value] = precioA?.CantidadConceptualizada ?? 0;
                         tiposOc[slotA.IdProvider.Value] = precioA?.TypeOc ?? "";
                         if (precioA != null) slotItemIds[slotA.IdProvider.Value] = precioA.Id;
@@ -495,7 +496,7 @@ namespace Warehouse.Service
                         var precioB = FindMatch(itemsSlotB);
                         precios[slotB.IdProvider.Value] = precioB?.Price ?? item.Price;
                         comprasMinimas[slotB.IdProvider.Value] = (int)(precioB?.CompraMinima ?? item.CompraMinima ?? 1);
-                        tiemposEntrega[slotB.IdProvider.Value] = precioB?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                        tiemposEntrega[slotB.IdProvider.Value] = precioB?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
                         cantidades[slotB.IdProvider.Value] = precioB?.CantidadConceptualizada ?? 0;
                         tiposOc[slotB.IdProvider.Value] = precioB?.TypeOc ?? "";
                         if (precioB != null) slotItemIds[slotB.IdProvider.Value] = precioB.Id;
@@ -506,7 +507,7 @@ namespace Warehouse.Service
                         var precioC = FindMatch(itemsSlotC);
                         precios[slotC.IdProvider.Value] = precioC?.Price ?? item.Price;
                         comprasMinimas[slotC.IdProvider.Value] = (int)(precioC?.CompraMinima ?? item.CompraMinima ?? 1);
-                        tiemposEntrega[slotC.IdProvider.Value] = precioC?.TiempoEntrega ?? item.TiempoEntrega ?? "";
+                        tiemposEntrega[slotC.IdProvider.Value] = precioC?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
                         cantidades[slotC.IdProvider.Value] = precioC?.CantidadConceptualizada ?? 0;
                         tiposOc[slotC.IdProvider.Value] = precioC?.TypeOc ?? "";
                         if (precioC != null) slotItemIds[slotC.IdProvider.Value] = precioC.Id;
@@ -521,7 +522,7 @@ namespace Warehouse.Service
                         cantidad = item.Quantity,
                         compraMinima = (int)(item.CompraMinima ?? 1),
                         recurrent = item.Recurrent ?? "Recurrente",
-                        tiempoEntrega = item.TiempoEntrega ?? "",
+                        tiempoEntrega = item.TiempoEntrega ?? "0",
                         comprasMinimas = comprasMinimas,
                         tiemposEntrega = tiemposEntrega,
                         precios = precios,
@@ -911,7 +912,7 @@ namespace Warehouse.Service
         Task<List<object>> GetOrders(string TypeReference, int idReference, string type);
         Task<List<object>> GetOcReq(int idRoot, string type);
         Task<object?> GetOrderById(int id);
-        Task Save(Ocandreq ocandreq);
+        Task<Ocandreq> Save(Ocandreq ocandreq);
         Task<Ocandreq?> Update(int id, Ocandreq ocandreq);
         Task<Ocandreq?> UpdateAuthorization(int id, AuthorizationCallbackDto dto);
         Task<bool> Delete(int id);

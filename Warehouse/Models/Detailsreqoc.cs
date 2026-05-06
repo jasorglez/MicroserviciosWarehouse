@@ -79,7 +79,7 @@ namespace Warehouse.Models
         [Column("comment")]
         public string? Comment { get; set; }
 
-        [Column("tiempoentrega", TypeName = "varchar(20)")]
+        [Column("tiempoentrega")]
         public string? TiempoEntrega { get; set; }
 
         [Column("compraminima")]

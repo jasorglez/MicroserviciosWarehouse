@@ -129,6 +129,18 @@ namespace Warehouse.Service.Delison
             }
         }
 
+        public async Task<bool> PatchTiempoDeEntrega(int idMaterial, int idProveedor, int idSucursal, int valor)
+        {
+            var sucursal = await _context.SucursalByMaterialProveedor
+                .FirstOrDefaultAsync(s => s.IdMaterialByProveedor == idMaterial && s.IdSucursal == idSucursal);
+
+            if (sucursal == null) return false;
+
+            sucursal.TiempoDeEntrega = valor;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
     }
     public interface ISucursalByMaterialProveedorService
     {
@@ -136,6 +148,7 @@ namespace Warehouse.Service.Delison
         Task<bool> SaveMasterDetail(SucursalByMaterialProveedor detail);
         Task<bool> Delete(int id);
         Task<SucursalByMaterialProveedor> UpdateMasterDetail(int id, SucursalByMaterialProveedor detail);
+        Task<bool> PatchTiempoDeEntrega(int idMaterial, int idProveedor, int idSucursal, int valor);
     }
 
 // ...existing code...

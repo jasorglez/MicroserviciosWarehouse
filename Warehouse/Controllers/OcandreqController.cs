@@ -91,8 +91,8 @@ namespace Warehouse.Controllers
 
             try
             {
-                await _service.Save(ocandreq);
-                return Ok(ocandreq);
+                var savedOcandreq = await _service.Save(ocandreq);
+                return Ok(savedOcandreq);
             }
             catch (Exception ex)
             {
