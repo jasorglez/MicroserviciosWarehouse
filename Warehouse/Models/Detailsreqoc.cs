@@ -103,6 +103,9 @@ namespace Warehouse.Models
         [Column("caducidad", TypeName = "varchar(40)")]
         public string? Caducidad { get; set; }
 
+        [Column("caducidad_minima_requerida", TypeName = "varchar(255)")]
+        public string? CaducidadMinimaRequerida { get; set; }
+
         [Column("comprarapida")]
         public bool? CompraRapida { get; set; } = false;
     }
