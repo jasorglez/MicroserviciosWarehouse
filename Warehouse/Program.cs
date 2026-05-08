@@ -21,17 +21,18 @@ builder.Services.AddCors(options =>
         {
             builder
 
-                .WithOrigins("https://localhost", "http://localhost:4200", 
+                .WithOrigins("https://localhost", "http://localhost:4200",
                              "http://localhost:5173",
                              "https://be-app-five.vercel.app", "http://localhost:8100",
-                             "https://localhost:7089", "https://biapp.com.mx", 
-                             "https://localhost:4200", "https://www.bi2.com.mx",                 
+                             "https://localhost:7089", "https://biapp.com.mx",
+                             "https://www.biapp.com.mx",
+                             "https://localhost:4200", "https://www.bi2.com.mx",
                              "https://smp-beta.vercel.app",
                              "https://bi2.com.mx",
                              "https://pruebas.bi2.mx",
                               "https://delison-pruebas.bi2.mx",
                              "https://clinica-pruebas.bi2.mx",
-                             "https://www.hco-siaf.com") 
+                             "https://www.hco-siaf.com")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
@@ -125,6 +126,8 @@ builder.Services.AddScoped<IMaterialXModuloService, MaterialXModuloService>();
 builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>();
 builder.Services.AddScoped<IMoliendaDelisonService, MoliendaDelisonService>();
 builder.Services.AddScoped<IDetailsMoliendaDelisonService, DetailsMoliendaDelisonService>();
+builder.Services.AddScoped<ILoyaltyProgramService, LoyaltyProgramService>();
+builder.Services.AddScoped<ICustomerLoyaltyCardService, CustomerLoyaltyCardService>();
 
 builder.Services.AddHttpContextAccessor();
 

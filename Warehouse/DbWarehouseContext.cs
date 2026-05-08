@@ -61,6 +61,8 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<AutorizacionMonto> AutorizacionMontos { get; set; }
     public virtual DbSet<MoliendaDelison> MoliendaDelison { get; set; }
     public virtual DbSet<DetailsMoliendaDelison> DetailsMoliendaDelison { get; set; }
+    public virtual DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
+    public virtual DbSet<CustomerLoyaltyCard> CustomerLoyaltyCards { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
