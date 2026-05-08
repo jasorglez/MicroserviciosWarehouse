@@ -25,8 +25,9 @@ namespace Warehouse.Service
         public async Task<List<ProveedorXTabla>> GetAll(int idProveedor, string Type)
         {
             return await _context.ProveedorXTablas
-                .Where(p => p.IdTabla == idProveedor && p.Type == Type && p.Campo6 != "0" && p.Campo6 != "0.00" &&p.Active)
-                .OrderByDescending(p => p.Vigente)
+                .Where(p => p.IdTabla == idProveedor && p.Type == Type && p.Campo6 != "0" && p.Campo6 != "0.00")
+                .OrderBy(p => p.Active ? 0 : 1)
+                .ThenByDescending(p => p.Vigente)
                 .ThenBy(p => p.Campo2.Trim().ToLower())
                 .ToListAsync();
         }
@@ -34,8 +35,9 @@ namespace Warehouse.Service
         public async Task<List<ProveedorXTabla>> GetProvxMat(int idMaterial, string Type)
         {
             return await _context.ProveedorXTablas
-                .Where(p => p.Campo1 == idMaterial && p.Type == Type && p.Active)
-                .OrderBy(p => p.Campo2)
+                .Where(p => p.Campo1 == idMaterial && p.Type == Type)
+                .OrderBy(p => p.Active ? 0 : 1)
+                .ThenBy(p => p.Campo2)
                 .ToListAsync();
         }
 

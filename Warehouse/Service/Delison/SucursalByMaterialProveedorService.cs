@@ -35,7 +35,7 @@ namespace Warehouse.Service.Delison
 
                 // Consultar catálogos tipo FAM-CAT que no estén ya registrados en SucursalByMaterialProveedor
                 var items = await _context.SucursalByMaterialProveedor
-                    .Where(c => c.Active == true && c.IdMaterialByProveedor == idMaster)
+                    .Where(c => c.IdMaterialByProveedor == idMaster)
                     .OrderByDescending(c => c.Vigente)
                     .ToListAsync();
 
@@ -118,7 +118,7 @@ namespace Warehouse.Service.Delison
 
             try
             {
-                existingItem.Active = false;
+                _context.SucursalByMaterialProveedor.Remove(existingItem);
                 await _context.SaveChangesAsync();
                 return true;
             }
