@@ -67,10 +67,10 @@ namespace Warehouse.Models.Views
         [Column("id_company")]
         public int IdCompany { get; set; }
         
-        [Column("vigente")]
-        public bool? Vigente { get; set; }
-
         [Column("porAutorizar")]
         public bool? PorAutorizar { get; set; }
+
+        [Column("active")]
+        public bool? Active { get; set; }
     }
 }

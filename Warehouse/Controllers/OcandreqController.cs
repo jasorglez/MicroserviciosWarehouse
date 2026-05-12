@@ -185,6 +185,7 @@ namespace Warehouse.Controllers
         [HttpPatch("{id}/lock")]
         public async Task<IActionResult> SetLocked(int id, [FromBody] LockRequest request)
         {
+            _logger.LogInformation("🔒 Controller SetLocked - URL id={UrlId}, body.Locked={BodyLocked}", id, request?.Locked);
             try
             {
                 var result = await _service.SetLocked(id, request.Locked);
@@ -192,6 +193,7 @@ namespace Warehouse.Controllers
                 {
                     return NotFound($"Order with ID {id} not found");
                 }
+                _logger.LogInformation("🔒 Controller SetLocked Returning - id={Id}, returnedLocked={Locked}", result.Id, result.Locked);
                 return Ok(result);
             }
             catch (Exception ex)

@@ -116,10 +116,6 @@ namespace Warehouse.Models
         [Column("fecha")]
         public DateTime? Fecha { get; set; }
 
-        [Column("vigente")]
-        [DefaultValue(true)]
-        public bool? Vigente { get; set; }
-
         [Column("active")]
         [DefaultValue(true)]
         public bool? Active { get; set; }

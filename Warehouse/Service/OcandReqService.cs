@@ -307,22 +307,36 @@ namespace Warehouse.Service
 
         public async Task<Ocandreq?> SetLocked(int id, bool locked)
         {
+            _logger.LogInformation("🔒 SetLocked START - id={Id}, locked={Locked}", id, locked);
+
             var existingItem = await _context.Ocandreqs.FindAsync(id);
             if (existingItem == null)
             {
-                _logger.LogWarning("Attempted to lock non-existent Order with ID {Id}", id);
+                _logger.LogWarning("🔒 SetLocked - Order with ID {Id} NOT FOUND", id);
                 return null;
             }
+
+            _logger.LogInformation("🔒 SetLocked - Found id={Id}, folio={Folio}, type={Type}, currentLocked={CurrentLocked}",
+                existingItem.Id, existingItem.Folio, existingItem.Type, existingItem.Locked);
 
             try
             {
                 existingItem.Locked = locked;
-                await _context.SaveChangesAsync();
+                _context.Entry(existingItem).Property(x => x.Locked).IsModified = true;
+
+                var entityState = _context.Entry(existingItem).State;
+                _logger.LogInformation("🔒 SetLocked - Before SaveChanges: newLocked={NewLocked}, entityState={State}",
+                    existingItem.Locked, entityState);
+
+                var rowsAffected = await _context.SaveChangesAsync();
+                _logger.LogInformation("🔒 SetLocked DONE - id={Id}, rowsAffected={Rows}, finalLocked={FinalLocked}",
+                    id, rowsAffected, existingItem.Locked);
+
                 return existingItem;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error setting locked status for Order with ID {Id}", id);
+                _logger.LogError(ex, "🔒 SetLocked ERROR - id={Id}", id);
                 throw;
             }
         }
@@ -532,10 +546,22 @@ namespace Warehouse.Service
                     });
                 }
 
+                // Verificar si la requisición vinculada está bloqueada (cubre el caso de Finalizar Req)
+                // Los COTIZs (slotA/B/C) tienen IdReq apuntando a la REQUIS padre
+                var requisicionLocked = false;
+                var reqId = (int?)(slotA?.IdReq ?? slotB?.IdReq ?? slotC?.IdReq) ?? 0;
+                if (reqId > 0)
+                {
+                    var requisicion = await _context.Ocandreqs
+                        .AsNoTracking()
+                        .FirstOrDefaultAsync(o => o.Id == reqId);
+                    requisicionLocked = requisicion?.Locked == true;
+                }
+
                 return new
                 {
                     pedimentoId = pedimentoId,
-                    locked = pedimento.Locked == true,
+                    locked = pedimento.Locked == true || requisicionLocked,
                     proveedores = proveedores,
                     articulos = articulos
                 };
@@ -919,13 +945,16 @@ namespace Warehouse.Service
         {
             if (idReq <= 0) return false;
 
-            // Total de pedimentos de la requisición
-            var totalPedimentos = await _context.Ocandreqs
-                .CountAsync(c => c.Active == true && c.Type == "COTIZ" && c.Pedimento > 0 && c.IdReq == idReq);
+            // Pedimentos de la requisición
+            var pedimentos = await _context.Ocandreqs
+                .AsNoTracking()
+                .Where(c => c.Active == true && c.Type == "COTIZ" && c.Pedimento > 0 && c.IdReq == idReq)
+                .Select(c => c.Id)
+                .ToListAsync();
 
-            if (totalPedimentos == 0) return false;
+            if (pedimentos.Count == 0) return false;
 
-            // Pedimentos que ya tienen OC generada (misma lógica que GetPedimentosByRequisicion)
+            // Pedimentos que ya tienen OC generada (lógica existente)
             var pedimentosConOc = await (
                 from cotiz in _context.Ocandreqs
                 where cotiz.Active == true
@@ -944,9 +973,42 @@ namespace Warehouse.Service
                            && dc.IdReference == cotiz.Id
                            && dc.IdProvider == oc.IdProvider))
                 select cotiz.Id
-            ).CountAsync();
+            ).ToListAsync();
 
-            return totalPedimentos == pedimentosConOc;
+            // Pedimentos pendientes: los que NO tienen OC generada
+            var pedimentosPendientes = pedimentos.Except(pedimentosConOc).ToList();
+
+            // Si todos los pedimentos ya tienen OC, bloquear
+            if (pedimentosPendientes.Count == 0) return true;
+
+            // Verificar si los pedimentos pendientes están "Finalizados" (todos sus items con tipoOc negativo)
+            var NOT_AUTHORIZED = new[] { "COMPRA NO AUTORIZADA", "CAMBIO DE ESPECIFICACIONES", "ARTICULO NO AUTORIZADO" };
+
+            foreach (var pedimentoId in pedimentosPendientes)
+            {
+                // Slots COTIZ delison del pedimento (A/B/C)
+                var slotIds = await _context.Ocandreqs
+                    .AsNoTracking()
+                    .Where(s => s.Active == true && s.Type == "COTIZ" && s.TypeReference == "delison" && s.IdReference == pedimentoId)
+                    .Select(s => s.Id)
+                    .ToListAsync();
+
+                if (slotIds.Count == 0) return false;
+
+                // Items de esos slots
+                var itemTypeOcs = await _context.Detailsreqoc
+                    .AsNoTracking()
+                    .Where(d => slotIds.Contains(d.IdMovement) && d.Active == true)
+                    .Select(d => d.TypeOc)
+                    .ToListAsync();
+
+                if (itemTypeOcs.Count == 0) return false;
+
+                var allNegative = itemTypeOcs.All(t => !string.IsNullOrEmpty(t) && NOT_AUTHORIZED.Contains(t));
+                if (!allNegative) return false;
+            }
+
+            return true;
         }
 
         public async Task<List<object>> GetOcsByPedimento(int idPedimento)

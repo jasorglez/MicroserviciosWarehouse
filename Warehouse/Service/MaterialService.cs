@@ -87,7 +87,7 @@ namespace Warehouse.Service
             {
                 var result = await _context.MaterialWithCounts
                     .Where(m => m.IdCompany == idCompany)
-                    .OrderByDescending(m => m.Vigente)
+                    .OrderByDescending(m => m.Active)
                     .ThenBy(m => m.Articulo)
                     .AsNoTracking()
                     .ToListAsync();
@@ -233,13 +233,11 @@ namespace Warehouse.Service
                         s.VentaMN,
                         s.VentaDLL,
                         s.StockMin, s.StockMax, s.Picture,
-                        s.Vigente,  s.TypeMaterial,
- 
-
+                        s.TypeMaterial,
                         s.Active
-                       
+
                     })
-                    .OrderByDescending(s => s.Vigente)
+                    .OrderByDescending(s => s.Active)
                     .ThenBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -260,8 +258,8 @@ namespace Warehouse.Service
                     //.Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
-                        s.Id,                        
-                        s.Description,s.Vigente,
+                        s.Id,
+                        s.Description,
                         s.Active,
                         /*PricePresentations = s.PricesWithMaterial.Select(s => new
                         {
@@ -271,7 +269,7 @@ namespace Warehouse.Service
                         s.Price,
                         s.Active
                     }).ToList()*/
-                    }).OrderByDescending(s => s.Vigente)
+                    }).OrderByDescending(s => s.Active)
                       .ThenBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -435,7 +433,6 @@ namespace Warehouse.Service
                     TypeMaterial = material.TypeMaterial,
                     Merma = material.Merma,
                     Fecha = material.Date ?? DateTime.UtcNow,
-                    Vigente = material.Vigente ?? true, // Valor por defecto si es null
                     Active = material.Active ?? true, // Valor por defecto si es null
                     PorAutorizar = material.PorAutorizar ?? false // Mapear porAutorizar
                 };
@@ -494,11 +491,23 @@ namespace Warehouse.Service
                 if (material.StockMax.HasValue) existingItem.StockMax = material.StockMax;
                 if (!string.IsNullOrEmpty(material.Picture)) existingItem.Picture = material.Picture;
                 if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
-                if (material.Vigente.HasValue) existingItem.Vigente = material.Vigente;
                 if (material.Active.HasValue) existingItem.Active = material.Active;
                 if (material.PorAutorizar.HasValue) existingItem.PorAutorizar = material.PorAutorizar;
 
                 await _context.SaveChangesAsync();
+
+                // Sincronizar proveedores y sucursales al estado del material
+                if (material.Active.HasValue)
+                {
+                    int activeValue = material.Active == true ? 1 : 0;
+
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "UPDATE proveedorxtablas SET active = {0} WHERE campo1 = {1}", activeValue, id);
+
+                    await _context.Database.ExecuteSqlRawAsync(
+                        "UPDATE s SET s.vigente = {0} FROM [Delison].[sucursalByMaterialProveedor] s INNER JOIN [dbo].[proveedorxtablas] p ON s.id_materialByProveedor = p.id WHERE p.campo1 = {1}", activeValue, id);
+                }
+
                 return existingItem;
             }
             catch (DbUpdateConcurrencyException ex)
@@ -524,7 +533,20 @@ namespace Warehouse.Service
 
             try
             {
-                existingItem.Active = false;
+                // Orden de borrado respetando FKs en cascada:
+                // 1. rawmaterialdetails depende de rawmaterial (id_rawmaterial → rawmaterial.id)
+                await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE rmd FROM rawmaterialdetails rmd INNER JOIN rawmaterial rm ON rmd.id_rawmaterial = rm.id WHERE rm.id_material = {0}", id);
+                // 2. rawmaterial depende de materials
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM rawmaterial WHERE id_material = {0}", id);
+                // 3. Resto de dependencias directas a materials
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM proveedorxtablas WHERE campo1 = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM pricesxproductspresentation WHERE id_materials = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM detailsinandout WHERE id_product = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM MaterialsByBranchs WHERE Id_material = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM tablesxmodules WHERE id = {0}", id);
+
+                _context.Materials.Remove(existingItem);
                 await _context.SaveChangesAsync();
                 return true;
             }
