@@ -179,6 +179,16 @@ namespace Warehouse.Controllers
 
         public class PatchCampo11Request { public string Valor { get; set; } = ""; }
 
+        [HttpPatch("cascade-material-active/{materialId:int}")]
+        public async Task<ActionResult> CascadeMaterialActive(int materialId, [FromQuery] bool activate)
+        {
+            if (materialId <= 0)
+                return BadRequest("Invalid materialId");
+
+            var result = await _service.CascadeMaterialActive(materialId, activate);
+            return result ? Ok(new { message = activate ? "Cascada activada" : "Cascada desactivada" }) : NotFound();
+        }
+
         [HttpPatch("deactivate-for-material/{campo1:int}/{idTabla:int}")]
         public async Task<ActionResult> DeactivateForMaterial(int campo1, int idTabla)
         {

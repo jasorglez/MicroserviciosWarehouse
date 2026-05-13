@@ -90,5 +90,9 @@ namespace Warehouse.Models
         [Column("active")]
         [DefaultValue(true)]
         public bool Active { get; set; } = true;
+
+        [Column("disabled_by_material")]
+        [DefaultValue(false)]
+        public bool DisabledByMaterial { get; set; } = false;
     }
 }

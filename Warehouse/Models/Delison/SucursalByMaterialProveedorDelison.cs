@@ -36,5 +36,8 @@ namespace Warehouse.Models.Delison
 
         [Column("active")]
         public bool? Active { get; set; }
+
+        [Column("disabled_by_material")]
+        public bool DisabledByMaterial { get; set; } = false;
     }
 }

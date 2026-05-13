@@ -93,6 +93,13 @@ namespace Warehouse.Service
             //existing.Type = proveedor.Type;
             existing.Vigente = proveedor.Vigente;
             existing.Principal = proveedor.Principal;
+
+            // Si el active cambia manualmente, limpiar la memoria del cascade L1.
+            // Sólo CascadeMaterialActive debe marcar disabled_by_material = true.
+            if (existing.Active != proveedor.Active)
+            {
+                existing.DisabledByMaterial = false;
+            }
             existing.Active = proveedor.Active;
 
             await _context.SaveChangesAsync();
@@ -116,6 +123,8 @@ namespace Warehouse.Service
             if (proveedor == null) return false;
 
             proveedor.Active = !proveedor.Active;
+            // Cambio manual: limpiar memoria del cascade L1
+            proveedor.DisabledByMaterial = false;
             await _context.SaveChangesAsync();
             return true;
         }
@@ -153,6 +162,46 @@ namespace Warehouse.Service
 
             proveedor.Active = false;
             await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> CascadeMaterialActive(int materialId, bool activate)
+        {
+            if (activate)
+            {
+                // Nivel 2: reactivar los que fueron apagados por este material
+                await _context.Database.ExecuteSqlRawAsync(
+                    "UPDATE proveedorxtablas SET active = 1, disabled_by_material = 0 WHERE campo1 = {0} AND RTRIM(type) = 'MATERIAL' AND disabled_by_material = 1",
+                    materialId);
+
+                // Nivel 3: reactivar sucursales ligadas a esos proveedores
+                await _context.Database.ExecuteSqlRawAsync(
+                    @"UPDATE [Delison].[sucursalByMaterialProveedor]
+                      SET vigente = 1, disabled_by_material = 0
+                      WHERE id_materialByProveedor IN (
+                          SELECT id FROM proveedorxtablas WHERE campo1 = {0} AND RTRIM(type) = 'MATERIAL'
+                      )
+                      AND disabled_by_material = 1",
+                    materialId);
+            }
+            else
+            {
+                // Nivel 2: desactivar los que estén activos actualmente
+                await _context.Database.ExecuteSqlRawAsync(
+                    "UPDATE proveedorxtablas SET active = 0, disabled_by_material = 1 WHERE campo1 = {0} AND RTRIM(type) = 'MATERIAL' AND active = 1",
+                    materialId);
+
+                // Nivel 3: desactivar sucursales ligadas a esos proveedores
+                await _context.Database.ExecuteSqlRawAsync(
+                    @"UPDATE [Delison].[sucursalByMaterialProveedor]
+                      SET vigente = 0, disabled_by_material = 1
+                      WHERE id_materialByProveedor IN (
+                          SELECT id FROM proveedorxtablas WHERE campo1 = {0} AND RTRIM(type) = 'MATERIAL'
+                      )
+                      AND (vigente = 1 OR vigente IS NULL)",
+                    materialId);
+            }
+
             return true;
         }
 
@@ -230,6 +279,7 @@ namespace Warehouse.Service
         Task<bool> PatchCampo7(int campo1, int idTabla, bool valor);
         Task<bool> PatchCampo11(int campo1, int idTabla, string valor);
         Task<bool> DeactivateForMaterial(int campo1, int idTabla);
+        Task<bool> CascadeMaterialActive(int materialId, bool activate);
     }
 
      public class DetailFamily

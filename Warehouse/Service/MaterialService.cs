@@ -496,17 +496,10 @@ namespace Warehouse.Service
 
                 await _context.SaveChangesAsync();
 
-                // Sincronizar proveedores y sucursales al estado del material
-                if (material.Active.HasValue)
-                {
-                    int activeValue = material.Active == true ? 1 : 0;
-
-                    await _context.Database.ExecuteSqlRawAsync(
-                        "UPDATE proveedorxtablas SET active = {0} WHERE campo1 = {1}", activeValue, id);
-
-                    await _context.Database.ExecuteSqlRawAsync(
-                        "UPDATE s SET s.vigente = {0} FROM [Delison].[sucursalByMaterialProveedor] s INNER JOIN [dbo].[proveedorxtablas] p ON s.id_materialByProveedor = p.id WHERE p.campo1 = {1}", activeValue, id);
-                }
+                // NOTA: el cascade L1→L2→L3 con memoria (disabled_by_material) se maneja
+                // explícitamente desde el frontend via ProveedorXTablaService.CascadeMaterialActive.
+                // No hacer aquí un cascade bruto que sobrescribe todos los registros y borra
+                // el estado previo de los proveedores/sucursales apagados manualmente.
 
                 return existingItem;
             }
