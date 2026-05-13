@@ -678,6 +678,7 @@ namespace Warehouse.Service
                         oc.Folio,
                         Proveedor    = d.NameProvider ?? d.ProvInt ?? "",
                         Cantidad     = d.Quantity,
+                        Price       = d.Price,
                         CondEspecial = oc.Conditions ?? "",
                         Resta        = 0
                     }
