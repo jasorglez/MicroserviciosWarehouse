@@ -17,10 +17,13 @@ namespace Warehouse.Service.Delison
         public async Task<List<MoliendaDelison>> GetByCompany(int idCompany, string? type = null)
         {
             var query = _context.MoliendaDelison
-                .Where(m => m.IdCompany == idCompany && m.Active);
+                .Where(m => m.IdCompany == idCompany);
 
             if (!string.IsNullOrEmpty(type))
                 query = query.Where(m => m.Type == type);
+
+            query = query.OrderByDescending(m => m.Active)
+                         .ThenByDescending(m => m.DateModified);
 
             var items = await query.AsNoTracking().ToListAsync();
 
