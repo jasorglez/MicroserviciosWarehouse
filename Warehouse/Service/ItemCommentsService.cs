@@ -40,7 +40,7 @@ public class ItemCommentsService : IItemCommentsService
                 query = query.Where(c => c.NumArticle == numArticle);
         }
         else
-            query = query.Where(c => c.NumArticle == numArticle);
+            query = query.Where(c => c.NumArticle == numArticle && c.IdProvider == null);
 
         return await query.OrderBy(c => c.CreatedAt).ToListAsync();
     }

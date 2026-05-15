@@ -55,7 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.44 Fix: ShouldLockRequisicion contempla 'Finalizar Req' con todos negativos 2026-05-11" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.45 Fix: ItemComments.GetAsync agrega filtro IdProvider==null en consulta de artículos para evitar mezcla con comentarios de proveedor 2026-05-14" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
