@@ -431,7 +431,9 @@ namespace Warehouse.Service
                     return new { error = "Pedimento no encontrado" };
                 }
 
-                // Obtener los 3 proveedores del pedimento (slots A/B/C)
+                // ✅ Obtener TODOS los proveedores del pedimento (slots dinámicos N proveedores).
+                // Folio nuevo: COTIZ-{branchPrefix}-P{ped}-PRO{idProvider}. Ya no usamos -A-/-B-/-C-.
+                // Orden por Id ASC = orden de creación = slotIndex visual.
                 var proveedorCotizs = await _context.Ocandreqs
                     .Where(o => o.TypeReference == "delison" &&
                                 o.IdReference == pedimentoId &&
@@ -440,17 +442,14 @@ namespace Warehouse.Service
                     .AsNoTracking()
                     .ToListAsync();
 
-                var slotA = proveedorCotizs.FirstOrDefault(c => c.Folio.Contains("-A-"));
-                var slotB = proveedorCotizs.FirstOrDefault(c => c.Folio.Contains("-B-"));
-                var slotC = proveedorCotizs.FirstOrDefault(c => c.Folio.Contains("-C-"));
+                var slotsOrdered = proveedorCotizs
+                    .Where(c => c.IdProvider.HasValue && c.IdProvider > 0)
+                    .OrderBy(c => c.Id)
+                    .ToList();
 
-                var proveedores = new List<object>();
-                if (slotA != null && slotA.IdProvider.HasValue && slotA.IdProvider > 0)
-                    proveedores.Add(new { id = slotA.IdProvider.Value, nombre = slotA.Solicit ?? $"Proveedor {slotA.IdProvider}" });
-                if (slotB != null && slotB.IdProvider.HasValue && slotB.IdProvider > 0)
-                    proveedores.Add(new { id = slotB.IdProvider.Value, nombre = slotB.Solicit ?? $"Proveedor {slotB.IdProvider}" });
-                if (slotC != null && slotC.IdProvider.HasValue && slotC.IdProvider > 0)
-                    proveedores.Add(new { id = slotC.IdProvider.Value, nombre = slotC.Solicit ?? $"Proveedor {slotC.IdProvider}" });
+                var proveedores = slotsOrdered
+                    .Select(c => (object)new { id = c.IdProvider!.Value, nombre = c.Solicit ?? $"Proveedor {c.IdProvider}" })
+                    .ToList();
 
                 // Obtener items del pedimento (solo los solicitados)
                 var items = await _context.Detailsreqoc
@@ -460,16 +459,14 @@ namespace Warehouse.Service
                     .AsNoTracking()
                     .ToListAsync();
 
-                // Precargar todos los items de los 3 slots para evitar N+1 queries
-                var itemsSlotA = slotA != null ? await _context.Detailsreqoc
-                    .Where(d => d.IdMovement == slotA.Id && d.Active == true)
-                    .AsNoTracking().ToListAsync() : new List<Detailsreqoc>();
-                var itemsSlotB = slotB != null ? await _context.Detailsreqoc
-                    .Where(d => d.IdMovement == slotB.Id && d.Active == true)
-                    .AsNoTracking().ToListAsync() : new List<Detailsreqoc>();
-                var itemsSlotC = slotC != null ? await _context.Detailsreqoc
-                    .Where(d => d.IdMovement == slotC.Id && d.Active == true)
-                    .AsNoTracking().ToListAsync() : new List<Detailsreqoc>();
+                // Precargar items de cada slot dinámico en un dict (slotId → items)
+                var itemsBySlot = new Dictionary<int, List<Detailsreqoc>>();
+                foreach (var slot in slotsOrdered)
+                {
+                    itemsBySlot[slot.Id] = await _context.Detailsreqoc
+                        .Where(d => d.IdMovement == slot.Id && d.Active == true)
+                        .AsNoTracking().ToListAsync();
+                }
 
                 // Construir estructura de artículos con precios por proveedor
                 var articulos = new List<object>();
@@ -493,38 +490,18 @@ namespace Warehouse.Service
                                 (d.NameArticle ?? d.Observation ?? "").Trim().ToLower() == itemName)
                             : null);
 
-                    // Obtener precios, compra mínima, tiempo de entrega, cantidadConceptualizada y tipoOc de cada proveedor
-                    if (slotA != null && slotA.IdProvider.HasValue && slotA.IdProvider > 0)
+                    // ✅ Iterar dinámicamente sobre TODOS los slots (N proveedores)
+                    foreach (var slot in slotsOrdered)
                     {
-                        var precioA = FindMatch(itemsSlotA);
-                        precios[slotA.IdProvider.Value] = precioA?.Price ?? item.Price;
-                        comprasMinimas[slotA.IdProvider.Value] = (int)(precioA?.CompraMinima ?? item.CompraMinima ?? 1);
-                        tiemposEntrega[slotA.IdProvider.Value] = precioA?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
-                        cantidades[slotA.IdProvider.Value] = precioA?.CantidadConceptualizada ?? 0;
-                        tiposOc[slotA.IdProvider.Value] = precioA?.TypeOc ?? "";
-                        if (precioA != null) slotItemIds[slotA.IdProvider.Value] = precioA.Id;
-                    }
-
-                    if (slotB != null && slotB.IdProvider.HasValue && slotB.IdProvider > 0)
-                    {
-                        var precioB = FindMatch(itemsSlotB);
-                        precios[slotB.IdProvider.Value] = precioB?.Price ?? item.Price;
-                        comprasMinimas[slotB.IdProvider.Value] = (int)(precioB?.CompraMinima ?? item.CompraMinima ?? 1);
-                        tiemposEntrega[slotB.IdProvider.Value] = precioB?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
-                        cantidades[slotB.IdProvider.Value] = precioB?.CantidadConceptualizada ?? 0;
-                        tiposOc[slotB.IdProvider.Value] = precioB?.TypeOc ?? "";
-                        if (precioB != null) slotItemIds[slotB.IdProvider.Value] = precioB.Id;
-                    }
-
-                    if (slotC != null && slotC.IdProvider.HasValue && slotC.IdProvider > 0)
-                    {
-                        var precioC = FindMatch(itemsSlotC);
-                        precios[slotC.IdProvider.Value] = precioC?.Price ?? item.Price;
-                        comprasMinimas[slotC.IdProvider.Value] = (int)(precioC?.CompraMinima ?? item.CompraMinima ?? 1);
-                        tiemposEntrega[slotC.IdProvider.Value] = precioC?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
-                        cantidades[slotC.IdProvider.Value] = precioC?.CantidadConceptualizada ?? 0;
-                        tiposOc[slotC.IdProvider.Value] = precioC?.TypeOc ?? "";
-                        if (precioC != null) slotItemIds[slotC.IdProvider.Value] = precioC.Id;
+                        var idProv = slot.IdProvider!.Value;
+                        var slotItems = itemsBySlot[slot.Id];
+                        var precio = FindMatch(slotItems);
+                        precios[idProv] = precio?.Price ?? item.Price;
+                        comprasMinimas[idProv] = (int)(precio?.CompraMinima ?? item.CompraMinima ?? 1);
+                        tiemposEntrega[idProv] = precio?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
+                        cantidades[idProv] = precio?.CantidadConceptualizada ?? 0;
+                        tiposOc[idProv] = precio?.TypeOc ?? "";
+                        if (precio != null) slotItemIds[idProv] = precio.Id;
                     }
 
                     articulos.Add(new
@@ -547,9 +524,9 @@ namespace Warehouse.Service
                 }
 
                 // Verificar si la requisición vinculada está bloqueada (cubre el caso de Finalizar Req)
-                // Los COTIZs (slotA/B/C) tienen IdReq apuntando a la REQUIS padre
+                // Los COTIZs (slots) tienen IdReq apuntando a la REQUIS padre
                 var requisicionLocked = false;
-                var reqId = (int?)(slotA?.IdReq ?? slotB?.IdReq ?? slotC?.IdReq) ?? 0;
+                var reqId = slotsOrdered.FirstOrDefault()?.IdReq ?? 0;
                 if (reqId > 0)
                 {
                     var requisicion = await _context.Ocandreqs
