@@ -155,7 +155,7 @@ namespace Warehouse.Service.Delison
 
                 // Filtra los artículos finales: deben pertenecer a las subfamilias, estar vigentes, no ser el artículo maestro mismo y no existir ya en el desglose.
                 var result = await _context.MaterialWithCounts
-                    .Where(m => idsItems.Contains(m.IdSubfamilia) && m.Active == true && m.Id != idMasterFamily && !existentes.Contains(m.Id)  )
+                    .Where(m => m.IdSubfamilia.HasValue && idsItems.Contains(m.IdSubfamilia.Value) && m.Active == true && m.Id != idMasterFamily && !existentes.Contains(m.Id)  )
                     .OrderBy(m => m.Articulo)
                     .AsNoTracking()
                     .ToListAsync();
