@@ -43,7 +43,7 @@ namespace Warehouse.Service.Delison
         public async Task<List<MaterialXModulo>> GetByCatalog(int idCompany, int idCatalog)
         {
             return await _context.MaterialXModulos
-                .Where(m => m.Active && m.IdCompany == idCompany && m.IdCatalog == idCatalog)
+                .Where(m => m.IdCompany == idCompany && m.IdCatalog == idCatalog)
                 .ToListAsync();
         }
 
@@ -70,6 +70,7 @@ namespace Warehouse.Service.Delison
             existing.Cantidad   = entity.Cantidad;
             existing.Type       = entity.Type;
             existing.IdCatalog  = entity.IdCatalog;
+            existing.EditBultos  = entity.EditBultos;
             existing.Active     = entity.Active;
 
             await _context.SaveChangesAsync();

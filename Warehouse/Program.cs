@@ -99,6 +99,7 @@ builder.Services.AddScoped<IProviderTypeService, ProviderTypeService>();
 builder.Services.AddScoped<IItemCommentsService, ItemCommentsService>();
 builder.Services.AddScoped<IOcandreqService, OcandreqService>();
 builder.Services.AddScoped<IInandoutService, InandoutService>();
+builder.Services.AddScoped<IIntandoutDocumentsService, IntandoutDocumentsService>();
 builder.Services.AddScoped<IDetailsreqocService, DetailsreqocService>();
 builder.Services.AddScoped<IDetailsinandoutService, DetailsinandoutService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();  
