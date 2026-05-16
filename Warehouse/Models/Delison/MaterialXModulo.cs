@@ -15,6 +15,9 @@ namespace Warehouse.Models.Delison
         [Column("id_articulo")]
         public int IdArticulo { get; set; }
 
+        [Column("editBultos")]
+        public bool EditBultos { get; set; }
+
         [Column("cantidad")]
         public int Cantidad { get; set; }
 
