@@ -104,9 +104,14 @@ namespace Warehouse.Service.Delison
         public async Task<bool> Delete(int id)
         {
             var existing = await _context.MoliendaDelison.FindAsync(id);
-            if (existing == null) return false;
-            existing.Active = false;
+
+            if (existing == null)
+                return false;
+
+            _context.MoliendaDelison.Remove(existing);
+
             await _context.SaveChangesAsync();
+
             return true;
         }
     }
