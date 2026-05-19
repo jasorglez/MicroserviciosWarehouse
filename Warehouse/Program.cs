@@ -55,7 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.45 Fix: ItemComments.GetAsync agrega filtro IdProvider==null en consulta de artículos para evitar mezcla con comentarios de proveedor 2026-05-14" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.52 Fix: MaterialWithCount.IdCategory e IdSubfamilia ahora nullable - evita SqlNullValueException por materiales huerfanos tras hard delete 2026-05-15" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
