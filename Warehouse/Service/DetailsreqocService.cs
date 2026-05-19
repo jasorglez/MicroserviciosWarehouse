@@ -38,35 +38,40 @@ namespace Warehouse.Service
                         dmc => dmc.Catalogs.DefaultIfEmpty(),
                         (dmc, c) => new
                         {
-                            dmc.Details.Id,
-                            dmc.Details.Recurrent,
-                            dmc.Details.Observation,
-                            dmc.Details.IdMovement,
-                            dmc.Details.IdSupplie,
+                            id = dmc.Details.Id,
+                            recurrent = dmc.Details.Recurrent,
+                            observation = dmc.Details.Observation,
+                            idMovement = dmc.Details.IdMovement,
+                            idSupplie = dmc.Details.IdSupplie,
                             code = dmc.Material != null ? dmc.Material.Insumo : string.Empty,
                             description = dmc.Material != null ? dmc.Material.Description : string.Empty,
-                            measure = c != null ? c.Description : string.Empty,  // Descripción de la unidad de medida
-                            dmc.Details.Quantity,
-                            dmc.Details.Price,
-                            dmc.Details.Total,
-                            dmc.Details.Intorext,
-                            dmc.Details.Type,
-                            dmc.Details.IdProvider,
-                            dmc.Details.NameProvider,
-                            dmc.Details.DescriptionNewArticle,
-                            dmc.Details.UrlNewArticle,
-                            dmc.Details.JustificationNewArticle,
-                            dmc.Details.Comment,
-                            dmc.Details.Dateuse,dmc.Details.Pedimento,dmc.Details.PedimentoNum,
-                            dmc.Details.NameArticle,
-                            dmc.Details.NumArticle,
-                            dmc.Details.TypePriority,
-                            dmc.Details.TiempoEntrega,
-                            dmc.Details.CompraMinima,
-                            dmc.Details.Autorizado,
-                            dmc.Details.Active,
-                            dmc.Details.TypeOc,
-                            dmc.Details.DatePostpone
+                            measure = c != null ? c.Description : string.Empty,
+                            quantity = dmc.Details.Quantity,
+                            price = dmc.Details.Price,
+                            total = dmc.Details.Total,
+                            intorext = dmc.Details.Intorext,
+                            type = dmc.Details.Type,
+                            idProvider = dmc.Details.IdProvider,
+                            nameProvider = dmc.Details.NameProvider,
+                            descriptionNewArticle = dmc.Details.DescriptionNewArticle,
+                            urlNewArticle = dmc.Details.UrlNewArticle,
+                            justificationNewArticle = dmc.Details.JustificationNewArticle,
+                            comment = dmc.Details.Comment,
+                            dateuse = dmc.Details.Dateuse,
+                            pedimento = dmc.Details.Pedimento,
+                            pedimentoNum = dmc.Details.PedimentoNum,
+                            namearticle = dmc.Details.NameArticle,
+                            numarticle = dmc.Details.NumArticle,
+                            typePriority = dmc.Details.TypePriority,
+                            tiempoEntrega = dmc.Details.TiempoEntrega,
+                            compraMinima = dmc.Details.CompraMinima,
+                            autorizado = dmc.Details.Autorizado,
+                            active = dmc.Details.Active,
+                            typeoc = dmc.Details.TypeOc,
+                            datepostpone = dmc.Details.DatePostpone,
+                            caducidad = dmc.Details.Caducidad,
+                            caducidadMinimaRequerida = dmc.Details.CaducidadMinimaRequerida,
+                            compraRapida = dmc.Details.CompraRapida
                         })
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -105,7 +110,7 @@ namespace Warehouse.Service
             return result;
         }
 
-        public async Task Save(Detailsreqoc detail)
+        public async Task<Detailsreqoc?> Save(Detailsreqoc detail)
         {
             try
             {
@@ -114,6 +119,8 @@ namespace Warehouse.Service
 
                 // ✅ Actualizar DateModified de la requisición padre
                 await UpdateParentRequisitionModified(detail.IdMovement);
+
+                return detail;
             }
             catch (Exception ex)
             {
@@ -330,7 +337,7 @@ namespace Warehouse.Service
     {
         Task<List<object>> GetDetails(int idMovement);
         Task<List<PurchaseOrderDetail>> GetPurchaseOrderDetailsQuery(int idProv);
-        Task Save(Detailsreqoc detail);
+        Task<Detailsreqoc?> Save(Detailsreqoc detail);
         Task SaveBulk(List<Detailsreqoc> details);
         Task<Detailsreqoc?> Update(int id, Detailsreqoc detail);
         Task<bool> Delete(int id);

@@ -33,4 +33,7 @@ public class ItemComment
 
     [Column("active")]
     public bool Active { get; set; } = true;
+
+    [Column("id_provider")]
+    public int? IdProvider { get; set; }
 }

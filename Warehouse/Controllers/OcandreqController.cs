@@ -91,8 +91,8 @@ namespace Warehouse.Controllers
 
             try
             {
-                await _service.Save(ocandreq);
-                return Ok(ocandreq);
+                var savedOcandreq = await _service.Save(ocandreq);
+                return Ok(savedOcandreq);
             }
             catch (Exception ex)
             {
@@ -185,6 +185,7 @@ namespace Warehouse.Controllers
         [HttpPatch("{id}/lock")]
         public async Task<IActionResult> SetLocked(int id, [FromBody] LockRequest request)
         {
+            _logger.LogInformation("🔒 Controller SetLocked - URL id={UrlId}, body.Locked={BodyLocked}", id, request?.Locked);
             try
             {
                 var result = await _service.SetLocked(id, request.Locked);
@@ -192,6 +193,7 @@ namespace Warehouse.Controllers
                 {
                     return NotFound($"Order with ID {id} not found");
                 }
+                _logger.LogInformation("🔒 Controller SetLocked Returning - id={Id}, returnedLocked={Locked}", result.Id, result.Locked);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -236,6 +238,126 @@ namespace Warehouse.Controllers
             {
                 _logger.LogError(ex, "Error setting total for Order with ID {Id}", id);
                 return StatusCode(500, "An error occurred while updating the total");
+            }
+        }
+
+        [HttpGet("oc-by-req-material")]
+        public async Task<IActionResult> GetOcsByReqMaterial([FromQuery] int idReq, [FromQuery] int idMaterial, [FromQuery] string? depts = null)
+        {
+            try
+            {
+                var result = await _service.GetOcsByReqMaterial(idReq, idMaterial, depts);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for req {IdReq} material {IdMaterial}", idReq, idMaterial);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("reqs-by-branch-material")]
+        public async Task<IActionResult> GetReqsByBranchMaterial([FromQuery] int idBranch, [FromQuery] int idMaterial, [FromQuery] string? depts = null)
+        {
+            try
+            {
+                var result = await _service.GetReqsByBranchMaterial(idBranch, idMaterial, depts);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting reqs for branch {IdBranch} material {IdMaterial}", idBranch, idMaterial);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("ocs-by-requisition")]
+        public async Task<IActionResult> GetOcsByRequisition([FromQuery] int? idRequisition)
+        {
+            try
+            {
+                var result = await _service.GetOcsByRequisition(idRequisition);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for requisition {IdRequisition}", idRequisition);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("ocs-details-by-requisition")]
+        public async Task<IActionResult> GetOcsDetailsForRequisition([FromQuery] int? idRequisition)
+        {
+            try
+            {
+                var result = await _service.GetOcsDetailsForRequisition(idRequisition);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OC details for requisition {IdRequisition}", idRequisition);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("ocs-by-branch")]
+        public async Task<IActionResult> GetOcsByBranch([FromQuery] int idBranch)
+        {
+            try
+            {
+                var result = await _service.GetOcsByBranch(idBranch);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for branch {IdBranch}", idBranch);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("pedimentos-by-requisicion")]
+        public async Task<IActionResult> GetPedimentosByRequisicion([FromQuery] int idRequisicion)
+        {
+            try
+            {
+                var result = await _service.GetPedimentosByRequisicion(idRequisicion);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pedimentos for requisicion {IdRequisicion}", idRequisicion);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("ocs-by-pedimento")]
+        public async Task<IActionResult> GetOcsByPedimento([FromQuery] int idPedimento)
+        {
+            try
+            {
+                var result = await _service.GetOcsByPedimento(idPedimento);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for pedimento {IdPedimento}", idPedimento);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("{idReq}/should-lock")]
+        public async Task<IActionResult> ShouldLockRequisicion(int idReq)
+        {
+            try
+            {
+                var result = await _service.ShouldLockRequisicion(idReq);
+                return Ok(new { shouldLock = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking should-lock for requisicion {IdReq}", idReq);
+                return StatusCode(500, "Internal server error");
             }
         }
 

@@ -18,16 +18,22 @@ public class ItemCommentsController : ControllerBase
     }
 
     // GET api/ItemComments?documentType=REQ&idDocument=5&numArticle=ABC-01
+    // GET api/ItemComments?documentType=REQ&idDocument=5&idProvider=3119
     [HttpGet]
-    public async Task<IActionResult> Get([FromQuery] string documentType, [FromQuery] int idDocument, [FromQuery] string? numArticle)
+    public async Task<IActionResult> Get([FromQuery] string documentType, [FromQuery] int idDocument, [FromQuery] string? numArticle, [FromQuery] int? idProvider = null)
     {
+        if (idProvider.HasValue)
+        {
+            var comments = await _service.GetAsync(documentType, idDocument, numArticle ?? "", idProvider);
+            return Ok(comments);
+        }
         if (string.IsNullOrEmpty(numArticle))
         {
             var flags = await _service.GetFlagsAsync(documentType, idDocument);
             return Ok(flags);
         }
-        var comments = await _service.GetAsync(documentType, idDocument, numArticle);
-        return Ok(comments);
+        var articleComments = await _service.GetAsync(documentType, idDocument, numArticle);
+        return Ok(articleComments);
     }
 
     // POST api/ItemComments

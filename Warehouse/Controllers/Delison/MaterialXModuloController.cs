@@ -49,6 +49,21 @@ namespace Warehouse.Controllers.Delison
             }
         }
 
+        [HttpGet("ByCatalog")]
+        public async Task<IActionResult> GetByCatalog([FromQuery] int idCompany, [FromQuery] int idCatalog)
+        {
+            try
+            {
+                var result = await _service.GetByCatalog(idCompany, idCatalog);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving MaterialXModulo by catalog {IdCatalog} for company {IdCompany}", idCatalog, idCompany);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {

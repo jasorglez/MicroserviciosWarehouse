@@ -116,13 +116,13 @@ namespace Warehouse.Models
         [Column("fecha")]
         public DateTime? Fecha { get; set; }
 
-        [Column("vigente")]
-        [DefaultValue(true)]
-        public bool? Vigente { get; set; }
-
         [Column("active")]
         [DefaultValue(true)]
         public bool? Active { get; set; }
+
+        [Column("porAutorizar")]
+        [DefaultValue(false)]
+        public bool? PorAutorizar { get; set; }
 
         [Column("costo", TypeName = "DECIMAL(18,2)")]
         public decimal? Costo { get; set; }

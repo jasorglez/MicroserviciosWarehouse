@@ -1,4 +1,4 @@
-﻿
+
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -47,14 +47,14 @@ namespace Warehouse.Models
         public string? NameArticle { get; set; }
 
         [Column("numarticle", TypeName = "varchar(20)")]
-        public string? NumArticle { get; set; } = "numarticle";
-        
+        public string? NumArticle { get; set; }
+
         [Column("description_new_article")]
         public string? DescriptionNewArticle { get; set; }
-        
+
         [Column("url_new_article")]
         public string? UrlNewArticle { get; set; }
-        
+
         [Column("justification_new_article")]
         public string? JustificationNewArticle { get; set; }
 
@@ -79,7 +79,7 @@ namespace Warehouse.Models
         [Column("comment")]
         public string? Comment { get; set; }
 
-        [Column("tiempoentrega", TypeName = "varchar(20)")]
+        [Column("tiempoentrega")]
         public string? TiempoEntrega { get; set; }
 
         [Column("compraminima")]
@@ -99,5 +99,14 @@ namespace Warehouse.Models
 
         [Column("cantidadconceptualizada", TypeName = "decimal(16,2)")]
         public decimal? CantidadConceptualizada { get; set; }
+
+        [Column("caducidad", TypeName = "varchar(40)")]
+        public string? Caducidad { get; set; }
+
+        [Column("caducidad_minima_requerida", TypeName = "varchar(255)")]
+        public string? CaducidadMinimaRequerida { get; set; }
+
+        [Column("comprarapida")]
+        public bool? CompraRapida { get; set; } = false;
     }
 }

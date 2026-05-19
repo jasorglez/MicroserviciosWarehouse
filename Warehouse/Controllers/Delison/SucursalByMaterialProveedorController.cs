@@ -86,7 +86,17 @@ namespace Warehouse.Controllers.Delison
             }
         }
 
+        [HttpPatch("tiempo-entrega/by-material-proveedor-sucursal/{idMaterial:int}/{idProveedor:int}/{idSucursal:int}")]
+        public async Task<ActionResult> PatchTiempoDeEntrega(int idMaterial, int idProveedor, int idSucursal, [FromBody] PatchTiempoDeEntregaRequest body)
+        {
+            if (idMaterial <= 0 || idProveedor <= 0 || idSucursal <= 0)
+                return BadRequest("Invalid idMaterial, idProveedor or idSucursal");
 
+            var result = await _service.PatchTiempoDeEntrega(idMaterial, idProveedor, idSucursal, body?.Valor ?? 0);
+            return result ? Ok(new { message = "TiempoDeEntrega updated" }) : NotFound();
+        }
+
+        public class PatchTiempoDeEntregaRequest { public int Valor { get; set; } = 0; }
 
         // removed nested Detail class to avoid type conflict with SucursalByMaterialProveedor
 

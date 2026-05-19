@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Warehouse.Models;
+using Warehouse.Models.Delison;
 
 namespace Warehouse.Service;
 
@@ -14,11 +14,11 @@ public class DetailsMoliendaService : IDetailsMoliendaService
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<List<DetailsMolienda>> GetByMoliendaAsync(int idMolienda, string type)
+    public async Task<List<DetailsMoliendaDelison>> GetByMoliendaAsync(int idMolienda, string type)
     {
         try
         {
-            return await _context.DetailsMolienda
+            return await _context.DetailsMoliendaDelison
                 .Where(d => d.IdMolienda == idMolienda && d.Type == type.ToUpper() && d.Active)
                 .OrderBy(d => d.Fecha)
                 .AsNoTracking()
@@ -31,11 +31,11 @@ public class DetailsMoliendaService : IDetailsMoliendaService
         }
     }
 
-    public async Task<DetailsMolienda?> GetByIdAsync(int id)
+    public async Task<DetailsMoliendaDelison?> GetByIdAsync(int id)
     {
         try
         {
-            return await _context.DetailsMolienda
+            return await _context.DetailsMoliendaDelison
                 .AsNoTracking()
                 .FirstOrDefaultAsync(d => d.Id == id && d.Active);
         }
@@ -46,12 +46,12 @@ public class DetailsMoliendaService : IDetailsMoliendaService
         }
     }
 
-    public async Task<DetailsMolienda> CreateAsync(DetailsMolienda detail)
+    public async Task<DetailsMoliendaDelison> CreateAsync(DetailsMoliendaDelison detail)
     {
         try
         {
             detail.Type = detail.Type.ToUpper();
-            _context.DetailsMolienda.Add(detail);
+            _context.DetailsMoliendaDelison.Add(detail);
             await _context.SaveChangesAsync();
 
             await UpdateParentCountAsync(detail.IdMolienda);
@@ -64,11 +64,11 @@ public class DetailsMoliendaService : IDetailsMoliendaService
         }
     }
 
-    public async Task<DetailsMolienda?> UpdateAsync(int id, DetailsMolienda detail)
+    public async Task<DetailsMoliendaDelison?> UpdateAsync(int id, DetailsMoliendaDelison detail)
     {
         try
         {
-            var existing = await _context.DetailsMolienda.FindAsync(id);
+            var existing = await _context.DetailsMoliendaDelison.FindAsync(id);
             if (existing == null) return null;
 
             existing.Fecha     = detail.Fecha;
@@ -90,7 +90,7 @@ public class DetailsMoliendaService : IDetailsMoliendaService
     {
         try
         {
-            var existing = await _context.DetailsMolienda.FindAsync(id);
+            var existing = await _context.DetailsMoliendaDelison.FindAsync(id);
             if (existing == null) return false;
 
             existing.Active = false;
@@ -106,30 +106,29 @@ public class DetailsMoliendaService : IDetailsMoliendaService
         }
     }
 
-    // Recalcula conteos y totalInventarios en el registro maestro
     private async Task UpdateParentCountAsync(int idMolienda)
     {
-        var parent = await _context.Molienda.FindAsync(idMolienda);
+        var parent = await _context.MoliendaDelison.FindAsync(idMolienda);
         if (parent == null) return;
 
-        parent.Entradas = await _context.DetailsMolienda
+        parent.Entradas = await _context.DetailsMoliendaDelison
             .CountAsync(d => d.IdMolienda == idMolienda && d.Type == "ENTRADA" && d.Active);
 
-        parent.Salidas = await _context.DetailsMolienda
+        parent.Salidas = await _context.DetailsMoliendaDelison
             .CountAsync(d => d.IdMolienda == idMolienda && d.Type == "SALIDA" && d.Active);
 
-        var sumEntradas = await _context.DetailsMolienda
+        var sumEntradas = await _context.DetailsMoliendaDelison
             .Where(d => d.IdMolienda == idMolienda && d.Type == "ENTRADA" && d.Active)
             .SumAsync(d => (decimal?)d.Cantidad) ?? 0;
 
-        var sumSalidas = await _context.DetailsMolienda
+        var sumSalidas = await _context.DetailsMoliendaDelison
             .Where(d => d.IdMolienda == idMolienda && d.Type == "SALIDA" && d.Active)
             .SumAsync(d => (decimal?)d.Cantidad) ?? 0;
 
         parent.TotalEntradas    = sumEntradas;
         parent.TotalSalidas     = sumSalidas;
         parent.TotalInventarios = (int)(sumEntradas - sumSalidas);
-        parent.DateModified = DateTime.Now;
+        parent.DateModified     = DateTime.Now;
 
         await _context.SaveChangesAsync();
     }
@@ -137,9 +136,9 @@ public class DetailsMoliendaService : IDetailsMoliendaService
 
 public interface IDetailsMoliendaService
 {
-    Task<List<DetailsMolienda>> GetByMoliendaAsync(int idMolienda, string type);
-    Task<DetailsMolienda?> GetByIdAsync(int id);
-    Task<DetailsMolienda> CreateAsync(DetailsMolienda detail);
-    Task<DetailsMolienda?> UpdateAsync(int id, DetailsMolienda detail);
+    Task<List<DetailsMoliendaDelison>> GetByMoliendaAsync(int idMolienda, string type);
+    Task<DetailsMoliendaDelison?> GetByIdAsync(int id);
+    Task<DetailsMoliendaDelison> CreateAsync(DetailsMoliendaDelison detail);
+    Task<DetailsMoliendaDelison?> UpdateAsync(int id, DetailsMoliendaDelison detail);
     Task<bool> DeleteAsync(int id);
 }

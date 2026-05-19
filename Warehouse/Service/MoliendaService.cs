@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Warehouse.Models;
+using Warehouse.Models.Delison;
 
 namespace Warehouse.Service;
 
@@ -18,7 +18,7 @@ public class MoliendaService : IMoliendaService
     {
         try
         {
-            return await _context.Molienda
+            return await _context.MoliendaDelison
                 .Where(m => m.Active && m.IdCompany == idCompany)
                 .OrderByDescending(m => m.DateModified)
                 .Select(m => (object)new
@@ -27,21 +27,21 @@ public class MoliendaService : IMoliendaService
                     m.IdCompany,
                     m.IdSucursal,
                     m.IdMaterial,
-                    Entradas = _context.DetailsMolienda
+                    Entradas = _context.DetailsMoliendaDelison
                         .Count(d => d.IdMolienda == m.Id && d.Type == "ENTRADA" && d.Active),
-                    Salidas = _context.DetailsMolienda
+                    Salidas = _context.DetailsMoliendaDelison
                         .Count(d => d.IdMolienda == m.Id && d.Type == "SALIDA" && d.Active),
-                    TotalEntradas = _context.DetailsMolienda
+                    TotalEntradas = _context.DetailsMoliendaDelison
                         .Where(d => d.IdMolienda == m.Id && d.Type == "ENTRADA" && d.Active)
                         .Sum(d => (decimal?)d.Cantidad) ?? 0,
-                    TotalSalidas = _context.DetailsMolienda
+                    TotalSalidas = _context.DetailsMoliendaDelison
                         .Where(d => d.IdMolienda == m.Id && d.Type == "SALIDA" && d.Active)
                         .Sum(d => (decimal?)d.Cantidad) ?? 0,
                     TotalInventarios = (int?)(
-                        _context.DetailsMolienda
+                        _context.DetailsMoliendaDelison
                             .Where(d => d.IdMolienda == m.Id && d.Type == "ENTRADA" && d.Active)
                             .Sum(d => (decimal?)d.Cantidad) -
-                        _context.DetailsMolienda
+                        _context.DetailsMoliendaDelison
                             .Where(d => d.IdMolienda == m.Id && d.Type == "SALIDA" && d.Active)
                             .Sum(d => (decimal?)d.Cantidad)),
                     m.AjustesInventarios,
@@ -58,11 +58,11 @@ public class MoliendaService : IMoliendaService
         }
     }
 
-    public async Task<Molienda?> GetByIdAsync(int id)
+    public async Task<MoliendaDelison?> GetByIdAsync(int id)
     {
         try
         {
-            return await _context.Molienda
+            return await _context.MoliendaDelison
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.Id == id && m.Active);
         }
@@ -73,12 +73,12 @@ public class MoliendaService : IMoliendaService
         }
     }
 
-    public async Task<Molienda> CreateAsync(Molienda molienda)
+    public async Task<MoliendaDelison> CreateAsync(MoliendaDelison molienda)
     {
         try
         {
             molienda.DateModified = DateTime.Now;
-            _context.Molienda.Add(molienda);
+            _context.MoliendaDelison.Add(molienda);
             await _context.SaveChangesAsync();
             return molienda;
         }
@@ -89,19 +89,19 @@ public class MoliendaService : IMoliendaService
         }
     }
 
-    public async Task<Molienda?> UpdateAsync(int id, Molienda molienda)
+    public async Task<MoliendaDelison?> UpdateAsync(int id, MoliendaDelison molienda)
     {
         try
         {
-            var existing = await _context.Molienda.FindAsync(id);
+            var existing = await _context.MoliendaDelison.FindAsync(id);
             if (existing == null) return null;
 
-            existing.IdSucursal          = molienda.IdSucursal;
-            existing.IdMaterial          = molienda.IdMaterial;
-            existing.AjustesInventarios  = molienda.AjustesInventarios;
-            existing.Comentarios         = molienda.Comentarios;
-            existing.Active              = molienda.Active;
-            existing.DateModified        = DateTime.Now;
+            existing.IdSucursal         = molienda.IdSucursal;
+            existing.IdMaterial         = molienda.IdMaterial;
+            existing.AjustesInventarios = molienda.AjustesInventarios;
+            existing.Comentarios        = molienda.Comentarios;
+            existing.Active             = molienda.Active;
+            existing.DateModified       = DateTime.Now;
 
             await _context.SaveChangesAsync();
             return existing;
@@ -117,7 +117,7 @@ public class MoliendaService : IMoliendaService
     {
         try
         {
-            var existing = await _context.Molienda.FindAsync(id);
+            var existing = await _context.MoliendaDelison.FindAsync(id);
             if (existing == null) return false;
 
             existing.Active = false;
@@ -136,8 +136,8 @@ public class MoliendaService : IMoliendaService
 public interface IMoliendaService
 {
     Task<List<object>> GetAllAsync(int idCompany);
-    Task<Molienda?> GetByIdAsync(int id);
-    Task<Molienda> CreateAsync(Molienda molienda);
-    Task<Molienda?> UpdateAsync(int id, Molienda molienda);
+    Task<MoliendaDelison?> GetByIdAsync(int id);
+    Task<MoliendaDelison> CreateAsync(MoliendaDelison molienda);
+    Task<MoliendaDelison?> UpdateAsync(int id, MoliendaDelison molienda);
     Task<bool> DeleteAsync(int id);
 }

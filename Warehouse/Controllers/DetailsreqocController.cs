@@ -79,8 +79,8 @@ namespace Warehouse.Controllers
 
             try
             {
-                await _service.Save(detail);
-                return Ok(detail);
+                var savedDetail = await _service.Save(detail);
+                return Ok(savedDetail);
             }
             catch (Exception ex)
             {
