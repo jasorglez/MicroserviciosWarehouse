@@ -468,6 +468,22 @@ namespace Warehouse.Service
                         .AsNoTracking().ToListAsync();
                 }
 
+                // ✅ Precargar Insumo (Num Mat) actual del maestro materials para evitar snapshots desactualizados
+                // Cuando se regenera el Num Mat en materiales-maestro (cambio de cat/fam/sub), el snapshot
+                // en detailsreqoc.NumArticle queda obsoleto. Aquí devolvemos siempre el valor vigente del maestro.
+                var idSuppliesUnique = items
+                    .Where(i => i.IdSupplie > 0)
+                    .Select(i => i.IdSupplie)
+                    .Distinct()
+                    .ToList();
+
+                var materialsInsumoMap = idSuppliesUnique.Count > 0
+                    ? await _context.Materials
+                        .Where(m => idSuppliesUnique.Contains(m.Id))
+                        .AsNoTracking()
+                        .ToDictionaryAsync(m => m.Id, m => m.Insumo)
+                    : new Dictionary<int, string?>();
+
                 // Construir estructura de artículos con precios por proveedor
                 var articulos = new List<object>();
 
@@ -504,12 +520,21 @@ namespace Warehouse.Service
                         if (precio != null) slotItemIds[idProv] = precio.Id;
                     }
 
+                    // Usar Insumo vigente del maestro si está disponible; fallback al snapshot
+                    string liveNumArticle = item.NumArticle ?? "";
+                    if (item.IdSupplie > 0 &&
+                        materialsInsumoMap.TryGetValue(item.IdSupplie, out var insumoActual) &&
+                        !string.IsNullOrWhiteSpace(insumoActual))
+                    {
+                        liveNumArticle = insumoActual;
+                    }
+
                     articulos.Add(new
                     {
                         id = item.Id,
                         idSupplie = item.IdSupplie,
                         nombre = item.NameArticle ?? item.Observation ?? "",
-                        numArticle = item.NumArticle ?? "",
+                        numArticle = liveNumArticle,
                         cantidad = item.Quantity,
                         compraMinima = (int)(item.CompraMinima ?? 1),
                         recurrent = item.Recurrent ?? "Recurrente",

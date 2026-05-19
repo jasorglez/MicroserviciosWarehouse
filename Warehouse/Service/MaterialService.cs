@@ -452,6 +452,34 @@ namespace Warehouse.Service
             }
         }
 
+        // Genera el num-mat (insumo) a partir de la clasificación: abrCat+abrFam+abrSub-####.
+        // Mismo criterio que Save(): -0001 si no hay materiales con esa subfamilia, sino incrementa el último.
+        private async Task<string> GenerarInsumoCode(int? idCompany, int? idCategory, int? idFamilia, int? idSubfamilia)
+        {
+            var materials = await _context.Materials
+                .Where(m => m.Active == true && m.IdCompany == idCompany && m.IdSubfamilia == idSubfamilia)
+                .ToListAsync();
+
+            if (materials.Count == 0)
+            {
+                var cat = await _context.Catalogs.Where(c => c.Id == idCategory).FirstOrDefaultAsync();
+                var fam = await _context.Catalogs.Where(c => c.Id == idFamilia).FirstOrDefaultAsync();
+                var subfam = await _context.Catalogs.Where(c => c.Id == idSubfamilia).FirstOrDefaultAsync();
+                return cat?.ValueAddition2 + fam?.ValueAddition2 + subfam?.ValueAddition2 + "-0001";
+            }
+
+            var ultimo = materials.LastOrDefault();
+            var partes = (ultimo?.Insumo ?? "").Split('-');
+            if (partes.Length == 2 && int.TryParse(partes[1], out int numero))
+            {
+                numero++;
+                var nuevoNumero = numero.ToString(new string('0', partes[1].Length));
+                return $"{partes[0]}-{nuevoNumero}";
+            }
+
+            return "";
+        }
+
         public async Task<Material?> Update(int id, Material material)
         {
             var existingItem = await _context.Materials.FindAsync(id);
@@ -464,6 +492,11 @@ namespace Warehouse.Service
             try
             {
                 _logger.LogInformation("🔍 Update() Material {Id}: PorAutorizar recibido={PorAutorizar}", id, material.PorAutorizar);
+
+                // Clasificación previa: si cambia, se regenera el num-mat (insumo) más abajo.
+                var oldCategory = existingItem.IdCategory;
+                var oldFamilia = existingItem.IdFamilia;
+                var oldSubfamilia = existingItem.IdSubfamilia;
 
                 // Solo actualizar campos que vienen con valor (partial update / merge)
                 // Esto permite ediciones parciales sin perder datos existentes
@@ -493,6 +526,23 @@ namespace Warehouse.Service
                 if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
                 if (material.Active.HasValue) existingItem.Active = material.Active;
                 if (material.PorAutorizar.HasValue) existingItem.PorAutorizar = material.PorAutorizar;
+
+                // Si cambió la clasificación (categoría/familia/subfamilia), regenerar el num-mat (insumo).
+                bool clasificacionCambio =
+                    existingItem.IdCategory != oldCategory ||
+                    existingItem.IdFamilia != oldFamilia ||
+                    existingItem.IdSubfamilia != oldSubfamilia;
+                if (clasificacionCambio)
+                {
+                    var nuevoInsumo = await GenerarInsumoCode(
+                        existingItem.IdCompany, existingItem.IdCategory,
+                        existingItem.IdFamilia, existingItem.IdSubfamilia);
+                    if (!string.IsNullOrEmpty(nuevoInsumo))
+                    {
+                        existingItem.Insumo = nuevoInsumo;
+                        _logger.LogInformation("Material {Id}: insumo regenerado a {Insumo}", id, nuevoInsumo);
+                    }
+                }
 
                 await _context.SaveChangesAsync();
 
