@@ -167,6 +167,16 @@ namespace Warehouse.Controllers
             return result ? Ok(new { message = "Campo7 updated" }) : NotFound();
         }
 
+        [HttpPatch("principal/by-material-provider/{campo1:int}/{idTabla:int}")]
+        public async Task<ActionResult> PatchPrincipal(int campo1, int idTabla, [FromBody] bool valor)
+        {
+            if (campo1 <= 0 || idTabla <= 0)
+                return BadRequest("Invalid campo1 or idTabla");
+
+            var result = await _service.PatchPrincipal(campo1, idTabla, valor);
+            return result ? Ok(new { message = "Principal updated" }) : NotFound();
+        }
+
         [HttpPatch("campo11/by-material-provider/{campo1:int}/{idTabla:int}")]
         public async Task<ActionResult> PatchCampo11(int campo1, int idTabla, [FromBody] PatchCampo11Request body)
         {

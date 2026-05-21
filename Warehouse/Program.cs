@@ -55,7 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.52 Fix: MaterialWithCount.IdCategory e IdSubfamilia ahora nullable - evita SqlNullValueException por materiales huerfanos tras hard delete 2026-05-15" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.53 feat: MaterialService.Update regenera num-mat (insumo) al cambiar categoria/familia/subfamilia 2026-05-18" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
