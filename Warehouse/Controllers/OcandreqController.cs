@@ -241,6 +241,25 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpPatch("{id}/total-pedimento")]
+        public async Task<IActionResult> SetTotalPedimento(int id, [FromBody] TotalPedimentoRequest request)
+        {
+            try
+            {
+                var result = await _service.SetTotalPedimento(id, request.TotalPedimento);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting total_pedimento for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the total_pedimento");
+            }
+        }
+
         [HttpGet("oc-by-req-material")]
         public async Task<IActionResult> GetOcsByReqMaterial([FromQuery] int idReq, [FromQuery] int idMaterial, [FromQuery] string? depts = null)
         {
@@ -390,5 +409,10 @@ namespace Warehouse.Controllers
     public class TotalRequest
     {
         public decimal Total { get; set; }
+    }
+
+    public class TotalPedimentoRequest
+    {
+        public decimal TotalPedimento { get; set; }
     }
 }

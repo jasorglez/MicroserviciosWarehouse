@@ -130,7 +130,10 @@ namespace Warehouse.Models
 
         [Column("total", TypeName = "DECIMAL(18,2)")]
         public decimal? Total { get; set; } = 0;
-        
+
+        [Column("total_pedimento", TypeName = "DECIMAL(18,2)")]
+        public decimal? TotalPedimento { get; set; } = 0;
+
         [Column("locked")]
         public bool? Locked { get; set; } = false;
 

@@ -71,6 +71,7 @@ namespace Warehouse.Service.Delison
             existing.Pago            = data.Pago;
             existing.Usuario         = data.Usuario;
             existing.Liberacion      = data.Liberacion;
+            existing.Comentario      = data.Comentario;
             existing.Active          = data.Active;
             existing.DateModified    = DateTime.UtcNow;
 
