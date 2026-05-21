@@ -385,6 +385,28 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<Ocandreq?> SetTotalPedimento(int id, decimal totalPedimento)
+        {
+            var existingItem = await _context.Ocandreqs.FindAsync(id);
+            if (existingItem == null)
+            {
+                _logger.LogWarning("Attempted to update total_pedimento for non-existent Order with ID {Id}", id);
+                return null;
+            }
+
+            try
+            {
+                existingItem.TotalPedimento = totalPedimento;
+                await _context.SaveChangesAsync();
+                return existingItem;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting total_pedimento for Order with ID {Id}", id);
+                throw;
+            }
+        }
+
         public async Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds)
         {
             if (reqIds == null || !reqIds.Any()) return new List<ReqTypeOcFlagDto>();
@@ -929,6 +951,7 @@ namespace Warehouse.Service
                         cotiz.Folio,
                         cotiz.IdReq,
                         cotiz.Pedimento,
+                        cotiz.TotalPedimento,
                         cotiz.DateCreate,
                         cotiz.DateModified,
                         cotiz.Active
@@ -1116,6 +1139,7 @@ namespace Warehouse.Service
         Task<Ocandreq?> SetLocked(int id, bool locked);
         Task<Ocandreq?> SetCountItem(int id, int countItem);
         Task<Ocandreq?> SetTotal(int id, decimal total);
+        Task<Ocandreq?> SetTotalPedimento(int id, decimal totalPedimento);
         Task<List<ReqTypeOcFlagDto>> GetTypeOcFlags(List<int> reqIds);
         Task<object> GetComparisonData(int pedimentoId);
         Task<List<object>> GetReqsByBranchMaterial(int idBranch, int idMaterial, string? depts = null);
