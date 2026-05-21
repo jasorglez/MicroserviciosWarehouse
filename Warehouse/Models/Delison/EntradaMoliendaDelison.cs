@@ -41,6 +41,10 @@ namespace Warehouse.Models.Delison
         [Column("active")]
         public bool Active { get; set; } = true;
 
+        [Column("comentario")]
+        [MaxLength(100)]
+        public string? Comentario { get; set; }
+
         [Column("datemodified")]
         public DateTime DateModified { get; set; } = DateTime.UtcNow;
     }
