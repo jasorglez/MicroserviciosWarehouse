@@ -10,6 +10,7 @@ namespace Warehouse.Models
     {
         [Key]
         [Column("id")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int Id { get; set; }
 
         [Column("id_businnes")]
@@ -129,7 +130,10 @@ namespace Warehouse.Models
 
         [Column("total", TypeName = "DECIMAL(18,2)")]
         public decimal? Total { get; set; } = 0;
-        
+
+        [Column("total_pedimento", TypeName = "DECIMAL(18,2)")]
+        public decimal? TotalPedimento { get; set; } = 0;
+
         [Column("locked")]
         public bool? Locked { get; set; } = false;
 

@@ -46,11 +46,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet("getCatalogsMaterialBit")]
-        public async Task<ActionResult<List<object>>> GetWarByCompMaterialBit(int idCompany, string type)
+        public async Task<ActionResult<List<object>>> GetWarByCompMaterialBit(int idCompany, string type, string bitFilter = "MATERIAL")
         {
             try
             {
-                var cat = await _catalogService.GetTypeMaterialBit(type, idCompany);
+                var cat = await _catalogService.GetTypeMaterialBit(type, idCompany, bitFilter);
                 if (cat == null || !cat.Any())
                 {
                     _logger.LogWarning("No found Catalog the result is empty");
@@ -65,11 +65,11 @@ namespace Warehouse.Controllers
             }
         }
         [HttpGet("getCatalogs")]
-        public async Task<ActionResult<List<object>>> GetWarByComp(int idCompany, string type)
+        public async Task<ActionResult<List<object>>> GetWarByComp(int idCompany, string type, bool includeInactive = false)
         {
             try
             {
-                var cat = await _catalogService.GetType(type, idCompany);
+                var cat = await _catalogService.GetType(type, idCompany, includeInactive);
                 if (cat == null || !cat.Any())
                 {
                     _logger.LogWarning("No found Catalog the result is empty");

@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.35 Fix N+1 query en GetReqsByBranchMaterial 2026-04-30" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.53 feat: MaterialService.Update regenera num-mat (insumo) al cambiar categoria/familia/subfamilia 2026-05-18" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -100,6 +100,7 @@ builder.Services.AddScoped<IProviderTypeService, ProviderTypeService>();
 builder.Services.AddScoped<IItemCommentsService, ItemCommentsService>();
 builder.Services.AddScoped<IOcandreqService, OcandreqService>();
 builder.Services.AddScoped<IInandoutService, InandoutService>();
+builder.Services.AddScoped<IIntandoutDocumentsService, IntandoutDocumentsService>();
 builder.Services.AddScoped<IDetailsreqocService, DetailsreqocService>();
 builder.Services.AddScoped<IDetailsinandoutService, DetailsinandoutService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();  
@@ -123,11 +124,13 @@ builder.Services.AddScoped<ISucursalByMaterialProveedorService, SucursalByMateri
 builder.Services.AddScoped<IPricesXProductsPresentationService, PricesXProductsPresentationService>();
 builder.Services.AddScoped<IInventarioService, InventarioService>();
 builder.Services.AddScoped<IMaterialXModuloService, MaterialXModuloService>();
+builder.Services.AddScoped<IExtractionFermentationCatalogService, ExtractionFermentationCatalogService>();
 builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>();
 builder.Services.AddScoped<IMoliendaDelisonService, MoliendaDelisonService>();
 builder.Services.AddScoped<IDetailsMoliendaDelisonService, DetailsMoliendaDelisonService>();
 builder.Services.AddScoped<ILoyaltyProgramService, LoyaltyProgramService>();
 builder.Services.AddScoped<ICustomerLoyaltyCardService, CustomerLoyaltyCardService>();
+builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
 
 builder.Services.AddHttpContextAccessor();
 
@@ -189,6 +192,81 @@ catch (Exception ex)
 {
     var logger = app.Services.GetRequiredService<ILogger<Program>>();
     logger.LogWarning(ex, "Auto-migration detailsreqoc falló — corre el ALTER TABLE manualmente.");
+}
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF NOT EXISTS (SELECT 1 FROM sys.schemas WHERE name = 'Delison')
+            EXEC('CREATE SCHEMA Delison');
+
+        IF OBJECT_ID('Delison.extractionfermentationcatalog', 'U') IS NULL
+        BEGIN
+            CREATE TABLE Delison.extractionfermentationcatalog (
+                Id INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+                id_company INT NOT NULL,
+                description VARCHAR(150) NOT NULL,
+                active BIT NOT NULL CONSTRAINT DF_extractionfermentationcatalog_active DEFAULT(1)
+            );
+
+            CREATE INDEX IX_extractionfermentationcatalog_id_company
+                ON Delison.extractionfermentationcatalog (id_company);
+        END
+    ");
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Auto-migration extractionfermentationcatalog falló — corre el CREATE TABLE manualmente.");
+}
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF OBJECT_ID('Delison.entradas_molienda', 'U') IS NULL
+        BEGIN
+            CREATE TABLE Delison.entradas_molienda (
+                Id               INT IDENTITY(1,1) NOT NULL,
+                id_oc            INT NOT NULL,
+                fecha_recepcion  DATE NULL,
+                cantidad_entrada DECIMAL(12,2) NULL,
+                bultos           INT NULL,
+                revision_configu DECIMAL(12,2) NULL,
+                pago             DECIMAL(12,2) NULL,
+                usuario          NVARCHAR(100) NULL,
+                liberacion       BIT NOT NULL CONSTRAINT DF_entradas_molienda_liberacion DEFAULT(0),
+                active           BIT NOT NULL CONSTRAINT DF_entradas_molienda_active DEFAULT(1),
+                datemodified     DATETIME NOT NULL CONSTRAINT DF_entradas_molienda_datemodified DEFAULT(GETDATE()),
+                CONSTRAINT PK_entradas_molienda PRIMARY KEY (Id)
+            );
+            CREATE INDEX IX_entradas_molienda_id_oc ON Delison.entradas_molienda (id_oc);
+        END
+    ");
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Auto-migration entradas_molienda falló — corre el CREATE TABLE manualmente.");
+}
+
+try
+{
+    using var scope = app.Services.CreateScope();
+    var db = scope.ServiceProvider.GetRequiredService<DbWarehouseContext>();
+    await db.Database.ExecuteSqlRawAsync(@"
+        IF NOT EXISTS (SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS
+                       WHERE TABLE_SCHEMA='Delison' AND TABLE_NAME='entradas_molienda' AND COLUMN_NAME='id_material')
+            ALTER TABLE Delison.entradas_molienda ADD id_material INT NULL;
+    ");
+}
+catch (Exception ex)
+{
+    var logger = app.Services.GetRequiredService<ILogger<Program>>();
+    logger.LogWarning(ex, "Auto-migration id_material en entradas_molienda falló — corre el ALTER TABLE manualmente.");
 }
 
 app.MapControllers();

@@ -70,6 +70,7 @@ namespace Warehouse.Service
                             typeoc = dmc.Details.TypeOc,
                             datepostpone = dmc.Details.DatePostpone,
                             caducidad = dmc.Details.Caducidad,
+                            caducidadMinimaRequerida = dmc.Details.CaducidadMinimaRequerida,
                             compraRapida = dmc.Details.CompraRapida
                         })
                     .AsNoTracking()

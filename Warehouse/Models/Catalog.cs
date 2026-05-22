@@ -14,15 +14,15 @@ namespace Warehouse.Models
         [Column("id_company")]
         public int? IdCompany { get; set; }
 
-        [StringLength(100)]
+        [StringLength(200)]
         [Column("description")]
         public string Description { get; set; } = "Description Catalog";
 
-        [StringLength(25)]
+        [StringLength(500)]
         [Column("valueaddition")]
         public string? ValueAddition { get; set; } = "NA";
 
-        [StringLength(25)]
+        [StringLength(100)]
         [Column("valueaddition2")]
         public string? ValueAddition2 { get; set; } = "NA";
 
@@ -34,6 +34,9 @@ namespace Warehouse.Models
         
         [Column("valueadditionbit3")]
         public bool? ValueAdditionBit3 { get; set; } = false;
+
+        [Column("es_articulo_servicio_nuevo")]
+        public bool? EsArticuloServicioNuevo { get; set; } = false;
 
         [Column("vigente")]
         public bool? Vigente { get; set; }

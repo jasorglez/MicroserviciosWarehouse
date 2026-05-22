@@ -17,10 +17,13 @@ namespace Warehouse.Service.Delison
         public async Task<List<MoliendaDelison>> GetByCompany(int idCompany, string? type = null)
         {
             var query = _context.MoliendaDelison
-                .Where(m => m.IdCompany == idCompany && m.Active);
+                .Where(m => m.IdCompany == idCompany);
 
             if (!string.IsNullOrEmpty(type))
                 query = query.Where(m => m.Type == type);
+
+            query = query.OrderByDescending(m => m.Active)
+                         .ThenByDescending(m => m.DateModified);
 
             var items = await query.AsNoTracking().ToListAsync();
 
@@ -101,9 +104,14 @@ namespace Warehouse.Service.Delison
         public async Task<bool> Delete(int id)
         {
             var existing = await _context.MoliendaDelison.FindAsync(id);
-            if (existing == null) return false;
-            existing.Active = false;
+
+            if (existing == null)
+                return false;
+
+            _context.MoliendaDelison.Remove(existing);
+
             await _context.SaveChangesAsync();
+
             return true;
         }
     }

@@ -69,6 +69,10 @@ namespace Warehouse.Models
         [DefaultValue(0)]
         public int? IdParent { get; set; } = 0;
 
+        [Column("minima_compra")]
+        [DefaultValue(0)]
+        public int? MinCompra { get; set; } = 0;
+
         [Column("sub_parent_id")]
         [DefaultValue(0)]
         public int? IdsubParent { get; set; } = 0;
@@ -86,5 +90,9 @@ namespace Warehouse.Models
         [Column("active")]
         [DefaultValue(true)]
         public bool Active { get; set; } = true;
+
+        [Column("disabled_by_material")]
+        [DefaultValue(false)]
+        public bool DisabledByMaterial { get; set; } = false;
     }
 }

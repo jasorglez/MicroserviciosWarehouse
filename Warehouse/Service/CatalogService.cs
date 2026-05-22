@@ -51,12 +51,12 @@ namespace Warehouse.Service
             }
         }
 
-        public async Task<List<Catalog>> GetType(string type, int idCompany)
+        public async Task<List<Catalog>> GetType(string type, int idCompany, bool includeInactive = false)
         {
             try
             {
                 return await _context.Catalogs
-                    .Where(c => c.Active == 1 && c.Type == type && c.IdCompany == idCompany)
+                    .Where(c => (includeInactive || c.Active == 1) && c.Type == type && c.IdCompany == idCompany)
                     .Select(cat => new Catalog
                     {
                         Id = cat.Id,
@@ -65,6 +65,9 @@ namespace Warehouse.Service
                         ValueAddition = cat.ValueAddition,
                         ValueAddition2 = cat.ValueAddition2,
                         ValueAdditionBit = cat.ValueAdditionBit,
+                        ValueAdditionBit2 = cat.ValueAdditionBit2,
+                        ValueAdditionBit3 = cat.ValueAdditionBit3,
+                        EsArticuloServicioNuevo = cat.EsArticuloServicioNuevo,
                         Type = cat.Type,
                         ParentId = cat.ParentId,
                         SubParentId = cat.SubParentId,
@@ -216,12 +219,15 @@ namespace Warehouse.Service
             }
         }
         
-        public async Task<List<Catalog>> GetTypeMaterialBit(string type, int idCompany)
+        public async Task<List<Catalog>> GetTypeMaterialBit(string type, int idCompany, string bitFilter = "MATERIAL")
         {
             try
             {
                 return await _context.Catalogs
-                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany && c.Vigente == true && c.ValueAdditionBit == true)
+                    .Where(c => c.Active ==1 && c.Type==type && c.IdCompany==idCompany && c.Vigente == true
+                                && (bitFilter == "BIENESYSERVICIOS" ? c.ValueAdditionBit3 == true
+                                    : bitFilter == "ARTICULOSNUEVOS" ? c.EsArticuloServicioNuevo == true
+                                    : c.ValueAdditionBit == true))
                     .Select(cat => new Catalog
                     {
                         Id             = cat.Id,
@@ -387,23 +393,39 @@ namespace Warehouse.Service
             var existingCt = await _context.Catalogs.FindAsync(id);
             if (existingCt == null)
             {
-                _logger.LogWarning("Attempted to update non-existent Catalogs With ID {Id}", id);
+                _logger.LogWarning("Attempted to delete non-existent Catalogs With ID {Id}", id);
                 return false;
             }
             try
             {
-                existingCt.Active = 0;
+                // Hard delete con cascada: categoria -> familias -> subfamilias
+                if (existingCt.Type == "CATEGORY")
+                {
+                    var descendants = await _context.Catalogs
+                        .Where(c => c.ParentId == id && (c.Type == "FAM-CAT" || c.Type == "SUB-FAM"))
+                        .ToListAsync();
+                    _context.Catalogs.RemoveRange(descendants);
+                }
+                else if (existingCt.Type == "FAM-CAT")
+                {
+                    var subfamilies = await _context.Catalogs
+                        .Where(c => c.SubParentId == id && c.Type == "SUB-FAM")
+                        .ToListAsync();
+                    _context.Catalogs.RemoveRange(subfamilies);
+                }
+
+                _context.Catalogs.Remove(existingCt);
                 await _context.SaveChangesAsync();
                 return true;
             }
             catch (DbUpdateConcurrencyException ex)
             {
-                _logger.LogError(ex, "Concurrency error occurred while updating Catalogs", id);
+                _logger.LogError(ex, "Concurrency error occurred while deleting Catalogs", id);
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while updating Catalog", id);
+                _logger.LogError(ex, "Error occurred while deleting Catalog", id);
                 throw;
             }
         }
@@ -495,7 +517,13 @@ namespace Warehouse.Service
                 }else if(type == "REQUISICIONES")
                 {
                     existingPermission.ValueAdditionBit2 = value;
-                }                        
+                }else if(type == "BIENESYSERVICIOS")
+                {
+                    existingPermission.ValueAdditionBit3 = value;
+                }else if(type == "ARTICULOSNUEVOS")
+                {
+                    existingPermission.EsArticuloServicioNuevo = value;
+                }
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -510,12 +538,12 @@ namespace Warehouse.Service
     public interface ICatalogService
     {
         Task<List<Catalog>> GetTypexCat(string type);
-        Task<List<Catalog>> GetType(string type, int idCompany);
+        Task<List<Catalog>> GetType(string type, int idCompany, bool includeInactive = false);
         Task<List<ProductoCompleto>> GetProductosCompletosByCompany(int companyId);
         Task<List<Catalog>> GetTypexSubFam(int idCompany, int idFam);
         Task<List<Catalog>> GetTypeAll(int idCompany);
         Task<List<Catalog>> GetTypeVigente(string type, int idCompany);
-        Task<List<Catalog>> GetTypeMaterialBit(string type, int idCompany);
+        Task<List<Catalog>> GetTypeMaterialBit(string type, int idCompany, string bitFilter = "MATERIAL");
         Task<List<object>> GetFamilyCatalogs(int idCompany);
         Task<List<object>> GetSubfamilyCatalogs(int parentId);
         Task Save(Catalog cat);

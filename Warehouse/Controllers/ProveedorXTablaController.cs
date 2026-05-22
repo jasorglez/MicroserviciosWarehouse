@@ -167,6 +167,16 @@ namespace Warehouse.Controllers
             return result ? Ok(new { message = "Campo7 updated" }) : NotFound();
         }
 
+        [HttpPatch("principal/by-material-provider/{campo1:int}/{idTabla:int}")]
+        public async Task<ActionResult> PatchPrincipal(int campo1, int idTabla, [FromBody] bool valor)
+        {
+            if (campo1 <= 0 || idTabla <= 0)
+                return BadRequest("Invalid campo1 or idTabla");
+
+            var result = await _service.PatchPrincipal(campo1, idTabla, valor);
+            return result ? Ok(new { message = "Principal updated" }) : NotFound();
+        }
+
         [HttpPatch("campo11/by-material-provider/{campo1:int}/{idTabla:int}")]
         public async Task<ActionResult> PatchCampo11(int campo1, int idTabla, [FromBody] PatchCampo11Request body)
         {
@@ -178,6 +188,16 @@ namespace Warehouse.Controllers
         }
 
         public class PatchCampo11Request { public string Valor { get; set; } = ""; }
+
+        [HttpPatch("cascade-material-active/{materialId:int}")]
+        public async Task<ActionResult> CascadeMaterialActive(int materialId, [FromQuery] bool activate)
+        {
+            if (materialId <= 0)
+                return BadRequest("Invalid materialId");
+
+            var result = await _service.CascadeMaterialActive(materialId, activate);
+            return result ? Ok(new { message = activate ? "Cascada activada" : "Cascada desactivada" }) : NotFound();
+        }
 
         [HttpPatch("deactivate-for-material/{campo1:int}/{idTabla:int}")]
         public async Task<ActionResult> DeactivateForMaterial(int campo1, int idTabla)

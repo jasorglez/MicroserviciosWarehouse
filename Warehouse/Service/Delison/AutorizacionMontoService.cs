@@ -25,8 +25,9 @@ namespace Warehouse.Service.Delison
         public async Task<List<AutorizacionMonto>> GetByCompany(int idCompany)
         {
             var existing = await _context.AutorizacionMontos
-                .Where(a => a.IdCompany == idCompany && a.Active)
-                .OrderBy(a => a.Nivel)
+                .Where(a => a.IdCompany == idCompany)
+                .OrderByDescending(a => a.Active)
+                .ThenBy(a => a.Nivel)
                 .ToListAsync();
 
             if (existing.Count > 0)

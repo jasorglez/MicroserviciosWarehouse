@@ -21,6 +21,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<Detailsreqoc> Detailsreqoc { get; set; }
     public virtual DbSet<Inandout> Inandouts { get; set; }
     public virtual DbSet<Detailsinandout> Detailsinandout { get; set; }
+    public virtual DbSet<IntandoutDocuments> IntandoutDocuments { get; set; }
     public virtual DbSet<Material> Materials { get; set; }
     public virtual DbSet<Ocandreq> Ocandreqs { get; set; }
     public virtual DbSet<ProcessXPermission> ProcessXPermissions { get; set; }
@@ -58,11 +59,13 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<VwProveedoresParaMaterial> VwProveedoresParaMaterials { get; set; }
     public virtual DbSet<PrefixSetup> PrefixSetups { get; set; }
     public virtual DbSet<MaterialXModulo> MaterialXModulos { get; set; }
+    public virtual DbSet<ExtractionFermentationCatalog> ExtractionFermentationCatalogs { get; set; }
     public virtual DbSet<AutorizacionMonto> AutorizacionMontos { get; set; }
     public virtual DbSet<MoliendaDelison> MoliendaDelison { get; set; }
     public virtual DbSet<DetailsMoliendaDelison> DetailsMoliendaDelison { get; set; }
     public virtual DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
     public virtual DbSet<CustomerLoyaltyCard> CustomerLoyaltyCards { get; set; }
+    public virtual DbSet<EntradaMoliendaDelison> EntradasMolienda { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 

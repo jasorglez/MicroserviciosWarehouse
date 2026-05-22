@@ -91,8 +91,8 @@ namespace Warehouse.Controllers
 
             try
             {
-                await _service.Save(ocandreq);
-                return Ok(ocandreq);
+                var savedOcandreq = await _service.Save(ocandreq);
+                return Ok(savedOcandreq);
             }
             catch (Exception ex)
             {
@@ -185,6 +185,7 @@ namespace Warehouse.Controllers
         [HttpPatch("{id}/lock")]
         public async Task<IActionResult> SetLocked(int id, [FromBody] LockRequest request)
         {
+            _logger.LogInformation("🔒 Controller SetLocked - URL id={UrlId}, body.Locked={BodyLocked}", id, request?.Locked);
             try
             {
                 var result = await _service.SetLocked(id, request.Locked);
@@ -192,6 +193,7 @@ namespace Warehouse.Controllers
                 {
                     return NotFound($"Order with ID {id} not found");
                 }
+                _logger.LogInformation("🔒 Controller SetLocked Returning - id={Id}, returnedLocked={Locked}", result.Id, result.Locked);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -236,6 +238,25 @@ namespace Warehouse.Controllers
             {
                 _logger.LogError(ex, "Error setting total for Order with ID {Id}", id);
                 return StatusCode(500, "An error occurred while updating the total");
+            }
+        }
+
+        [HttpPatch("{id}/total-pedimento")]
+        public async Task<IActionResult> SetTotalPedimento(int id, [FromBody] TotalPedimentoRequest request)
+        {
+            try
+            {
+                var result = await _service.SetTotalPedimento(id, request.TotalPedimento);
+                if (result == null)
+                {
+                    return NotFound($"Order with ID {id} not found");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error setting total_pedimento for Order with ID {Id}", id);
+                return StatusCode(500, "An error occurred while updating the total_pedimento");
             }
         }
 
@@ -284,6 +305,81 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("ocs-details-by-requisition")]
+        public async Task<IActionResult> GetOcsDetailsForRequisition([FromQuery] int? idRequisition)
+        {
+            try
+            {
+                var result = await _service.GetOcsDetailsForRequisition(idRequisition);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OC details for requisition {IdRequisition}", idRequisition);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("ocs-by-branch")]
+        public async Task<IActionResult> GetOcsByBranch([FromQuery] int idBranch)
+        {
+            try
+            {
+                var result = await _service.GetOcsByBranch(idBranch);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for branch {IdBranch}", idBranch);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("pedimentos-by-requisicion")]
+        public async Task<IActionResult> GetPedimentosByRequisicion([FromQuery] int idRequisicion)
+        {
+            try
+            {
+                var result = await _service.GetPedimentosByRequisicion(idRequisicion);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting pedimentos for requisicion {IdRequisicion}", idRequisicion);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("ocs-by-pedimento")]
+        public async Task<IActionResult> GetOcsByPedimento([FromQuery] int idPedimento)
+        {
+            try
+            {
+                var result = await _service.GetOcsByPedimento(idPedimento);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting OCs for pedimento {IdPedimento}", idPedimento);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("{idReq}/should-lock")]
+        public async Task<IActionResult> ShouldLockRequisicion(int idReq)
+        {
+            try
+            {
+                var result = await _service.ShouldLockRequisicion(idReq);
+                return Ok(new { shouldLock = result });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking should-lock for requisicion {IdReq}", idReq);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("{pedimentoId}/comparison")]
         public async Task<IActionResult> GetComparisonData(int pedimentoId)
         {
@@ -313,5 +409,10 @@ namespace Warehouse.Controllers
     public class TotalRequest
     {
         public decimal Total { get; set; }
+    }
+
+    public class TotalPedimentoRequest
+    {
+        public decimal TotalPedimento { get; set; }
     }
 }

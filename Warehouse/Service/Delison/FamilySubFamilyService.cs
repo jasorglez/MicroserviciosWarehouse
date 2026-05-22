@@ -99,7 +99,7 @@ namespace Warehouse.Service.Delison
             try
             {
                 var items = await _context.MaterialWithCounts
-                    .Where(f => f.IdCompany == idMasterFamily && f.Vigente == true )
+                    .Where(f => f.IdCompany == idMasterFamily && f.Active == true )
                     .ToListAsync();
                 return items;
             }
@@ -155,7 +155,7 @@ namespace Warehouse.Service.Delison
 
                 // Filtra los artículos finales: deben pertenecer a las subfamilias, estar vigentes, no ser el artículo maestro mismo y no existir ya en el desglose.
                 var result = await _context.MaterialWithCounts
-                    .Where(m => idsItems.Contains(m.IdSubfamilia) && m.Vigente == true && m.Id != idMasterFamily && !existentes.Contains(m.Id)  )
+                    .Where(m => m.IdSubfamilia.HasValue && idsItems.Contains(m.IdSubfamilia.Value) && m.Active == true && m.Id != idMasterFamily && !existentes.Contains(m.Id)  )
                     .OrderBy(m => m.Articulo)
                     .AsNoTracking()
                     .ToListAsync();

@@ -87,7 +87,7 @@ namespace Warehouse.Service
             {
                 var result = await _context.MaterialWithCounts
                     .Where(m => m.IdCompany == idCompany)
-                    .OrderByDescending(m => m.Vigente)
+                    .OrderByDescending(m => m.Active)
                     .ThenBy(m => m.Articulo)
                     .AsNoTracking()
                     .ToListAsync();
@@ -233,13 +233,11 @@ namespace Warehouse.Service
                         s.VentaMN,
                         s.VentaDLL,
                         s.StockMin, s.StockMax, s.Picture,
-                        s.Vigente,  s.TypeMaterial,
- 
-
+                        s.TypeMaterial,
                         s.Active
-                       
+
                     })
-                    .OrderByDescending(s => s.Vigente)
+                    .OrderByDescending(s => s.Active)
                     .ThenBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -260,8 +258,8 @@ namespace Warehouse.Service
                     //.Include(s => s.PricesWithMaterial)
                     .Select(s => new
                     {
-                        s.Id,                        
-                        s.Description,s.Vigente,
+                        s.Id,
+                        s.Description,
                         s.Active,
                         /*PricePresentations = s.PricesWithMaterial.Select(s => new
                         {
@@ -271,7 +269,7 @@ namespace Warehouse.Service
                         s.Price,
                         s.Active
                     }).ToList()*/
-                    }).OrderByDescending(s => s.Vigente)
+                    }).OrderByDescending(s => s.Active)
                       .ThenBy(s => s.Description)
                     .AsNoTracking()
                     .ToListAsync<object>();
@@ -446,7 +444,6 @@ namespace Warehouse.Service
                     TypeMaterial = material.TypeMaterial,
                     Merma = material.Merma,
                     Fecha = material.Date ?? DateTime.UtcNow,
-                    Vigente = material.Vigente ?? true, // Valor por defecto si es null
                     Active = material.Active ?? true, // Valor por defecto si es null
                     PorAutorizar = material.PorAutorizar ?? false // Mapear porAutorizar
                 };
@@ -466,6 +463,34 @@ namespace Warehouse.Service
             }
         }
 
+        // Genera el num-mat (insumo) a partir de la clasificación: abrCat+abrFam+abrSub-####.
+        // Mismo criterio que Save(): -0001 si no hay materiales con esa subfamilia, sino incrementa el último.
+        private async Task<string> GenerarInsumoCode(int? idCompany, int? idCategory, int? idFamilia, int? idSubfamilia)
+        {
+            var materials = await _context.Materials
+                .Where(m => m.Active == true && m.IdCompany == idCompany && m.IdSubfamilia == idSubfamilia)
+                .ToListAsync();
+
+            if (materials.Count == 0)
+            {
+                var cat = await _context.Catalogs.Where(c => c.Id == idCategory).FirstOrDefaultAsync();
+                var fam = await _context.Catalogs.Where(c => c.Id == idFamilia).FirstOrDefaultAsync();
+                var subfam = await _context.Catalogs.Where(c => c.Id == idSubfamilia).FirstOrDefaultAsync();
+                return cat?.ValueAddition2 + fam?.ValueAddition2 + subfam?.ValueAddition2 + "-0001";
+            }
+
+            var ultimo = materials.LastOrDefault();
+            var partes = (ultimo?.Insumo ?? "").Split('-');
+            if (partes.Length == 2 && int.TryParse(partes[1], out int numero))
+            {
+                numero++;
+                var nuevoNumero = numero.ToString(new string('0', partes[1].Length));
+                return $"{partes[0]}-{nuevoNumero}";
+            }
+
+            return "";
+        }
+
         public async Task<Material?> Update(int id, Material material)
         {
             var existingItem = await _context.Materials.FindAsync(id);
@@ -478,6 +503,11 @@ namespace Warehouse.Service
             try
             {
                 _logger.LogInformation("🔍 Update() Material {Id}: PorAutorizar recibido={PorAutorizar}", id, material.PorAutorizar);
+
+                // Clasificación previa: si cambia, se regenera el num-mat (insumo) más abajo.
+                var oldCategory = existingItem.IdCategory;
+                var oldFamilia = existingItem.IdFamilia;
+                var oldSubfamilia = existingItem.IdSubfamilia;
 
                 // Solo actualizar campos que vienen con valor (partial update / merge)
                 // Esto permite ediciones parciales sin perder datos existentes
@@ -505,11 +535,33 @@ namespace Warehouse.Service
                 if (material.StockMax.HasValue) existingItem.StockMax = material.StockMax;
                 if (!string.IsNullOrEmpty(material.Picture)) existingItem.Picture = material.Picture;
                 if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
-                if (material.Vigente.HasValue) existingItem.Vigente = material.Vigente;
                 if (material.Active.HasValue) existingItem.Active = material.Active;
                 if (material.PorAutorizar.HasValue) existingItem.PorAutorizar = material.PorAutorizar;
 
+                // Si cambió la clasificación (categoría/familia/subfamilia), regenerar el num-mat (insumo).
+                bool clasificacionCambio =
+                    existingItem.IdCategory != oldCategory ||
+                    existingItem.IdFamilia != oldFamilia ||
+                    existingItem.IdSubfamilia != oldSubfamilia;
+                if (clasificacionCambio)
+                {
+                    var nuevoInsumo = await GenerarInsumoCode(
+                        existingItem.IdCompany, existingItem.IdCategory,
+                        existingItem.IdFamilia, existingItem.IdSubfamilia);
+                    if (!string.IsNullOrEmpty(nuevoInsumo))
+                    {
+                        existingItem.Insumo = nuevoInsumo;
+                        _logger.LogInformation("Material {Id}: insumo regenerado a {Insumo}", id, nuevoInsumo);
+                    }
+                }
+
                 await _context.SaveChangesAsync();
+
+                // NOTA: el cascade L1→L2→L3 con memoria (disabled_by_material) se maneja
+                // explícitamente desde el frontend via ProveedorXTablaService.CascadeMaterialActive.
+                // No hacer aquí un cascade bruto que sobrescribe todos los registros y borra
+                // el estado previo de los proveedores/sucursales apagados manualmente.
+
                 return existingItem;
             }
             catch (DbUpdateConcurrencyException ex)
@@ -535,7 +587,20 @@ namespace Warehouse.Service
 
             try
             {
-                existingItem.Active = false;
+                // Orden de borrado respetando FKs en cascada:
+                // 1. rawmaterialdetails depende de rawmaterial (id_rawmaterial → rawmaterial.id)
+                await _context.Database.ExecuteSqlRawAsync(
+                    "DELETE rmd FROM rawmaterialdetails rmd INNER JOIN rawmaterial rm ON rmd.id_rawmaterial = rm.id WHERE rm.id_material = {0}", id);
+                // 2. rawmaterial depende de materials
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM rawmaterial WHERE id_material = {0}", id);
+                // 3. Resto de dependencias directas a materials
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM proveedorxtablas WHERE campo1 = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM pricesxproductspresentation WHERE id_materials = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM detailsinandout WHERE id_product = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM MaterialsByBranchs WHERE Id_material = {0}", id);
+                await _context.Database.ExecuteSqlRawAsync("DELETE FROM tablesxmodules WHERE id = {0}", id);
+
+                _context.Materials.Remove(existingItem);
                 await _context.SaveChangesAsync();
                 return true;
             }

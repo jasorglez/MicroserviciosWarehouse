@@ -15,11 +15,17 @@ namespace Warehouse.Models.Delison
         [Column("id_articulo")]
         public int IdArticulo { get; set; }
 
+        [Column("editBultos")]
+        public bool EditBultos { get; set; }
+
         [Column("cantidad")]
         public int Cantidad { get; set; }
 
         [Column("type")]
         public string Type { get; set; } = string.Empty;
+
+        [Column("id_catalog")]
+        public int? IdCatalog { get; set; }
 
         [Column("active")]
         public bool Active { get; set; } = true;

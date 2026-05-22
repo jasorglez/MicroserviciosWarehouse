@@ -22,7 +22,7 @@ namespace Warehouse.Models.Views
         public string? Articulo { get; set; }
 
         [Column("id_category")]
-        public int IdCategory { get; set; }
+        public int? IdCategory { get; set; }
 
         [Column("categoria")]
         [StringLength(255)]
@@ -36,7 +36,7 @@ namespace Warehouse.Models.Views
         public string? Familia { get; set; }
 
         [Column("id_subfamilia")]
-        public int IdSubfamilia { get; set; }
+        public int? IdSubfamilia { get; set; }
 
         [Column("subfamilia")]
         [StringLength(255)]
@@ -67,10 +67,10 @@ namespace Warehouse.Models.Views
         [Column("id_company")]
         public int IdCompany { get; set; }
         
-        [Column("vigente")]
-        public bool? Vigente { get; set; }
-
         [Column("porAutorizar")]
         public bool? PorAutorizar { get; set; }
+
+        [Column("active")]
+        public bool? Active { get; set; }
     }
 }
