@@ -432,7 +432,18 @@ namespace Warehouse.Service
                     }
                     _logger.LogInformation("Nuevo Insumo generado: {NuevoInsumo}", CalculadorIsumo);
                 }
-                
+
+                // Si el usuario envió un Insumo propio, usarlo. Si no, usar el generado automáticamente.
+                // Fallback final: timestamp si el auto-generador quedó vacío.
+                var insumoFinal = !string.IsNullOrWhiteSpace(material.Insumo)
+                    ? material.Insumo
+                    : !string.IsNullOrWhiteSpace(CalculadorIsumo)
+                        ? CalculadorIsumo
+                        : $"MAT-{DateTime.UtcNow:yyyyMMddHHmmss}";
+
+                _logger.LogInformation("Insumo final a guardar: {InsumoFinal} (usuario={InsumoUsuario}, calculado={CalculadorIsumo})",
+                    insumoFinal, material.Insumo, CalculadorIsumo);
+
               // Crear una nueva instancia con los campos necesarios
                 var newMaterial = new Material
                 {
@@ -440,7 +451,7 @@ namespace Warehouse.Service
                     IdCompany = material.IdCompany,
                     IdBranch = material.IdBranch,
                     IdCustomer = material.IdCustomer,
-                    Insumo = CalculadorIsumo,
+                    Insumo = insumoFinal,
                     Articulo = material.Articulo,
                     BarCode = material.BarCode,
                     IdCategory = material.IdCategory,
