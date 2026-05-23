@@ -63,6 +63,8 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<AutorizacionMonto> AutorizacionMontos { get; set; }
     public virtual DbSet<MoliendaDelison> MoliendaDelison { get; set; }
     public virtual DbSet<DetailsMoliendaDelison> DetailsMoliendaDelison { get; set; }
+    public virtual DbSet<LoyaltyProgram> LoyaltyPrograms { get; set; }
+    public virtual DbSet<CustomerLoyaltyCard> CustomerLoyaltyCards { get; set; }
     public virtual DbSet<EntradaMoliendaDelison> EntradasMolienda { get; set; }
     public virtual DbSet<CondicionPago> CondicionesPago { get; set; }
     public virtual DbSet<SetupOc> SetupOc { get; set; }

@@ -712,6 +712,7 @@ namespace Warehouse.Service
                     {
                         oc.Id,
                         oc.Folio,
+                        oc.Close,
                         Proveedor    = d.NameProvider ?? d.ProvInt ?? "",
                         Cantidad     = d.Quantity,
                         Price       = d.Price,
