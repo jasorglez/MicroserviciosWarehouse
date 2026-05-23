@@ -71,7 +71,9 @@ namespace Warehouse.Service
                             datepostpone = dmc.Details.DatePostpone,
                             caducidad = dmc.Details.Caducidad,
                             caducidadMinimaRequerida = dmc.Details.CaducidadMinimaRequerida,
-                            compraRapida = dmc.Details.CompraRapida
+                            compraRapida = dmc.Details.CompraRapida,
+                            masIva = dmc.Details.MasIva,
+                            diasCondicionCompra = dmc.Details.DiasCondicionCompra
                         })
                     .AsNoTracking()
                     .ToListAsync<object>();

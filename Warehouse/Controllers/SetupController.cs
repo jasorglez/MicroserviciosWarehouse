@@ -33,6 +33,20 @@ namespace Warehouse.Controllers
             return Ok(setups);
         }
 
+        // GET: api/Setup/branch/{idBranch}
+        [HttpGet("branch/{idBranch}")]
+        public async Task<IActionResult> GetSetupByBranch(int idBranch)
+        {
+            var setup = await _setupService.GetSetupByBranch(idBranch);
+
+            if (setup == null)
+            {
+                return NotFound(new { message = $"No setup found for branch {idBranch}." });
+            }
+
+            return Ok(setup);
+        }
+
         // GET: api/Setup/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetSetupById(int id)
@@ -74,6 +88,25 @@ namespace Warehouse.Controllers
             if (!result)
             {
                 return NotFound(new { message = $"Setup with ID Company {idCompany} not found." });
+            }
+
+            return NoContent();
+        }
+
+        // PUT: api/Setup/branch/{idBranch}
+        [HttpPut("branch/{idBranch}")]
+        public async Task<IActionResult> UpdateSetupByBranch(int idBranch, [FromBody] Setup setup)
+        {
+            if (setup == null)
+            {
+                return BadRequest(new { message = "Invalid setup data." });
+            }
+
+            var result = await _setupService.UpdateByBranch(idBranch, setup);
+
+            if (!result)
+            {
+                return NotFound(new { message = $"Setup for branch {idBranch} not found." });
             }
 
             return NoContent();

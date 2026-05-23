@@ -67,6 +67,9 @@ namespace Warehouse.Service
                         o.AuthorizationStatus,
                         o.RejectionReason,
                         o.AuthorizedAt,
+                        o.NumCotizacion,
+                        o.CondicionesPago,
+                        o.VigenciaCotizacion,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
@@ -134,6 +137,9 @@ namespace Warehouse.Service
                         o.AuthorizationStatus,
                         o.RejectionReason,
                         o.AuthorizedAt,
+                        o.NumCotizacion,
+                        o.CondicionesPago,
+                        o.VigenciaCotizacion,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
@@ -201,7 +207,10 @@ namespace Warehouse.Service
                         o.AuthorizeName,
                         o.AuthorizationStatus,
                         o.RejectionReason,
-                        o.AuthorizedAt
+                        o.AuthorizedAt,
+                        o.NumCotizacion,
+                        o.CondicionesPago,
+                        o.VigenciaCotizacion
                     })
             .AsNoTracking()
             .FirstOrDefaultAsync();
@@ -517,6 +526,7 @@ namespace Warehouse.Service
                     var cantidades = new Dictionary<int, decimal>();
                     var slotItemIds = new Dictionary<int, int>();
                     var tiposOc = new Dictionary<int, string>();
+                    var masIvasPorProv = new Dictionary<int, bool>();
                     var itemName = (item.NameArticle ?? item.Observation ?? "").Trim().ToLower();
 
                     Detailsreqoc? FindMatch(List<Detailsreqoc> slotItems) =>
@@ -539,6 +549,7 @@ namespace Warehouse.Service
                         tiemposEntrega[idProv] = precio?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
                         cantidades[idProv] = precio?.CantidadConceptualizada ?? 0;
                         tiposOc[idProv] = precio?.TypeOc ?? "";
+                        masIvasPorProv[idProv] = precio?.MasIva ?? false;
                         if (precio != null) slotItemIds[idProv] = precio.Id;
                     }
 
@@ -566,6 +577,7 @@ namespace Warehouse.Service
                         precios = precios,
                         cantidades = cantidades,
                         tiposOc = tiposOc,
+                        masIvas = masIvasPorProv,
                         slotItemIds = slotItemIds
                     });
                 }
@@ -770,6 +782,9 @@ namespace Warehouse.Service
                         o.AuthorizationStatus,
                         o.RejectionReason,
                         o.AuthorizedAt,
+                        o.NumCotizacion,
+                        o.CondicionesPago,
+                        o.VigenciaCotizacion,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
@@ -1111,6 +1126,9 @@ namespace Warehouse.Service
                         o.AuthorizationStatus,
                         o.RejectionReason,
                         o.AuthorizedAt,
+                        o.NumCotizacion,
+                        o.CondicionesPago,
+                        o.VigenciaCotizacion,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })

@@ -78,6 +78,12 @@ namespace Warehouse.Service
                 existingPrefixSetup.ConsecutiveCotiz = prefixSetup.ConsecutiveCotiz;
                 existingPrefixSetup.PrefixOc = prefixSetup.PrefixOc;
                 existingPrefixSetup.ConsecutiveOc = prefixSetup.ConsecutiveOc;
+                existingPrefixSetup.PrefixOcProveedor = prefixSetup.PrefixOcProveedor;
+                existingPrefixSetup.ConsecutiveOcProveedor = prefixSetup.ConsecutiveOcProveedor;
+                existingPrefixSetup.PrefixCompraInmediata = prefixSetup.PrefixCompraInmediata;
+                existingPrefixSetup.ConsecutiveCompraInmediata = prefixSetup.ConsecutiveCompraInmediata;
+                existingPrefixSetup.PrefixTraspaso = prefixSetup.PrefixTraspaso;
+                existingPrefixSetup.ConsecutiveTraspaso = prefixSetup.ConsecutiveTraspaso;
                 existingPrefixSetup.Active = prefixSetup.Active;
 
                 await _context.SaveChangesAsync();

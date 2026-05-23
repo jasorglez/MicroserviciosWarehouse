@@ -108,5 +108,11 @@ namespace Warehouse.Models
 
         [Column("comprarapida")]
         public bool? CompraRapida { get; set; } = false;
+
+        [Column("mas_iva")]
+        public bool? MasIva { get; set; } = false;
+
+        [Column("dias_condicion_compra")]
+        public int? DiasCondicionCompra { get; set; }
     }
 }

@@ -31,6 +31,21 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<Setup?> GetSetupByBranch(int idBranch)
+        {
+            try
+            {
+                return await _context.Setups
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(s => s.IdBranch == idBranch && s.Active);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving setup for branch {IdBranch}.", idBranch);
+                throw;
+            }
+        }
+
         public async Task<Setup?> GetSetupById(int id)
         {
             try
@@ -64,7 +79,7 @@ namespace Warehouse.Service
         {
             var existingSetup = await _context.Setups
                 .FirstOrDefaultAsync(s => s.IdCompany == idCompany && s.Active);
-        
+
             if (existingSetup == null)
             {
                 return false;
@@ -72,9 +87,10 @@ namespace Warehouse.Service
 
             try
             {
-                existingSetup.Description = setup.Description;
+                existingSetup.Description    = setup.Description;
                 existingSetup.ProjectOrBranch = setup.ProjectOrBranch;
-                existingSetup.ActivateOc = setup.ActivateOc;
+                existingSetup.ActivateOc      = setup.ActivateOc;
+                existingSetup.Iva             = setup.Iva;
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -85,11 +101,37 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<bool> UpdateByBranch(int idBranch, Setup setup)
+        {
+            var existingSetup = await _context.Setups
+                .FirstOrDefaultAsync(s => s.IdBranch == idBranch && s.Active);
+
+            if (existingSetup == null)
+            {
+                return false;
+            }
+
+            try
+            {
+                existingSetup.Description     = setup.Description;
+                existingSetup.ProjectOrBranch = setup.ProjectOrBranch;
+                existingSetup.ActivateOc      = setup.ActivateOc;
+                existingSetup.Iva             = setup.Iva;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating setup for branch {IdBranch}.", idBranch);
+                throw;
+            }
+        }
+
         public async Task<bool> Delete(int idCompany)
         {
             var existingSetup = await _context.Setups
                 .FirstOrDefaultAsync(s => s.IdCompany == idCompany && s.Active);
-        
+
             if (existingSetup == null)
             {
                 _logger.LogWarning("Attempted to delete non-existent setup with ID {IdCompany}", idCompany);
@@ -113,9 +155,11 @@ namespace Warehouse.Service
     public interface ISetupService
     {
         Task<List<Setup>> GetAllSetups(int idCompany);
+        Task<Setup?> GetSetupByBranch(int idBranch);
         Task<Setup?> GetSetupById(int id);
         Task Save(Setup setup);
         Task<bool> Update(int idCompany, Setup setup);
+        Task<bool> UpdateByBranch(int idBranch, Setup setup);
         Task<bool> Delete(int idCompany);
     }
 }

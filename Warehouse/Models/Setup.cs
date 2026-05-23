@@ -13,6 +13,9 @@ namespace Warehouse.Models
         [Column("id_company")]
         public int? IdCompany { get; set; }
 
+        [Column("id_branch")]
+        public int IdBranch { get; set; }
+
         [StringLength(50)]
         [Column("description")]
         public string? Description { get; set; } = "Default Description";
@@ -25,5 +28,8 @@ namespace Warehouse.Models
 
         [Column("active")]
         public bool Active { get; set; } = true;
+
+        [Column("iva", TypeName = "decimal(5,2)")]
+        public decimal? Iva { get; set; }
     }
 }

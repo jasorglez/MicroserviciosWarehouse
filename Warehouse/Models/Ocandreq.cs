@@ -157,5 +157,16 @@ namespace Warehouse.Models
 
         [Column("datemodified", TypeName = "DATETIME")]
         public DateTime DateModified { get; set; } = DateTime.Now;
+
+        [Column("num_cotizacion", TypeName = "VARCHAR(50)")]
+        [StringLength(50)]
+        public string? NumCotizacion { get; set; }
+
+        [Column("condiciones_pago", TypeName = "VARCHAR(100)")]
+        [StringLength(100)]
+        public string? CondicionesPago { get; set; }
+
+        [Column("vigencia_cotizacion")]
+        public int? VigenciaCotizacion { get; set; }
     }
 }

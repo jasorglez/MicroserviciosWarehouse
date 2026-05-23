@@ -38,6 +38,27 @@ namespace Warehouse.Models
         [Column("consecutive_oc")]
         public int? ConsecutiveOc { get; set; }
 
+        [StringLength(20)]
+        [Column("prefix_oc_proveedor")]
+        public string? PrefixOcProveedor { get; set; }
+
+        [Column("consecutive_oc_proveedor")]
+        public int? ConsecutiveOcProveedor { get; set; }
+
+        [StringLength(20)]
+        [Column("prefix_compra_inmediata")]
+        public string? PrefixCompraInmediata { get; set; }
+
+        [Column("consecutive_compra_inmediata")]
+        public int? ConsecutiveCompraInmediata { get; set; }
+
+        [StringLength(20)]
+        [Column("prefix_traspaso")]
+        public string? PrefixTraspaso { get; set; }
+
+        [Column("consecutive_traspaso")]
+        public int? ConsecutiveTraspaso { get; set; }
+
         [Column("active")]
         public bool Active { get; set; } = true;
     }

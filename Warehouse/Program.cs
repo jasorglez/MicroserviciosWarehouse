@@ -55,7 +55,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.53 feat: MaterialService.Update regenera num-mat (insumo) al cambiar categoria/familia/subfamilia 2026-05-18" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.60 feat: cotiz fields (numCotizacion/condicionesPago/vigenciaCotizacion) movidos a ocandreq 2026-05-22" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -128,6 +128,8 @@ builder.Services.AddScoped<IAutorizacionMontoService, AutorizacionMontoService>(
 builder.Services.AddScoped<IMoliendaDelisonService, MoliendaDelisonService>();
 builder.Services.AddScoped<IDetailsMoliendaDelisonService, DetailsMoliendaDelisonService>();
 builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
+builder.Services.AddScoped<ICondicionPagoService, CondicionPagoService>();
+builder.Services.AddScoped<ISetupOcService, SetupOcService>();
 
 builder.Services.AddHttpContextAccessor();
 
