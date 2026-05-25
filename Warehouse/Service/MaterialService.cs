@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Data.SqlClient;
 using Warehouse.Models;
 using Warehouse.Models.Views;
 
@@ -11,11 +12,13 @@ namespace Warehouse.Service
     {
         private readonly DbWarehouseContext _context;
         private readonly ILogger<MaterialService> _logger;
+        private readonly string _connStr;
 
-        public MaterialService(DbWarehouseContext context, ILogger<MaterialService> logger)
+        public MaterialService(DbWarehouseContext context, ILogger<MaterialService> logger, IConfiguration config)
         {
             _context = context ?? throw new ArgumentNullException(nameof(context));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _connStr = config.GetConnectionString("dbConWarehouse")!;
         }
 
 
@@ -25,7 +28,7 @@ namespace Warehouse.Service
             try
             {
                 var result = await _context.MaterialsWithFamiliesViews
-                    .Where(m => m.IdCompany == idCompany)
+                    .Where(m => m.IdCompany == idCompany && m.Active == true)
                     .OrderBy(m => m.FamiliaDescription)
                     .ThenBy(m => m.SubfamiliaDescription)
                     .ThenBy(m => m.MaterialDescription)
@@ -552,6 +555,26 @@ namespace Warehouse.Service
             {
                 _logger.LogWarning("Attempted to delete non-existent Supply with ID {Id}", id);
                 return false;
+            }
+
+            // Validar que el producto no haya sido vendido en ningún POS
+            try
+            {
+                await using var conn = new SqlConnection(_connStr);
+                await conn.OpenAsync();
+                await using var cmd = new SqlCommand(
+                    "SELECT TOP 1 1 FROM administration.pv.salesxconcept WHERE id_product = @id AND active = 1",
+                    conn);
+                cmd.Parameters.AddWithValue("@id", id);
+                var sold = await cmd.ExecuteScalarAsync();
+                if (sold != null)
+                    throw new InvalidOperationException("TIENE_VENTAS");
+            }
+            catch (InvalidOperationException) { throw; }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "No se pudo verificar ventas para material {Id} — se permite el borrado", id);
+                // Si la consulta cross-DB falla (permisos, etc.), no bloqueamos el borrado
             }
 
             try

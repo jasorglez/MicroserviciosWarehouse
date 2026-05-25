@@ -253,6 +253,10 @@ namespace Warehouse.Controllers
                     return NotFound();
                 return Ok();
             }
+            catch (InvalidOperationException ex) when (ex.Message == "TIENE_VENTAS")
+            {
+                return Conflict("Este producto ya tiene ventas registradas y no puede eliminarse.");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting material with ID {Id}", id);
