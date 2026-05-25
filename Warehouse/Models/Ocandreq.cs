@@ -168,5 +168,8 @@ namespace Warehouse.Models
 
         [Column("vigencia_cotizacion")]
         public int? VigenciaCotizacion { get; set; }
+
+        [Column("id_condicion_pago")]
+        public int? IdCondicionPago { get; set; }
     }
 }

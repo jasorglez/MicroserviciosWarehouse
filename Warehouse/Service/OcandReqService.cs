@@ -70,6 +70,7 @@ namespace Warehouse.Service
                         o.NumCotizacion,
                         o.CondicionesPago,
                         o.VigenciaCotizacion,
+                        o.IdCondicionPago,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
@@ -140,6 +141,7 @@ namespace Warehouse.Service
                         o.NumCotizacion,
                         o.CondicionesPago,
                         o.VigenciaCotizacion,
+                        o.IdCondicionPago,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
@@ -210,7 +212,8 @@ namespace Warehouse.Service
                         o.AuthorizedAt,
                         o.NumCotizacion,
                         o.CondicionesPago,
-                        o.VigenciaCotizacion
+                        o.VigenciaCotizacion,
+                        o.IdCondicionPago
                     })
             .AsNoTracking()
             .FirstOrDefaultAsync();
@@ -786,6 +789,7 @@ namespace Warehouse.Service
                         o.NumCotizacion,
                         o.CondicionesPago,
                         o.VigenciaCotizacion,
+                        o.IdCondicionPago,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
@@ -967,14 +971,47 @@ namespace Warehouse.Service
                         cotiz.Folio,
                         cotiz.IdReq,
                         cotiz.Pedimento,
-                        cotiz.TotalPedimento,
                         cotiz.DateCreate,
                         cotiz.DateModified,
                         cotiz.Active
                     }
                 ).AsNoTracking().ToListAsync();
 
-                return pedimentos.Cast<object>().ToList();
+                // TotalPedimento se calcula EN VIVO desde los items de los OCs que pertenecen
+                // a cada pedimento (mismos providers via la cadena de COTIZs delison).
+                // Esto evita drift entre snapshot y items editados después.
+                var result = new List<object>();
+                foreach (var ped in pedimentos)
+                {
+                    var totalLive = await _context.Detailsreqoc
+                        .Where(d => d.Active == true
+                                 && _context.Ocandreqs.Any(oc =>
+                                        oc.Id == d.IdMovement
+                                     && oc.Active == true
+                                     && oc.Type == "OC"
+                                     && oc.IdReq == idRequisicion
+                                     && _context.Ocandreqs.Any(dc =>
+                                            dc.Active == true
+                                         && dc.Type == "COTIZ"
+                                         && dc.TypeReference == "delison"
+                                         && dc.IdReference == ped.Id
+                                         && dc.IdProvider == oc.IdProvider)))
+                        .SumAsync(d => (decimal?)d.Total) ?? 0m;
+
+                    result.Add(new
+                    {
+                        ped.Id,
+                        ped.Folio,
+                        ped.IdReq,
+                        ped.Pedimento,
+                        TotalPedimento = totalLive,
+                        ped.DateCreate,
+                        ped.DateModified,
+                        ped.Active
+                    });
+                }
+
+                return result;
             }
             catch (Exception ex)
             {
@@ -1080,8 +1117,43 @@ namespace Warehouse.Service
 
                 if (!providerIds.Any()) return new List<object>();
 
+                // Cabecera de cotización por proveedor (num_cotizacion / condiciones_pago / vigencia)
+                // se captura en el COTIZ hermano del OC (mismo IdReq + IdProvider). Lo precargamos
+                // una sola vez para mezclarlo después y evitar subqueries por fila.
+                var cotizData = await _context.Ocandreqs
+                    .AsNoTracking()
+                    .Where(c => c.Type == "COTIZ"
+                             && c.IdReq == pedimento.IdReq
+                             && providerIds.Contains(c.IdProvider)
+                             && c.Active == true)
+                    .Select(c => new { c.IdProvider, c.NumCotizacion, c.CondicionesPago, c.VigenciaCotizacion, c.IdCondicionPago })
+                    .ToListAsync();
+                var cotizByProvider = cotizData
+                    .GroupBy(c => c.IdProvider)
+                    .ToDictionary(g => g.Key, g => g.First());
+
+                // El registro PEDIMENTO en ocandreq suele tener IdRoot=0; tomamos el IdRoot
+                // de cualquier COTIZ delison hijo (que sí lo trae poblado) para que el
+                // catálogo se cargue con la empresa correcta. Fallback a pedimento.IdRoot.
+                var idCompany = await _context.Ocandreqs
+                    .AsNoTracking()
+                    .Where(c => c.Type == "COTIZ"
+                             && c.TypeReference == "delison"
+                             && c.IdReference == idPedimento
+                             && c.Active == true
+                             && c.IdRoot != null
+                             && c.IdRoot != 0)
+                    .Select(c => c.IdRoot)
+                    .FirstOrDefaultAsync() ?? pedimento.IdRoot ?? 0;
+
+                // Catálogo de condiciones de pago de la empresa (para calcular Anticipo OC).
+                var condicionPagoMap = await _context.CondicionesPago
+                    .AsNoTracking()
+                    .Where(cp => cp.IdCompany == idCompany)
+                    .ToDictionaryAsync(cp => cp.Id);
+
                 // OCs de la requisición padre que tengan alguno de esos proveedores
-                var result = await _context.Ocandreqs
+                var ocs = await _context.Ocandreqs
                     .Where(o => o.Type == "OC"
                              && o.IdReq == pedimento.IdReq
                              && providerIds.Contains(o.IdProvider)
@@ -1130,13 +1202,84 @@ namespace Warehouse.Service
                         o.NumCotizacion,
                         o.CondicionesPago,
                         o.VigenciaCotizacion,
+                        o.IdCondicionPago,
+                        Total = _context.Detailsreqoc
+                            .Where(d => d.IdMovement == o.Id && d.Active == true)
+                            .Sum(d => (decimal?)d.Total) ?? 0m,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
                     .AsNoTracking()
                     .ToListAsync();
 
-                return result.Cast<object>().ToList();
+                // Mezcla en memoria: cuando la COTIZ hermana tenga los campos, sobreescriben al OC.
+                var result = ocs.Select(o =>
+                {
+                    cotizByProvider.TryGetValue(o.IdProvider, out var c);
+
+                    // Resolver FK de condición de pago: COTIZ tiene prioridad sobre OC.
+                    var idCondPago = c?.IdCondicionPago ?? o.IdCondicionPago;
+
+                    // Calcular Anticipo OC = total × cantidad / 100 si calculo_anticipo = true.
+                    decimal anticipoOc = 0m;
+                    if (idCondPago.HasValue
+                        && condicionPagoMap.TryGetValue(idCondPago.Value, out var cp)
+                        && cp.CalculoAnticipo)
+                    {
+                        anticipoOc = o.Total * cp.Cantidad / 100m;
+                    }
+
+                    return new
+                    {
+                        o.Id,
+                        o.Folio,
+                        o.TypeReference,
+                        o.IdReference,
+                        o.IdReq,
+                        o.DateCreate,
+                        o.DateModified,
+                        o.IdDepartament,
+                        o.Delivery,
+                        o.DeliveryTime,
+                        o.TypeOc,
+                        o.DateSupply,
+                        o.IdPayment,
+                        o.IdCurrency,
+                        o.Conditions,
+                        o.IdAuthorize,
+                        o.IdSolicit,
+                        o.IdProvider,
+                        o.Solicit,
+                        o.Priority,
+                        o.Type,
+                        o.Pedimento,
+                        o.Comments,
+                        o.CompliancePedimento,
+                        o.ComplianceRequesicion,
+                        o.IvaRetention,
+                        o.Address,
+                        o.City,
+                        o.Phone,
+                        o.Discount,
+                        o.Close,
+                        o.CountItem,
+                        o.Locked,
+                        o.Active,
+                        o.AuthorizeName,
+                        o.AuthorizationStatus,
+                        o.RejectionReason,
+                        o.AuthorizedAt,
+                        NumCotizacion = !string.IsNullOrEmpty(c?.NumCotizacion) ? c.NumCotizacion : o.NumCotizacion,
+                        CondicionesPago = !string.IsNullOrEmpty(c?.CondicionesPago) ? c.CondicionesPago : o.CondicionesPago,
+                        VigenciaCotizacion = c?.VigenciaCotizacion ?? o.VigenciaCotizacion,
+                        IdCondicionPago = idCondPago,
+                        AnticipoOc = anticipoOc,
+                        o.Total,
+                        o.countrow
+                    };
+                }).Cast<object>().ToList();
+
+                return result;
             }
             catch (Exception ex)
             {

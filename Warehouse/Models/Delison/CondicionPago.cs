@@ -19,6 +19,9 @@ namespace Warehouse.Models.Delison
         [Column("active")]
         public bool Active { get; set; } = true;
 
+        [Column("calculo_anticipo")]
+        public bool CalculoAnticipo { get; set; } = false;
+
         [Column("id_company")]
         public int IdCompany { get; set; } = 9;
 

@@ -42,10 +42,11 @@ namespace Warehouse.Service.Delison
             var existing = await _context.CondicionesPago.FindAsync(id);
             if (existing == null) return null;
 
-            existing.Descripcion  = data.Descripcion;
-            existing.Cantidad     = data.Cantidad;
-            existing.Active       = data.Active;
-            existing.DateModified = DateTime.Now;
+            existing.Descripcion     = data.Descripcion;
+            existing.Cantidad        = data.Cantidad;
+            existing.Active          = data.Active;
+            existing.CalculoAnticipo = data.CalculoAnticipo;
+            existing.DateModified    = DateTime.Now;
 
             await _context.SaveChangesAsync();
             return existing;
