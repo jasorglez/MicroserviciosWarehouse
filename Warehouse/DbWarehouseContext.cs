@@ -68,6 +68,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<EntradaMoliendaDelison> EntradasMolienda { get; set; }
     public virtual DbSet<CondicionPago> CondicionesPago { get; set; }
     public virtual DbSet<SetupOc> SetupOc { get; set; }
+    public virtual DbSet<EntregaOcDelison> EntregasOc { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 

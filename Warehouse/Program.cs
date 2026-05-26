@@ -133,6 +133,7 @@ builder.Services.AddScoped<ICustomerLoyaltyCardService, CustomerLoyaltyCardServi
 builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
 builder.Services.AddScoped<ICondicionPagoService, CondicionPagoService>();
 builder.Services.AddScoped<ISetupOcService, SetupOcService>();
+builder.Services.AddScoped<IEntregaOcService, EntregaOcService>();
 
 builder.Services.AddHttpContextAccessor();
 

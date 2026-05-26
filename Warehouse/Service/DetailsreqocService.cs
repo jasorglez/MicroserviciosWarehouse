@@ -73,7 +73,8 @@ namespace Warehouse.Service
                             caducidadMinimaRequerida = dmc.Details.CaducidadMinimaRequerida,
                             compraRapida = dmc.Details.CompraRapida,
                             masIva = dmc.Details.MasIva,
-                            diasCondicionCompra = dmc.Details.DiasCondicionCompra
+                            diasCondicionCompra = dmc.Details.DiasCondicionCompra,
+                            entregasCount = _context.EntregasOc.Count(e => e.IdDetailsreqoc == dmc.Details.Id && e.Active)
                         })
                     .AsNoTracking()
                     .ToListAsync<object>();
