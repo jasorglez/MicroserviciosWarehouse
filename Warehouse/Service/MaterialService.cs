@@ -296,7 +296,7 @@ namespace Warehouse.Service
                            ISNULL(cf.description, '')        AS familia
                     FROM   materials m
                     LEFT JOIN catalog ms ON ms.id = m.id_medida AND ms.type = 'MEASURE'
-                    LEFT JOIN catalog cf ON cf.id = m.id_familia
+                    LEFT JOIN catalog cf ON cf.id = m.id_familia AND cf.type = 'FAMILY'
                     WHERE  m.id_company = {idCompany}
                       AND  m.vigente = 1
                       AND  m.active  = 1
