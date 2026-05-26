@@ -292,9 +292,11 @@ namespace Warehouse.Service
                     SELECT m.id,
                            m.description,
                            ISNULL(ms.description, '')        AS measure,
-                           ISNULL(m.costoMN, 0)              AS costoMN
+                           ISNULL(m.costoMN, 0)              AS costoMN,
+                           ISNULL(cf.description, '')        AS familia
                     FROM   materials m
                     LEFT JOIN catalog ms ON ms.id = m.id_medida AND ms.type = 'MEASURE'
+                    LEFT JOIN catalog cf ON cf.id = m.id_familia
                     WHERE  m.id_company = {idCompany}
                       AND  m.vigente = 1
                       AND  m.active  = 1
@@ -306,10 +308,11 @@ namespace Warehouse.Service
                 {
                     result.Add(new
                     {
-                        id       = reader.GetInt32(0),
+                        id          = reader.GetInt32(0),
                         description = reader.GetString(1),
-                        measure  = reader.GetString(2),
-                        costoMN  = reader.GetDecimal(3),
+                        measure     = reader.GetString(2),
+                        costoMN     = reader.GetDecimal(3),
+                        familia     = reader.GetString(4),
                     });
                 }
                 return result;
