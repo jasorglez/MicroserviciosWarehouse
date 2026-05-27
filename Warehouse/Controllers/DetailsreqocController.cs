@@ -162,6 +162,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpPatch("{id}/datepostpone-confirmada")]
+        public async Task<IActionResult> PatchDatePostponeConfirmada(int id, [FromBody] bool value)
+        {
+            try
+            {
+                await _service.PatchDatePostponeConfirmada(id, value);
+                return Ok(new { message = "DatePostponeConfirmada updated" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error patching datepostpone_confirmada for detail {Id}", id);
+                return StatusCode(500, "An error occurred while updating datepostpone_confirmada");
+            }
+        }
+
         [HttpPatch("sync-observation")]
         public async Task<IActionResult> SyncObservation([FromQuery] int idSupplie, [FromQuery] int idProvider, [FromQuery] string observation = "")
         {

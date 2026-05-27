@@ -716,11 +716,16 @@ namespace Warehouse.Service
                         oc.Id,
                         oc.Folio,
                         oc.Close,
+                        IdDetail     = d.Id,
                         Proveedor    = d.NameProvider ?? d.ProvInt ?? "",
                         Cantidad     = d.Quantity,
                         Price       = d.Price,
                         CondEspecial = oc.Conditions ?? "",
-                        Resta        = 0
+                        CantidadMinimaRequerida = d.CaducidadMinimaRequerida,
+                        FechaXEntrega = d.DatePostpone,
+                        Resta        = 0,
+                        DiasCondicionCompra = d.DiasCondicionCompra ?? 1,
+                        EntregasCount = _context.EntregasOc.Count(e => e.IdDetailsreqoc == d.Id && e.Active)
                     }
                 ).AsNoTracking().ToListAsync();
 

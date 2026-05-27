@@ -114,5 +114,8 @@ namespace Warehouse.Models
 
         [Column("dias_condicion_compra")]
         public int? DiasCondicionCompra { get; set; }
+
+        [Column("datepostpone_confirmada")]
+        public bool? DatePostponeConfirmada { get; set; } = false;
     }
 }

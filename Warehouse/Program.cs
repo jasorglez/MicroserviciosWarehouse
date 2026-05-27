@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.60 feat: cotiz fields (numCotizacion/condicionesPago/vigenciaCotizacion) movidos a ocandreq 2026-05-22" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.62 fix: PATCH datepostpone-confirmada + asignación defensiva en Update Detailsreqoc 2026-05-26" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

@@ -74,6 +74,7 @@ namespace Warehouse.Service
                             compraRapida = dmc.Details.CompraRapida,
                             masIva = dmc.Details.MasIva,
                             diasCondicionCompra = dmc.Details.DiasCondicionCompra,
+                            datepostponeConfirmada = dmc.Details.DatePostponeConfirmada,
                             entregasCount = _context.EntregasOc.Count(e => e.IdDetailsreqoc == dmc.Details.Id && e.Active)
                         })
                     .AsNoTracking()
@@ -159,6 +160,10 @@ namespace Warehouse.Service
             {
                 detail.Id = id;
                 _context.Entry(existingItem).CurrentValues.SetValues(detail);
+                // Defensivo: SetValues no siempre propaga este flag nullable.
+                // Si el body incluye un valor explícito, se respeta tal cual.
+                if (detail.DatePostponeConfirmada.HasValue)
+                    existingItem.DatePostponeConfirmada = detail.DatePostponeConfirmada.Value;
                 await _context.SaveChangesAsync();
 
                 // ✅ Actualizar DateModified de la requisición padre
@@ -279,6 +284,15 @@ namespace Warehouse.Service
             await _context.SaveChangesAsync();
         }
 
+        public async Task PatchDatePostponeConfirmada(int id, bool value)
+        {
+            var item = await _context.Detailsreqoc.FindAsync(id);
+            if (item == null) return;
+            item.DatePostponeConfirmada = value;
+            await _context.SaveChangesAsync();
+            await UpdateParentRequisitionModified(item.IdMovement);
+        }
+
         public async Task SyncObservationBySupplieAndProvider(int idSupplie, int idProvider, string observation)
         {
             try
@@ -347,6 +361,7 @@ namespace Warehouse.Service
         Task<FrequentArticlesResponse> GetFrequentArticles(string solicit, int idDepartment, int idBranch);
         Task PatchTypeOc(int id, string typeOc);
         Task PatchCantidadConceptualizada(int id, decimal cantidad);
+        Task PatchDatePostponeConfirmada(int id, bool value);
         Task SyncObservationBySupplieAndProvider(int idSupplie, int idProvider, string observation);
     }
 }

@@ -69,8 +69,9 @@ namespace Warehouse.Service.Delison
         {
             var existing = await _context.EntregasOc.FindAsync(id);
             if (existing == null) return false;
-            existing.Active       = false;
-            existing.DateModified = DateTime.UtcNow;
+            // Hard delete: la fila desaparece físicamente. No hay FKs apuntando
+            // a Delison.entregas_oc, así que es seguro.
+            _context.EntregasOc.Remove(existing);
             await _context.SaveChangesAsync();
             return true;
         }
