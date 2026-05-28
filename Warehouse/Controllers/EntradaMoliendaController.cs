@@ -47,6 +47,20 @@ public class EntradaMoliendaController : ControllerBase
         }
     }
 
+    [HttpGet("byEntregaAndMaterial/{idEntrega}/{idMaterial}")]
+    public async Task<ActionResult<List<EntradaMoliendaDelison>>> GetByEntregaAndMaterial(int idEntrega, int idMaterial)
+    {
+        try
+        {
+            return Ok(await _service.GetByEntregaAndMaterial(idEntrega, idMaterial));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving entradas for Entrega {IdEntrega} and material {IdMaterial}", idEntrega, idMaterial);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<EntradaMoliendaDelison>> GetById(int id)
     {

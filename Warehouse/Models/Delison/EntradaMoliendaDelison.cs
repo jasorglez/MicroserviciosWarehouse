@@ -13,6 +13,9 @@ namespace Warehouse.Models.Delison
         [Column("id_oc")]
         public int IdOc { get; set; }
 
+        [Column("id_entrega")]
+        public int? IdEntrega { get; set; }
+
         [Column("id_material")]
         public int? IdMaterial { get; set; }
 

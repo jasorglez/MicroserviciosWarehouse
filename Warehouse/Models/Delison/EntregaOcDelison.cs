@@ -29,6 +29,9 @@ namespace Warehouse.Models.Delison
         [Column("fecha_entrada_almacen")]
         public DateOnly? FechaEntradaAlmacen { get; set; }
 
+        [Column("close")]
+        public bool Close { get; set; } = false;
+
         [Column("active")]
         public bool Active { get; set; } = true;
 

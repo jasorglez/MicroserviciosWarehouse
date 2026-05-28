@@ -7,6 +7,7 @@ namespace Warehouse.Service.Delison
     {
         Task<List<EntradaMoliendaDelison>> GetByOc(int idOc);
         Task<List<EntradaMoliendaDelison>> GetByOcAndMaterial(int idOc, int idMaterial);
+        Task<List<EntradaMoliendaDelison>> GetByEntregaAndMaterial(int idEntrega, int idMaterial);
         Task<EntradaMoliendaDelison?> GetById(int id);
         Task<EntradaMoliendaDelison> Create(EntradaMoliendaDelison data);
         Task<EntradaMoliendaDelison?> Update(int id, EntradaMoliendaDelison data);
@@ -43,6 +44,16 @@ namespace Warehouse.Service.Delison
                 .ToListAsync();
         }
 
+        public async Task<List<EntradaMoliendaDelison>> GetByEntregaAndMaterial(int idEntrega, int idMaterial)
+        {
+            return await _context.EntradasMolienda
+                .Where(e => e.IdEntrega == idEntrega && e.Active
+                         && (e.IdMaterial == null || e.IdMaterial == idMaterial))
+                .OrderBy(e => e.FechaRecepcion)
+                .AsNoTracking()
+                .ToListAsync();
+        }
+
         public async Task<EntradaMoliendaDelison?> GetById(int id)
         {
             return await _context.EntradasMolienda
@@ -64,6 +75,7 @@ namespace Warehouse.Service.Delison
             var existing = await _context.EntradasMolienda.FindAsync(id);
             if (existing == null) return null;
 
+            existing.IdEntrega       = data.IdEntrega;
             existing.FechaRecepcion  = data.FechaRecepcion;
             existing.CantidadEntrada = data.CantidadEntrada;
             existing.Bultos          = data.Bultos;

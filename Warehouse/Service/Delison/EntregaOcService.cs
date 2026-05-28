@@ -58,6 +58,7 @@ namespace Warehouse.Service.Delison
             existing.NotaFactura         = data.NotaFactura;
             existing.TotalEntrega        = data.TotalEntrega;
             existing.FechaEntradaAlmacen = data.FechaEntradaAlmacen;
+            existing.Close               = data.Close;
             existing.Active              = data.Active;
             existing.DateModified        = DateTime.UtcNow;
 
