@@ -335,6 +335,51 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("compra-rapida-items")]
+        public async Task<IActionResult> GetCompraRapidaItems([FromQuery] int idBranch, [FromQuery] int idMaterial = 0)
+        {
+            try
+            {
+                var result = await _service.GetCompraRapidaItems(idBranch, idMaterial);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting compra rapida items for branch {IdBranch}", idBranch);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpPost("sync-compra-rapida")]
+        public async Task<IActionResult> SyncCompraRapida([FromQuery] int idReq)
+        {
+            try
+            {
+                var result = await _service.SyncCompraRapida(idReq);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sincronizando compra rapida para req {IdReq}", idReq);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
+        [HttpGet("compra-rapida-has-entradas")]
+        public async Task<IActionResult> CompraRapidaHasEntradas([FromQuery] int idItem)
+        {
+            try
+            {
+                var result = await _service.CompraRapidaHasEntradas(idItem);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error verificando entradas de compra rapida item {IdItem}", idItem);
+                return StatusCode(500, "Internal server error");
+            }
+        }
+
         [HttpGet("pedimentos-by-requisicion")]
         public async Task<IActionResult> GetPedimentosByRequisicion([FromQuery] int idRequisicion)
         {

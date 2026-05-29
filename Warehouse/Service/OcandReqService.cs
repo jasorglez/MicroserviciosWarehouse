@@ -707,7 +707,7 @@ namespace Warehouse.Service
                     from oc in _context.Ocandreqs
                     join d in _context.Detailsreqoc on oc.Id equals d.IdMovement
                     where oc.Active == true
-                       && oc.Type      == "OC"
+                       && (oc.Type == "OC" || oc.Type == "CR")   // incluye documentos de Compra Rápida
                        && oc.IdReq     == idReq
                        && d.IdSupplie  == idMaterial
                        && d.Active     == true
@@ -716,6 +716,7 @@ namespace Warehouse.Service
                         oc.Id,
                         oc.Folio,
                         oc.Close,
+                        oc.Type,
                         IdDetail     = d.Id,
                         Proveedor    = d.NameProvider ?? d.ProvInt ?? "",
                         Cantidad     = d.Quantity,
@@ -941,6 +942,241 @@ namespace Warehouse.Service
                 _logger.LogError(ex, "Error getting OCs for branch {IdBranch}", idBranch);
                 throw;
             }
+        }
+
+        public async Task<List<object>> GetCompraRapidaItems(int idBranch, int idMaterial = 0)
+        {
+            try
+            {
+                if (idBranch <= 0) return new List<object>();
+
+                // Items con compra rápida (comprarapida=true) de las REQUIS de la sucursal.
+                // Si idMaterial > 0, se filtra por material (usado por almacén molienda, que es por material).
+                var items = await (
+                    from d in _context.Detailsreqoc
+                    join req in _context.Ocandreqs on d.IdMovement equals req.Id
+                    where d.Active == true
+                       && d.CompraRapida == true
+                       && req.Active == true
+                       && req.Type == "REQUIS"
+                       && req.TypeReference == "branch"
+                       && req.IdReference == idBranch
+                       && (idMaterial == 0 || d.IdSupplie == idMaterial)
+                    orderby req.DateModified descending, d.Id
+                    select new
+                    {
+                        Id            = d.Id,
+                        ReqId         = req.Id,
+                        ReqFolio      = req.Folio,
+                        IdReference   = req.IdReference,
+                        IdDepartament = req.IdDepartament,
+                        IdSupplie     = d.IdSupplie,
+                        RequestDate   = req.DateCreate,
+                        SolicitedBy   = req.Solicit,
+                        Recurrent     = d.Recurrent,
+                        Article       = d.NameArticle,
+                        NumArticle    = d.NumArticle,
+                        Quantity      = d.Quantity,
+                        Comment       = d.Comment,
+                        Price         = d.Price,
+                        Total         = d.Total,
+                        CaducidadMinimaRequerida = d.CaducidadMinimaRequerida,
+                        // Id del documento CR generado para este item (para compartir documentos PDF).
+                        CrId = _context.Ocandreqs
+                            .Where(c => c.Type == "CR" && c.IdReference == d.Id && c.Active == true)
+                            .Select(c => (int?)c.Id)
+                            .FirstOrDefault()
+                    }
+                ).AsNoTracking().ToListAsync();
+
+                if (!items.Any()) return new List<object>();
+
+                // Nombres de departamentos desde security.dbo.Roles (mismo origen que GetOcsByBranch).
+                var deptIds = items.Select(x => x.IdDepartament).Distinct().Where(id => id > 0).ToList();
+                var deptMap = new Dictionary<int, string>();
+                if (deptIds.Any())
+                {
+                    var connection = _context.Database.GetDbConnection();
+                    if (connection.State != System.Data.ConnectionState.Open)
+                        await connection.OpenAsync();
+
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = $"SELECT id, description FROM security.dbo.Roles WHERE id IN ({string.Join(",", deptIds)})";
+
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                        deptMap[reader.GetInt32(0)] = reader.GetString(1);
+                }
+
+                return items.Select(x => (object)new
+                {
+                    x.Id,
+                    x.ReqId,
+                    x.ReqFolio,
+                    x.IdReference,
+                    x.IdDepartament,
+                    x.IdSupplie,
+                    x.RequestDate,
+                    DepartmentName = deptMap.TryGetValue(x.IdDepartament, out var dn) ? dn : "Sin Departamento",
+                    x.SolicitedBy,
+                    x.Recurrent,
+                    x.Article,
+                    x.NumArticle,
+                    x.Quantity,
+                    x.Comment,
+                    x.Price,
+                    x.Total,
+                    x.CaducidadMinimaRequerida,
+                    x.CrId
+                }).ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting compra rapida items for branch {IdBranch}", idBranch);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Sincroniza los documentos de Compra Rápida (ocandreq type='CR') de una requisición.
+        /// - Crea un CR por cada item con comprarapida=true que aún no lo tenga (folio CR-{folioReq}-{n}),
+        ///   copiando el item a detailsreqoc (id_movement = CR.id). Idempotente (link por IdReference=item.id).
+        /// - Sincroniza el item copiado si el origen cambió (cantidad, precio, etc.).
+        /// - Borra (duro) los CR cuyo item origen ya no es compra rápida y NO tienen entradas en almacén.
+        /// </summary>
+        public async Task<object> SyncCompraRapida(int idReq)
+        {
+            if (idReq <= 0) return new { created = 0, updated = 0, deleted = 0 };
+
+            var req = await _context.Ocandreqs
+                .FirstOrDefaultAsync(o => o.Id == idReq && o.Type == "REQUIS" && o.Active == true);
+            if (req == null) return new { error = "REQUIS no encontrada" };
+
+            var reqItems = await _context.Detailsreqoc
+                .Where(d => d.IdMovement == idReq && d.Active == true)
+                .ToListAsync();
+            var crItems = reqItems.Where(d => d.CompraRapida == true).ToList();
+
+            var existingCRs = await _context.Ocandreqs
+                .Where(o => o.Type == "CR" && o.IdReq == idReq && o.Active == true)
+                .ToListAsync();
+
+            // Consecutivo n: max existente + 1 (parseado del folio CR-...-n).
+            int nextN = 1;
+            foreach (var c in existingCRs)
+            {
+                var parts = (c.Folio ?? string.Empty).Split('-');
+                if (parts.Length > 0 && int.TryParse(parts[parts.Length - 1], out var nn) && nn >= nextN)
+                    nextN = nn + 1;
+            }
+
+            int created = 0, updated = 0, deleted = 0;
+
+            // 1) Crear / sincronizar por cada item con compra rápida
+            foreach (var item in crItems)
+            {
+                var cr = existingCRs.FirstOrDefault(c => c.IdReference == item.Id);
+                if (cr == null)
+                {
+                    var newCr = new Ocandreq
+                    {
+                        IdRoot        = req.IdRoot,
+                        Folio         = $"CR-{req.Folio}-{nextN}",
+                        TypeReference = "compra_rapida",
+                        IdReq         = idReq,
+                        IdReference   = item.Id,            // link al item origen (idempotencia)
+                        DateCreate    = req.DateCreate,
+                        IdProvider    = 0,
+                        IdDepartament = req.IdDepartament,
+                        TypeOc        = req.TypeOc ?? "INSUMOS",
+                        Type          = "CR",
+                        Solicit       = req.Solicit,
+                        Close         = false,
+                        Active        = true,
+                        DateModified  = DateTime.Now,
+                    };
+                    _context.Ocandreqs.Add(newCr);
+                    await _context.SaveChangesAsync();
+                    nextN++;
+
+                    var copy = new Detailsreqoc
+                    {
+                        IdMovement   = newCr.Id,
+                        IdSupplie    = item.IdSupplie,
+                        IdProvider   = 0,
+                        NameProvider = null,                // Proveedor pendiente (hoja gastos)
+                        Quantity     = item.Quantity,
+                        Price        = 0,                   // Precio pendiente (hoja gastos) → Pago = 0
+                        Dateuse      = item.Dateuse,
+                        Type         = "CR",
+                        Recurrent    = item.Recurrent,
+                        NameArticle  = item.NameArticle,
+                        NumArticle   = item.NumArticle,
+                        Intorext     = item.Intorext,
+                        ProvInt      = null,                // Proveedor pendiente (hoja gastos)
+                        TypePriority = item.TypePriority,
+                        Comment      = item.Comment,
+                        Observation  = item.Observation,
+                        CaducidadMinimaRequerida = item.CaducidadMinimaRequerida,
+                        DiasCondicionCompra = 1,            // single-entrega
+                        DatePostpone = req.DateCreate,      // Fecha x Entrega = Fecha solicitud de la REQUIS
+                        Active       = true,
+                        CompraRapida = false,               // el copiado NO es el origen
+                    };
+                    _context.Detailsreqoc.Add(copy);
+                    await _context.SaveChangesAsync();
+                    created++;
+                }
+                else
+                {
+                    // Sincronizar el item copiado con el origen
+                    var copy = await _context.Detailsreqoc
+                        .FirstOrDefaultAsync(d => d.IdMovement == cr.Id && d.Active == true);
+                    if (copy != null)
+                    {
+                        // No se sincroniza Price/Proveedor: vienen de la hoja gastos (futuro), no de la requisición.
+                        copy.IdSupplie   = item.IdSupplie;
+                        copy.Quantity    = item.Quantity;
+                        copy.NameArticle = item.NameArticle;
+                        copy.NumArticle  = item.NumArticle;
+                        copy.Comment     = item.Comment;
+                        copy.CaducidadMinimaRequerida = item.CaducidadMinimaRequerida;
+                        cr.DateModified  = DateTime.Now;
+                        await _context.SaveChangesAsync();
+                        updated++;
+                    }
+                }
+            }
+
+            // 2) Borrar (duro) CR cuyo item origen ya no es compra rápida y SIN entradas en almacén
+            var crItemIds = crItems.Select(i => i.Id).ToHashSet();
+            foreach (var cr in existingCRs)
+            {
+                if (crItemIds.Contains(cr.IdReference)) continue; // sigue siendo compra rápida
+                var hasEntradas = await _context.EntradasMolienda.AnyAsync(e => e.IdOc == cr.Id && e.Active);
+                if (hasEntradas) continue; // protegido (el front bloquea antes; esto es defensivo)
+
+                var copies = await _context.Detailsreqoc.Where(d => d.IdMovement == cr.Id).ToListAsync();
+                _context.Detailsreqoc.RemoveRange(copies);
+                _context.Ocandreqs.Remove(cr);
+                await _context.SaveChangesAsync();
+                deleted++;
+            }
+
+            return new { created, updated, deleted };
+        }
+
+        /// <summary>Indica si el item de compra rápida (detailsreqoc.id origen) ya tiene entradas en almacén
+        /// (a través de su documento CR). Usado para bloquear desmarcar/borrar en Requisiciones.</summary>
+        public async Task<bool> CompraRapidaHasEntradas(int idItem)
+        {
+            if (idItem <= 0) return false;
+            var crIds = await _context.Ocandreqs
+                .Where(o => o.Type == "CR" && o.IdReference == idItem && o.Active == true)
+                .Select(o => o.Id)
+                .ToListAsync();
+            if (!crIds.Any()) return false;
+            return await _context.EntradasMolienda.AnyAsync(e => crIds.Contains(e.IdOc) && e.Active);
         }
 
         public async Task<List<object>> GetPedimentosByRequisicion(int idRequisicion)
@@ -1314,6 +1550,9 @@ namespace Warehouse.Service
         Task<List<object>> GetOcsByRequisition(int? idRequisition);
         Task<List<object>> GetOcsDetailsForRequisition(int? idRequisition);
         Task<List<object>> GetOcsByBranch(int idBranch);
+        Task<List<object>> GetCompraRapidaItems(int idBranch, int idMaterial = 0);
+        Task<object> SyncCompraRapida(int idReq);
+        Task<bool> CompraRapidaHasEntradas(int idItem);
         Task<List<object>> GetPedimentosByRequisicion(int idRequisicion);
         Task<bool> ShouldLockRequisicion(int idReq);
         Task<List<object>> GetOcsByPedimento(int idPedimento);
