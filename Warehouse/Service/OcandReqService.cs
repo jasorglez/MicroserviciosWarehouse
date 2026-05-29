@@ -253,6 +253,11 @@ namespace Warehouse.Service
             try
             {
                 _context.Entry(existingItem).CurrentValues.SetValues(ocandreq);
+                // ✅ DateModified SIEMPRE con hora del servidor (autoritativa).
+                // Se ignora cualquier valor enviado por el cliente para evitar
+                // desfases entre el reloj del navegador y el servidor, que provocaban
+                // ordenamiento inconsistente en el grid de requisiciones (fila 3/5 en vez de arriba).
+                existingItem.DateModified = DateTime.Now;
                 await _context.SaveChangesAsync();
                 return existingItem;
             }
