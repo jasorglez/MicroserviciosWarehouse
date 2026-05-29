@@ -21,5 +21,8 @@ namespace Warehouse.Models.Delison
 
         [Column("active")]
         public bool Active { get; set; } = true;
+
+        [Column("molienda")]
+        public bool Molienda { get; set; } = false;
     }
 }

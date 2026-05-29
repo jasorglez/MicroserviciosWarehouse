@@ -73,6 +73,7 @@ namespace Warehouse.Service.Delison
             // existing.IdBranch = entity.IdBranch;
             existing.Description = entity.Description.Trim();
             existing.Active = entity.Active;
+            existing.Molienda = entity.Molienda;
 
             await _context.SaveChangesAsync();
             return existing;
