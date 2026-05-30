@@ -13,7 +13,7 @@ namespace Warehouse.Models.Delison
         public int IdCompany { get; set; }
 
         [Column("id_articulo")]
-        public int IdArticulo { get; set; }
+        public int? IdArticulo { get; set; }
 
         [Column("editBultos")]
         public bool EditBultos { get; set; }
@@ -32,5 +32,8 @@ namespace Warehouse.Models.Delison
 
         [Column("molienda")]
         public bool Molienda { get; set; } = false;
+
+        [Column("id_mat_prima")]
+        public int? IdMatPrima { get; set; }
     }
 }

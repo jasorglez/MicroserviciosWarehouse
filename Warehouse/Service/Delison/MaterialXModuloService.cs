@@ -73,6 +73,7 @@ namespace Warehouse.Service.Delison
             existing.EditBultos  = entity.EditBultos;
             existing.Active     = entity.Active;
             existing.Molienda   = entity.Molienda;
+            existing.IdMatPrima = entity.IdMatPrima;
 
             await _context.SaveChangesAsync();
             return existing;
