@@ -13,11 +13,7 @@ namespace Warehouse.Models.Delison
         public int IdCompany { get; set; }
 
         [Column("id_articulo")]
-<<<<<<< HEAD
         public int? IdArticulo { get; set; }   // nullable: hay filas históricas con id_articulo NULL (rompían EF al leer)
-=======
-        public int? IdArticulo { get; set; }
->>>>>>> cdcec3cac3ccf22f747cdedf95c966a4ee228d10
 
         [Column("editBultos")]
         public bool EditBultos { get; set; }
