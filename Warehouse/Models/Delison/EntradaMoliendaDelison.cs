@@ -34,12 +34,26 @@ namespace Warehouse.Models.Delison
         [Column("pago", TypeName = "decimal(12,2)")]
         public decimal? Pago { get; set; }
 
+        // Fecha en que se confirmó/generó el pago real desde la Hoja de Gastos.
+        [Column("fecha_pago")]
+        public DateOnly? FechaPago { get; set; }
+
+        // Nota / Factura por entrada. Se puede llenar desde la Hoja de Gastos si llegó vacía.
+        [Column("nota_factura")]
+        [MaxLength(20)]
+        public string? NotaFactura { get; set; }
+
         [Column("usuario")]
         [MaxLength(100)]
         public string? Usuario { get; set; }
 
         [Column("liberacion")]
         public bool Liberacion { get; set; } = false;
+
+        // Cierre por ENTRADA (lock). Marca que esta entrega quedó cerrada y no admite más cambios.
+        // Aplica sobre todo a OCs "COMPRA AUTORIZADA SIN LIMITE" (entradas infinitas, cada una se cierra aparte).
+        [Column("close")]
+        public bool Close { get; set; } = false;
 
         [Column("active")]
         public bool Active { get; set; } = true;

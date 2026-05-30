@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.63 fix: Ocandreq.Update asigna DateModified = servidor (hora autoritativa) para ordenamiento consistente del grid de requisiciones 2026-05-29" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.79 feat: GET /api/Gastos/paid — historico de pagos (entradas liberacion=1) para pestana Historico de Gastos 2026-05-30" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -134,6 +134,7 @@ builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
 builder.Services.AddScoped<ICondicionPagoService, CondicionPagoService>();
 builder.Services.AddScoped<ISetupOcService, SetupOcService>();
 builder.Services.AddScoped<IEntregaOcService, EntregaOcService>();
+builder.Services.AddScoped<IGastosService, GastosService>();
 
 builder.Services.AddHttpContextAccessor();
 

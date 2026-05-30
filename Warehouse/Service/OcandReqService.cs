@@ -722,10 +722,12 @@ namespace Warehouse.Service
                         oc.Folio,
                         oc.Close,
                         oc.Type,
+                        TipoOc       = d.TypeOc,   // 'COMPRA INMEDIATA', 'COMPRA AUTORIZADA EN OTRA FECHA', etc. (tipo OC del detalle)
                         IdDetail     = d.Id,
                         Proveedor    = d.NameProvider ?? d.ProvInt ?? "",
                         Cantidad     = d.Quantity,
                         Price       = d.Price,
+                        MasIva       = d.MasIva,
                         CondEspecial = oc.Conditions ?? "",
                         CantidadMinimaRequerida = d.CaducidadMinimaRequerida,
                         FechaXEntrega = d.DatePostpone,
@@ -1223,13 +1225,25 @@ namespace Warehouse.Service
                     }
                 ).AsNoTracking().ToListAsync();
 
+                // IVA% de la sucursal de la requisición (mismo origen que la cotización: setup de almacén por branch).
+                // El precio guardado en detailsreqoc es BASE (Opción B), así que el IVA se aplica al sumar.
+                var idBranchReq = await _context.Ocandreqs
+                    .Where(o => o.Id == idRequisicion)
+                    .Select(o => o.IdReference)
+                    .FirstOrDefaultAsync();
+                var ivaPercent = await _context.Setups
+                    .Where(s => s.IdBranch == idBranchReq && s.Active)
+                    .Select(s => s.Iva)
+                    .FirstOrDefaultAsync() ?? 0m;
+                var ivaFactor = 1m + ivaPercent / 100m;
+
                 // TotalPedimento se calcula EN VIVO desde los items de los OCs que pertenecen
                 // a cada pedimento (mismos providers via la cadena de COTIZs delison).
                 // Esto evita drift entre snapshot y items editados después.
                 var result = new List<object>();
                 foreach (var ped in pedimentos)
                 {
-                    var totalLive = await _context.Detailsreqoc
+                    var lineas = await _context.Detailsreqoc
                         .Where(d => d.Active == true
                                  && _context.Ocandreqs.Any(oc =>
                                         oc.Id == d.IdMovement
@@ -1242,7 +1256,12 @@ namespace Warehouse.Service
                                          && dc.TypeReference == "delison"
                                          && dc.IdReference == ped.Id
                                          && dc.IdProvider == oc.IdProvider)))
-                        .SumAsync(d => (decimal?)d.Total) ?? 0m;
+                        .Select(d => new { d.Quantity, d.Price, d.MasIva })
+                        .ToListAsync();
+                    // Aplica IVA por línea (mas_iva). Precio BASE (Opción B); se REDONDEA el precio
+                    // unitario con IVA a 2 dec ANTES de multiplicar por cantidad (Opción A).
+                    var totalLive = lineas.Sum(l =>
+                        Math.Round(l.Price * ((l.MasIva ?? false) ? ivaFactor : 1m), 2) * l.Quantity);
 
                     result.Add(new
                     {
@@ -1398,6 +1417,18 @@ namespace Warehouse.Service
                     .Where(cp => cp.IdCompany == idCompany)
                     .ToDictionaryAsync(cp => cp.Id);
 
+                // IVA% de la sucursal de la requisición (setup almacén). El precio guardado es BASE
+                // (Opción B), así que el Total x OC aplica el IVA por línea (mas_iva).
+                var idBranchPed = await _context.Ocandreqs
+                    .Where(r => r.Id == pedimento.IdReq)
+                    .Select(r => r.IdReference)
+                    .FirstOrDefaultAsync();
+                var ivaPercentPed = await _context.Setups
+                    .Where(s => s.IdBranch == idBranchPed && s.Active)
+                    .Select(s => s.Iva)
+                    .FirstOrDefaultAsync() ?? 0m;
+                var ivaFactorPed = 1m + ivaPercentPed / 100m;
+
                 // OCs de la requisición padre que tengan alguno de esos proveedores
                 var ocs = await _context.Ocandreqs
                     .Where(o => o.Type == "OC"
@@ -1451,7 +1482,7 @@ namespace Warehouse.Service
                         o.IdCondicionPago,
                         Total = _context.Detailsreqoc
                             .Where(d => d.IdMovement == o.Id && d.Active == true)
-                            .Sum(d => (decimal?)d.Total) ?? 0m,
+                            .Sum(d => (decimal?)(Math.Round(d.Price * (d.MasIva == true ? ivaFactorPed : 1m), 2) * d.Quantity)) ?? 0m,
                         countrow = _context.Detailsreqoc
                             .Count(d => d.IdMovement == o.Id && d.Active == true)
                     })
