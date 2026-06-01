@@ -139,5 +139,49 @@ namespace Warehouse.Controllers.Delison
                 return StatusCode(500, "Error guardando los cambios.");
             }
         }
+
+        /// <summary>
+        /// Ingresa una entrada "a crédito": material disponible (placeholder almacén) + pago pendiente a N días.
+        /// </summary>
+        [HttpPost("activar-credito")]
+        public async Task<IActionResult> ActivarCredito([FromBody] ActivarCreditoDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.IdEntrada <= 0)
+                    return BadRequest("idEntrada es obligatorio.");
+
+                var ok = await _service.ActivarCredito(dto.IdEntrada);
+                if (!ok) return NotFound("Entrada no encontrada.");
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error activando crédito. Entrada={IdEntrada}", dto?.IdEntrada);
+                return StatusCode(500, "Error activando el crédito.");
+            }
+        }
+
+        /// <summary>
+        /// Marca el anticipo de una OC como pagado (desde el grid de Órdenes de Compra).
+        /// </summary>
+        [HttpPost("marcar-anticipo")]
+        public async Task<IActionResult> MarcarAnticipo([FromBody] MarcarAnticipoDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.IdOc <= 0)
+                    return BadRequest("idOc es obligatorio.");
+
+                var ok = await _service.MarcarAnticipo(dto);
+                if (!ok) return NotFound("OC no encontrada.");
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error marcando anticipo. OC={IdOc}", dto?.IdOc);
+                return StatusCode(500, "Error marcando el anticipo.");
+            }
+        }
     }
 }

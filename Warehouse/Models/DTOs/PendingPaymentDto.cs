@@ -35,6 +35,19 @@ namespace Warehouse.Models.DTOs
 
         public DateTime? FechaRecepcion { get; set; }
         public DateTime? FechaPago { get; set; }
+
+        // ── Condición de pago (catálogo condiciones_pago vía ocandreq.id_condicion_pago) ──
+        public bool CalculoAnticipo { get; set; }             // true = bloque ANTICIPO; false = bloque CRÉDITO
+        public int CondicionCantidad { get; set; }            // crédito → N días; anticipo → % del total
+        public bool Credito { get; set; }                     // entradas_molienda.credito (ya ingresada a crédito)
+
+        // ── Estado del anticipo (a nivel OC) ──
+        public bool AnticipoPagado { get; set; }              // el dinero del anticipo ya se entregó
+        public decimal AnticipoMonto { get; set; }            // monto total del anticipo registrado
+        public decimal AnticipoSaldo { get; set; }            // anticipo_monto − Σ anticipo_aplicado (entradas activas)
+        public string? MetodoAnticipo { get; set; }           // 'FIFO' | 'PRORRATEO' (null hasta la 1ª aplicación)
+        public int? NumProrrateo { get; set; }                // entregas para prorrateo (si ya se eligió)
+        public int NumEntregasPlan { get; set; }              // entregas creadas para el detalle (default de prorrateo)
     }
 
     /// <summary>
@@ -58,5 +71,24 @@ namespace Warehouse.Models.DTOs
         public bool MasIva { get; set; }
         public string? NotaFactura { get; set; }
         public decimal Cantidad { get; set; }                    // para acumular en sin límite
+
+        // ── Aplicación de anticipo al confirmar/guardar (bloque ANTICIPO) ──
+        public decimal? AnticipoAplicado { get; set; }           // monto del anticipo aplicado a esta entrada
+        public string? MetodoAnticipo { get; set; }              // 'FIFO' | 'PRORRATEO' (se fija en la 1ª entrada)
+        public int? NumProrrateo { get; set; }                   // entregas elegidas para prorrateo
+    }
+
+    /// <summary>Marca el anticipo de una OC como pagado (desde el grid de Órdenes de Compra).</summary>
+    public class MarcarAnticipoDto
+    {
+        public int IdOc { get; set; }
+        public decimal Monto { get; set; }            // monto del anticipo (= Total OC × cantidad%)
+        public DateTime? Fecha { get; set; }
+    }
+
+    /// <summary>Ingresa una entrada "a crédito" (material disponible, pago pendiente a N días).</summary>
+    public class ActivarCreditoDto
+    {
+        public int IdEntrada { get; set; }
     }
 }

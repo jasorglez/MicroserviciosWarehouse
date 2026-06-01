@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.79 feat: GET /api/Gastos/paid — historico de pagos (entradas liberacion=1) para pestana Historico de Gastos 2026-05-30" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.89 fix: Gastos pending/paid resuelve id_condicion_pago desde la COTIZ hermana (id_req+id_provider) cuando la OC lo tiene null → botón Crédito/flujo Anticipo aparecen. 2026-05-30" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -135,6 +135,7 @@ builder.Services.AddScoped<ICondicionPagoService, CondicionPagoService>();
 builder.Services.AddScoped<ISetupOcService, SetupOcService>();
 builder.Services.AddScoped<IEntregaOcService, EntregaOcService>();
 builder.Services.AddScoped<IGastosService, GastosService>();
+builder.Services.AddScoped<IGridColumnStateService, GridColumnStateService>();
 
 builder.Services.AddHttpContextAccessor();
 

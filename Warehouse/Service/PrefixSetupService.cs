@@ -84,6 +84,7 @@ namespace Warehouse.Service
                 existingPrefixSetup.ConsecutiveCompraInmediata = prefixSetup.ConsecutiveCompraInmediata;
                 existingPrefixSetup.PrefixTraspaso = prefixSetup.PrefixTraspaso;
                 existingPrefixSetup.ConsecutiveTraspaso = prefixSetup.ConsecutiveTraspaso;
+                existingPrefixSetup.PrefixEntrega = prefixSetup.PrefixEntrega;
                 existingPrefixSetup.Active = prefixSetup.Active;
 
                 await _context.SaveChangesAsync();

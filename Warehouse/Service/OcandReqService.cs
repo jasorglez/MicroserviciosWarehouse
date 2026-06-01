@@ -720,7 +720,13 @@ namespace Warehouse.Service
                     {
                         oc.Id,
                         oc.Folio,
-                        oc.Close,
+                        // Close POR ARTÍCULO (línea), no por OC global: si la línea tiene entregas,
+                        // está cerrada cuando todas sus entregas están cerradas; si no tiene entregas,
+                        // cae al close de la OC (CR / legacy). Así cerrar un artículo de 1 entrega no
+                        // bloquea a los demás artículos de la misma OC.
+                        Close = _context.EntregasOc.Any(eg => eg.IdDetailsreqoc == d.Id && eg.Active)
+                                ? !_context.EntregasOc.Any(eg => eg.IdDetailsreqoc == d.Id && eg.Active && eg.Close == false)
+                                : oc.Close,
                         oc.Type,
                         TipoOc       = d.TypeOc,   // 'COMPRA INMEDIATA', 'COMPRA AUTORIZADA EN OTRA FECHA', etc. (tipo OC del detalle)
                         IdDetail     = d.Id,
@@ -1480,6 +1486,9 @@ namespace Warehouse.Service
                         o.CondicionesPago,
                         o.VigenciaCotizacion,
                         o.IdCondicionPago,
+                        o.AnticipoPagado,
+                        o.AnticipoMonto,
+                        o.FechaAnticipo,
                         Total = _context.Detailsreqoc
                             .Where(d => d.IdMovement == o.Id && d.Active == true)
                             .Sum(d => (decimal?)(Math.Round(d.Price * (d.MasIva == true ? ivaFactorPed : 1m), 2) * d.Quantity)) ?? 0m,
@@ -1551,6 +1560,9 @@ namespace Warehouse.Service
                         VigenciaCotizacion = c?.VigenciaCotizacion ?? o.VigenciaCotizacion,
                         IdCondicionPago = idCondPago,
                         AnticipoOc = anticipoOc,
+                        o.AnticipoPagado,
+                        o.AnticipoMonto,
+                        o.FechaAnticipo,
                         o.Total,
                         o.countrow
                     };

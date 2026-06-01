@@ -59,6 +59,10 @@ namespace Warehouse.Models
         [Column("consecutive_traspaso")]
         public int? ConsecutiveTraspaso { get; set; }
 
+        [StringLength(20)]
+        [Column("prefix_entrega")]
+        public string? PrefixEntrega { get; set; }
+
         [Column("active")]
         public bool Active { get; set; } = true;
     }

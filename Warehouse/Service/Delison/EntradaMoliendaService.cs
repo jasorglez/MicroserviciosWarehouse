@@ -87,6 +87,7 @@ namespace Warehouse.Service.Delison
             existing.Liberacion      = data.Liberacion;
             existing.Close           = data.Close;
             existing.Comentario      = data.Comentario;
+            existing.FolioEntrega    = data.FolioEntrega;
             existing.Active          = data.Active;
             existing.DateModified    = DateTime.UtcNow;
 

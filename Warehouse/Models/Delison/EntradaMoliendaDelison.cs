@@ -62,6 +62,20 @@ namespace Warehouse.Models.Delison
         [MaxLength(100)]
         public string? Comentario { get; set; }
 
+        // Folio de entrega: folio OC + prefijo entrega + N (ej. OC-JIC3-P1-GON1429-E2)
+        [Column("folio_entrega")]
+        [MaxLength(50)]
+        public string? FolioEntrega { get; set; }
+
+        // Crédito: la entrada se ingresó "a crédito" (material disponible, pago pendiente a N días).
+        // Separado de Liberacion (=pagado). Crédito activado → sigue en pendientes hasta que se paga.
+        [Column("credito")]
+        public bool Credito { get; set; } = false;
+
+        // Monto del anticipo de la OC aplicado a ESTA entrada (FIFO o prorrateo).
+        [Column("anticipo_aplicado", TypeName = "decimal(16,2)")]
+        public decimal? AnticipoAplicado { get; set; }
+
         [Column("datemodified")]
         public DateTime DateModified { get; set; } = DateTime.UtcNow;
     }
