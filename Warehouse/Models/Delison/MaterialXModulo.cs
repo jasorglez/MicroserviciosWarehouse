@@ -35,5 +35,11 @@ namespace Warehouse.Models.Delison
 
         [Column("id_mat_prima")]
         public int? IdMatPrima { get; set; }
+
+        [Column("id_prefijo_fase")]
+        public int? IdPrefijoFase { get; set; }
+
+        [Column("prefijo")]
+        public string? Prefijo { get; set; }
     }
 }

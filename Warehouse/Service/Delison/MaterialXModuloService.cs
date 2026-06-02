@@ -72,8 +72,10 @@ namespace Warehouse.Service.Delison
             existing.IdCatalog  = entity.IdCatalog;
             existing.EditBultos  = entity.EditBultos;
             existing.Active     = entity.Active;
-            existing.Molienda   = entity.Molienda;
-            existing.IdMatPrima = entity.IdMatPrima;
+            existing.Molienda      = entity.Molienda;
+            existing.IdMatPrima    = entity.IdMatPrima;
+            existing.IdPrefijoFase = entity.IdPrefijoFase;
+            existing.Prefijo       = entity.Prefijo;
 
             await _context.SaveChangesAsync();
             return existing;
