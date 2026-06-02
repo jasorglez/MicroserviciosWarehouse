@@ -11,7 +11,7 @@ namespace Warehouse.Service.Delison
         Task<List<PendingPaymentDto>> GetPaidPayments(int idCompany);
         Task<bool> ConfirmPayment(ConfirmPaymentDto dto);
         Task<bool> SavePending(ConfirmPaymentDto dto);
-        Task<bool> ActivarCredito(int idEntrada);
+        Task<bool> ActivarCredito(ActivarCreditoDto dto);
         Task<bool> MarcarAnticipo(MarcarAnticipoDto dto);
     }
 
@@ -157,6 +157,8 @@ namespace Warehouse.Service.Delison
                     e.id_entrega                                 AS idEntrega,
                     ISNULL(NULLIF(d.name_provider, ''), d.provint) AS proveedor,
                     ISNULL(e.cantidad_entrada, 0)                AS cantidad,
+                    ISNULL(d.quantity, 0)                        AS cantidadOc,
+                    ISNULL(dreq.quantity, 0)                     AS cantidadReq,
                     ISNULL(d.price, 0)                           AS precioUnitario,
                     ISNULL(e.pago, 0)                            AS valorPago,
                     ISNULL(d.mas_iva, 0)                         AS masIva,
@@ -166,6 +168,7 @@ namespace Warehouse.Service.Delison
                     ISNULL(cp.calculo_anticipo, 0)               AS calculoAnticipo,
                     ISNULL(cp.cantidad, 0)                       AS condicionCantidad,
                     ISNULL(e.credito, 0)                         AS credito,
+                    e.fecha_vencimiento                          AS fechaVencimiento,
                     ISNULL(o.anticipo_pagado, 0)                 AS anticipoPagado,
                     ISNULL(o.anticipo_monto, 0)                  AS anticipoMonto,
                     (ISNULL(o.anticipo_monto, 0) - ISNULL((
@@ -175,10 +178,14 @@ namespace Warehouse.Service.Delison
                     o.metodo_anticipo                            AS metodoAnticipo,
                     o.num_prorrateo                              AS numProrrateo,
                     ISNULL((SELECT COUNT(*) FROM warehouses.Delison.entregas_oc eg3
-                            WHERE eg3.id_detailsreqoc = d.id AND eg3.active = 1), 0) AS numEntregasPlan
+                            WHERE eg3.id_detailsreqoc = d.id AND eg3.active = 1), 0) AS numEntregasPlan,
+                    ISNULL((SELECT COUNT(*) FROM warehouses.Delison.entradas_molienda e4
+                            WHERE e4.id_oc = o.id AND e4.id_material = e.id_material AND e4.active = 1), 0) AS numEntradasAlmacen
                 FROM warehouses.Delison.entradas_molienda e
                 INNER JOIN warehouses.dbo.ocandreq o ON o.id = e.id_oc
                 LEFT  JOIN warehouses.dbo.detailsreqoc d ON d.id_movement = o.id AND d.id_supplie = e.id_material AND d.active = 1
+                -- Detalle de la REQUIS padre para obtener la cantidad requisitada
+                LEFT  JOIN warehouses.dbo.detailsreqoc dreq ON dreq.id_movement = o.id_req AND dreq.id_supplie = e.id_material AND dreq.active = 1
                 LEFT  JOIN warehouses.dbo.condiciones_pago cp ON cp.id = COALESCE(o.id_condicion_pago,
                         (SELECT TOP 1 cz.id_condicion_pago FROM warehouses.dbo.ocandreq cz
                          WHERE cz.[type] = 'COTIZ' AND cz.id_req = o.id_req AND cz.id_provider = o.id_provider
@@ -195,9 +202,10 @@ namespace Warehouse.Service.Delison
                   AND (
                         (e.id_entrega IS NOT NULL AND eg.[close] = 1)
                      OR (e.id_entrega IS NULL AND d.typeoc = 'COMPRA AUTORIZADA SIN LIMITE' AND e.[close] = 1)
+                     OR (e.id_entrega IS NULL AND d.typeoc = 'COMPRA INMEDIATA' AND e.[close] = 1)
                      OR (e.id_entrega IS NULL AND o.[type] = 'CR'
                          AND EXISTS (SELECT 1 FROM warehouses.Delison.entregas_oc eg2 WHERE eg2.id_detailsreqoc = d.id AND eg2.active = 1 AND eg2.[close] = 1))
-                     OR (e.id_entrega IS NULL AND o.[type] = 'OC' AND (d.typeoc IS NULL OR d.typeoc <> 'COMPRA AUTORIZADA SIN LIMITE')
+                     OR (e.id_entrega IS NULL AND o.[type] = 'OC' AND (d.typeoc IS NULL OR d.typeoc <> 'COMPRA AUTORIZADA SIN LIMITE' AND d.typeoc <> 'COMPRA INMEDIATA')
                          AND EXISTS (SELECT 1 FROM warehouses.Delison.entregas_oc eg2 WHERE eg2.id_detailsreqoc = d.id AND eg2.active = 1 AND eg2.[close] = 1))
                   )
                 ORDER BY o.id_reference, e.fecha_recepcion DESC, e.id DESC";
@@ -235,6 +243,8 @@ namespace Warehouse.Service.Delison
                         IdEntrega      = GetIntOrNull(reader, "idEntrega"),
                         Proveedor      = GetStrOrNull(reader, "proveedor"),
                         Cantidad       = GetDec(reader, "cantidad"),
+                        CantidadOc     = GetDec(reader, "cantidadOc"),
+                        CantidadReq    = GetDec(reader, "cantidadReq"),
                         PrecioUnitario = GetDec(reader, "precioUnitario"),
                         ValorPago      = GetDec(reader, "valorPago"),
                         MasIva         = GetBool(reader, "masIva"),
@@ -244,12 +254,14 @@ namespace Warehouse.Service.Delison
                         CalculoAnticipo   = GetBool(reader, "calculoAnticipo"),
                         CondicionCantidad = GetInt(reader, "condicionCantidad"),
                         Credito           = GetBool(reader, "credito"),
+                        FechaVencimiento  = GetDateOrNull(reader, "fechaVencimiento"),
                         AnticipoPagado    = GetBool(reader, "anticipoPagado"),
                         AnticipoMonto     = GetDec(reader, "anticipoMonto"),
                         AnticipoSaldo     = GetDec(reader, "anticipoSaldo"),
                         MetodoAnticipo    = GetStrOrNull(reader, "metodoAnticipo"),
-                        NumProrrateo      = GetIntOrNull(reader, "numProrrateo"),
-                        NumEntregasPlan   = GetInt(reader, "numEntregasPlan"),
+                        NumProrrateo        = GetIntOrNull(reader, "numProrrateo"),
+                        NumEntregasPlan     = GetInt(reader, "numEntregasPlan"),
+                        NumEntradasAlmacen  = GetInt(reader, "numEntradasAlmacen"),
                     });
                 }
                 return list;
@@ -462,14 +474,18 @@ namespace Warehouse.Service.Delison
         // ── Captura de Gastos: ingresar una entrada "A CRÉDITO" ──
         // El material queda disponible (placeholder: el almacén global aún no existe → solo estado)
         // y la entrada permanece como PENDIENTE DE PAGO a N días (no se libera). Al vencimiento se paga.
-        public async Task<bool> ActivarCredito(int idEntrada)
+        public async Task<bool> ActivarCredito(ActivarCreditoDto dto)
         {
-            if (idEntrada <= 0) return false;
-            var entrada = await _context.EntradasMolienda.FindAsync(idEntrada);
+            if (dto == null || dto.IdEntrada <= 0) return false;
+            var entrada = await _context.EntradasMolienda.FindAsync(dto.IdEntrada);
             if (entrada == null) return false;
             if (entrada.Liberacion) return true;   // ya pagada → nada que hacer
 
             entrada.Credito      = true;           // marca "ingresada a crédito" (separado de liberacion)
+            // Persiste la fecha de vencimiento calculada en frontend (fechaRecepcion + N días).
+            // Esto permite que el usuario la edite posteriormente desde Captura de Gastos.
+            if (dto.FechaVencimiento.HasValue)
+                entrada.FechaVencimiento = DateOnly.FromDateTime(dto.FechaVencimiento.Value);
             entrada.DateModified = DateTime.UtcNow;
             // TODO[almacén-global]: cuando exista, crear aquí el movimiento de entrada (inandout).
             await _context.SaveChangesAsync();
@@ -513,6 +529,9 @@ namespace Warehouse.Service.Delison
                 entrada.Pago        = dto.ValorPago;
                 entrada.FechaPago   = dto.FechaPago.HasValue ? DateOnly.FromDateTime(dto.FechaPago.Value) : (DateOnly?)null;
                 entrada.NotaFactura = dto.NotaFactura;
+                // Persiste la fecha de vencimiento si el usuario la editó manualmente.
+                if (dto.FechaVencimiento.HasValue)
+                    entrada.FechaVencimiento = DateOnly.FromDateTime(dto.FechaVencimiento.Value);
                 entrada.DateModified = DateTime.UtcNow;
                 // NOTA: NO se toca entrada.Liberacion (sigue en false).
 
