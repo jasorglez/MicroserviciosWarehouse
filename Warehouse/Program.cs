@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.90 feat: GetCompraRapidaItems trae datos del pago de la CR (proveedor + precio unit base/+IVA del detalle CR; total pagado/nota/fecha/cantidad de entradas_molienda) para columna Proveedor + tooltip en Compras Rápidas. 2026-06-01" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.92 feat: Gastos GetPendingPayments agrega COMPRA INMEDIATA con e.close=1 al WHERE; también excluye COMPRA INMEDIATA de la condición genérica entregas_oc. 2026-06-02" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

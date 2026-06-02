@@ -28,6 +28,8 @@ namespace Warehouse.Models.DTOs
         // Editables / writeback
         public string? Proveedor { get; set; }
         public decimal Cantidad { get; set; }                 // entradas_molienda.cantidad_entrada
+        public decimal CantidadOc { get; set; }               // detailsreqoc.quantity (cantidad ordenada en la OC)
+        public decimal CantidadReq { get; set; }              // detailsreqoc.quantity de la REQUIS padre (cantidad requisitada)
         public decimal PrecioUnitario { get; set; }           // detailsreqoc.price
         public decimal ValorPago { get; set; }                // entradas_molienda.pago (default = lo de molienda)
         public bool MasIva { get; set; }                      // detailsreqoc.mas_iva
@@ -35,6 +37,7 @@ namespace Warehouse.Models.DTOs
 
         public DateTime? FechaRecepcion { get; set; }
         public DateTime? FechaPago { get; set; }
+        public DateTime? FechaVencimiento { get; set; }
 
         // ── Condición de pago (catálogo condiciones_pago vía ocandreq.id_condicion_pago) ──
         public bool CalculoAnticipo { get; set; }             // true = bloque ANTICIPO; false = bloque CRÉDITO
@@ -48,6 +51,7 @@ namespace Warehouse.Models.DTOs
         public string? MetodoAnticipo { get; set; }           // 'FIFO' | 'PRORRATEO' (null hasta la 1ª aplicación)
         public int? NumProrrateo { get; set; }                // entregas para prorrateo (si ya se eligió)
         public int NumEntregasPlan { get; set; }              // entregas creadas para el detalle (default de prorrateo)
+        public int NumEntradasAlmacen { get; set; }           // entradas reales en entradas_molienda para esta OC+material
     }
 
     /// <summary>
@@ -66,6 +70,7 @@ namespace Warehouse.Models.DTOs
 
         public decimal ValorPago { get; set; }
         public DateTime? FechaPago { get; set; }
+        public DateTime? FechaVencimiento { get; set; }
         public string? Proveedor { get; set; }
         public decimal? PrecioUnitario { get; set; }
         public bool MasIva { get; set; }
@@ -90,5 +95,7 @@ namespace Warehouse.Models.DTOs
     public class ActivarCreditoDto
     {
         public int IdEntrada { get; set; }
+        /// <summary>Fecha de vencimiento calculada en el frontend (fechaRecepcion + N días). Se persiste en BD para permitir edición posterior.</summary>
+        public DateTime? FechaVencimiento { get; set; }
     }
 }

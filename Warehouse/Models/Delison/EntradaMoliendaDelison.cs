@@ -72,6 +72,11 @@ namespace Warehouse.Models.Delison
         [Column("credito")]
         public bool Credito { get; set; } = false;
 
+        // Fecha de vencimiento del crédito. Si NULL → se calcula en frontend (fechaRecepcion + N días).
+        // Si tiene valor → el usuario la sobrescribió manualmente desde Captura de Gastos.
+        [Column("fecha_vencimiento")]
+        public DateOnly? FechaVencimiento { get; set; }
+
         // Monto del anticipo de la OC aplicado a ESTA entrada (FIFO o prorrateo).
         [Column("anticipo_aplicado", TypeName = "decimal(16,2)")]
         public decimal? AnticipoAplicado { get; set; }

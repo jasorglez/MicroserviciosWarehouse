@@ -103,7 +103,7 @@ namespace Warehouse.Service.Delison
             var existing = await _context.MaterialXModulos.FindAsync(id);
             if (existing == null) return false;
 
-            existing.Active = false;
+            _context.MaterialXModulos.Remove(existing);
             await _context.SaveChangesAsync();
             return true;
         }

@@ -151,7 +151,7 @@ namespace Warehouse.Controllers.Delison
                 if (dto == null || dto.IdEntrada <= 0)
                     return BadRequest("idEntrada es obligatorio.");
 
-                var ok = await _service.ActivarCredito(dto.IdEntrada);
+                var ok = await _service.ActivarCredito(dto);
                 if (!ok) return NotFound("Entrada no encontrada.");
                 return Ok(new { success = true });
             }
