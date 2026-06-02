@@ -1021,26 +1021,73 @@ namespace Warehouse.Service
                         deptMap[reader.GetInt32(0)] = reader.GetString(1);
                 }
 
-                return items.Select(x => (object)new
+                // ── Datos capturados al PAGAR la Compra Rápida (Hoja de Gastos) ──
+                // Proveedor y precio base viven en el detalle del documento CR; pago/nota/fecha/cantidad
+                // viven en su entrada (entradas_molienda). Una CR tiene a lo más UNA entrada.
+                var crIds = items.Where(x => x.CrId.HasValue).Select(x => x.CrId!.Value).Distinct().ToList();
+                var crDetalleMap = new Dictionary<int, (string? Provider, decimal Price, bool MasIva)>();
+                var crEntradaMap = new Dictionary<int, (decimal Pago, string? Nota, DateOnly? Fecha, decimal Cantidad)>();
+                if (crIds.Any())
                 {
-                    x.Id,
-                    x.ReqId,
-                    x.ReqFolio,
-                    x.IdReference,
-                    x.IdDepartament,
-                    x.IdSupplie,
-                    x.RequestDate,
-                    DepartmentName = deptMap.TryGetValue(x.IdDepartament, out var dn) ? dn : "Sin Departamento",
-                    x.SolicitedBy,
-                    x.Recurrent,
-                    x.Article,
-                    x.NumArticle,
-                    x.Quantity,
-                    x.Comment,
-                    x.Price,
-                    x.Total,
-                    x.CaducidadMinimaRequerida,
-                    x.CrId
+                    var crDetalles = await _context.Detailsreqoc
+                        .Where(dd => crIds.Contains(dd.IdMovement) && dd.Active == true)
+                        .Select(dd => new { dd.IdMovement, dd.NameProvider, dd.Price, dd.MasIva })
+                        .ToListAsync();
+                    foreach (var cd in crDetalles)
+                        if (!crDetalleMap.ContainsKey(cd.IdMovement))
+                            crDetalleMap[cd.IdMovement] = (cd.NameProvider, cd.Price, cd.MasIva ?? false);
+
+                    var crEntradas = await _context.EntradasMolienda
+                        .Where(e => crIds.Contains(e.IdOc) && e.Active)
+                        .Select(e => new { e.IdOc, e.Pago, e.NotaFactura, e.FechaRecepcion, e.CantidadEntrada })
+                        .ToListAsync();
+                    foreach (var ce in crEntradas)
+                        if (!crEntradaMap.ContainsKey(ce.IdOc))
+                            crEntradaMap[ce.IdOc] = (ce.Pago ?? 0m, ce.NotaFactura, ce.FechaRecepcion, ce.CantidadEntrada ?? 0m);
+                }
+
+                // IVA% de la sucursal (setup almacén) para mostrar el precio unitario igual que en Gastos:
+                // base si mas_iva = false; base + IVA (round2, Opción A) si mas_iva = true.
+                var ivaPctCr = await _context.Setups
+                    .Where(s => s.IdBranch == idBranch && s.Active)
+                    .Select(s => s.Iva)
+                    .FirstOrDefaultAsync() ?? 0m;
+                var ivaFactorCr = 1m + ivaPctCr / 100m;
+
+                return items.Select(x =>
+                {
+                    var crId = x.CrId ?? 0;
+                    crDetalleMap.TryGetValue(crId, out var det);   // default: null/0/false si no hay CR
+                    crEntradaMap.TryGetValue(crId, out var ent);   // default: 0/null si no hay entrada
+                    var precioUnit = det.MasIva ? Math.Round(det.Price * ivaFactorCr, 2) : det.Price;
+                    return (object)new
+                    {
+                        x.Id,
+                        x.ReqId,
+                        x.ReqFolio,
+                        x.IdReference,
+                        x.IdDepartament,
+                        x.IdSupplie,
+                        x.RequestDate,
+                        DepartmentName = deptMap.TryGetValue(x.IdDepartament, out var dn) ? dn : "Sin Departamento",
+                        x.SolicitedBy,
+                        x.Recurrent,
+                        x.Article,
+                        x.NumArticle,
+                        x.Quantity,
+                        x.Comment,
+                        x.Price,
+                        x.Total,
+                        x.CaducidadMinimaRequerida,
+                        x.CrId,
+                        // ── Datos del pago de la Compra Rápida (para columna Proveedor + tooltip) ──
+                        Proveedor = det.Provider,
+                        PrecioUnitario = precioUnit,             // base o base+IVA (igual que P. Unit. en Gastos)
+                        TotalPagado = ent.Pago,                  // monto realmente pagado (con/sin IVA según el check)
+                        NotaFactura = ent.Nota,
+                        FechaEntradaAlmacen = ent.Fecha,
+                        CantidadEntradaAlmacen = ent.Cantidad
+                    };
                 }).ToList();
             }
             catch (Exception ex)

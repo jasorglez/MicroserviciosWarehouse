@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.89 fix: Gastos pending/paid resuelve id_condicion_pago desde la COTIZ hermana (id_req+id_provider) cuando la OC lo tiene null → botón Crédito/flujo Anticipo aparecen. 2026-05-30" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.90 feat: GetCompraRapidaItems trae datos del pago de la CR (proveedor + precio unit base/+IVA del detalle CR; total pagado/nota/fecha/cantidad de entradas_molienda) para columna Proveedor + tooltip en Compras Rápidas. 2026-06-01" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
