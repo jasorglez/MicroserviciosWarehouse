@@ -55,6 +55,22 @@ namespace Warehouse.Service.Delison
         public async Task<MaterialXModulo> Create(MaterialXModulo entity)
         {
             entity.Active = true;
+
+            // Auto-numeración para botes de catálogo (id_catalog != null, id_articulo == null)
+            if (entity.IdCatalog != null && entity.IdArticulo == null)
+            {
+                var maxNum = await _context.MaterialXModulos
+                    .Where(m => m.Active
+                             && m.IdCatalog      == entity.IdCatalog
+                             && m.IdPrefijoFase  == entity.IdPrefijoFase
+                             && m.IdMatPrima     == entity.IdMatPrima
+                             && m.NumBote        != null)
+                    .Select(m => m.NumBote)
+                    .MaxAsync(n => (int?)n) ?? 0;
+
+                entity.NumBote = maxNum + 1;
+            }
+
             _context.MaterialXModulos.Add(entity);
             await _context.SaveChangesAsync();
             return entity;
@@ -76,6 +92,7 @@ namespace Warehouse.Service.Delison
             existing.IdMatPrima    = entity.IdMatPrima;
             existing.IdPrefijoFase = entity.IdPrefijoFase;
             existing.Prefijo       = entity.Prefijo;
+            existing.NumBote       = entity.NumBote;
 
             await _context.SaveChangesAsync();
             return existing;

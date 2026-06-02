@@ -41,5 +41,8 @@ namespace Warehouse.Models.Delison
 
         [Column("prefijo")]
         public string? Prefijo { get; set; }
+
+        [Column("num_bote")]
+        public int? NumBote { get; set; }
     }
 }
