@@ -81,9 +81,13 @@ namespace Warehouse.Service.Delison
             existing.Bultos          = data.Bultos;
             existing.RevisionConfigu = data.RevisionConfigu;
             existing.Pago            = data.Pago;
+            existing.FechaPago       = data.FechaPago;
+            existing.NotaFactura     = data.NotaFactura;
             existing.Usuario         = data.Usuario;
             existing.Liberacion      = data.Liberacion;
+            existing.Close           = data.Close;
             existing.Comentario      = data.Comentario;
+            existing.FolioEntrega    = data.FolioEntrega;
             existing.Active          = data.Active;
             existing.DateModified    = DateTime.UtcNow;
 

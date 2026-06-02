@@ -171,5 +171,26 @@ namespace Warehouse.Models
 
         [Column("id_condicion_pago")]
         public int? IdCondicionPago { get; set; }
+
+        // ── Anticipo (condición calculo_anticipo) ──────────────────────────────
+        // El dinero del anticipo de la OC ya se entregó/registró (desde el grid de OCs).
+        [Column("anticipo_pagado")]
+        public bool AnticipoPagado { get; set; } = false;
+
+        // Monto del anticipo registrado (= Total OC × cantidad% al marcar pagado).
+        [Column("anticipo_monto", TypeName = "decimal(16,2)")]
+        public decimal? AnticipoMonto { get; set; }
+
+        [Column("fecha_anticipo")]
+        public DateOnly? FechaAnticipo { get; set; }
+
+        // 'FIFO' | 'PRORRATEO' — se fija al aplicar el anticipo en la 1ª entrada.
+        [Column("metodo_anticipo", TypeName = "VARCHAR(10)")]
+        [StringLength(10)]
+        public string? MetodoAnticipo { get; set; }
+
+        // Número de entregas entre las que se reparte el anticipo (solo PRORRATEO).
+        [Column("num_prorrateo")]
+        public int? NumProrrateo { get; set; }
     }
 }
