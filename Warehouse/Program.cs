@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.92 feat: Gastos GetPendingPayments agrega COMPRA INMEDIATA con e.close=1 al WHERE; también excluye COMPRA INMEDIATA de la condición genérica entregas_oc. 2026-06-02" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.94 fix: GetOcsByPedimento resuelve idCompany robusto (COTIZ delison -> OC -> sucursal Branchs) para que Anticipo OC se calcule aunque id_businnes=0. 2026-06-03" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
