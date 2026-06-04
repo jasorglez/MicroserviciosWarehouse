@@ -93,6 +93,7 @@ namespace Warehouse.Service.Delison
             existing.IdPrefijoFase = entity.IdPrefijoFase;
             existing.Prefijo       = entity.Prefijo;
             existing.NumBote       = entity.NumBote;
+            existing.IdBranch      = entity.IdBranch;
 
             await _context.SaveChangesAsync();
             return existing;

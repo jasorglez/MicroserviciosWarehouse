@@ -44,5 +44,8 @@ namespace Warehouse.Models.Delison
 
         [Column("num_bote")]
         public int? NumBote { get; set; }
+
+        [Column("id_branch")]
+        public int? IdBranch { get; set; }
     }
 }
