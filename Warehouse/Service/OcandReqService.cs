@@ -1004,6 +1004,22 @@ namespace Warehouse.Service
 
                 if (!items.Any()) return new List<object>();
 
+                // ✅ Live lookup del insumo (Num Mat) vigente del maestro de materiales.
+                // detailsreqoc.numarticle es un snapshot que puede quedar obsoleto si el material
+                // fue reclasificado después de crear la requisición. Mismo patrón que GetComparisonData.
+                var idSuppliesUnique = items
+                    .Where(i => i.IdSupplie > 0)
+                    .Select(i => i.IdSupplie)
+                    .Distinct()
+                    .ToList();
+
+                var materialsInsumoMap = idSuppliesUnique.Count > 0
+                    ? await _context.Materials
+                        .Where(m => idSuppliesUnique.Contains(m.Id))
+                        .AsNoTracking()
+                        .ToDictionaryAsync(m => m.Id, m => m.Insumo)
+                    : new Dictionary<int, string?>();
+
                 // Nombres de departamentos desde security.dbo.Roles (mismo origen que GetOcsByBranch).
                 var deptIds = items.Select(x => x.IdDepartament).Distinct().Where(id => id > 0).ToList();
                 var deptMap = new Dictionary<int, string>();
@@ -1073,7 +1089,11 @@ namespace Warehouse.Service
                         x.SolicitedBy,
                         x.Recurrent,
                         x.Article,
-                        x.NumArticle,
+                        NumArticle = (x.IdSupplie > 0
+                            && materialsInsumoMap.TryGetValue(x.IdSupplie, out var liveInsumo)
+                            && !string.IsNullOrWhiteSpace(liveInsumo))
+                            ? liveInsumo
+                            : x.NumArticle,
                         x.Quantity,
                         x.Comment,
                         x.Price,
@@ -1450,19 +1470,49 @@ namespace Warehouse.Service
                     .GroupBy(c => c.IdProvider)
                     .ToDictionary(g => g.Key, g => g.First());
 
-                // El registro PEDIMENTO en ocandreq suele tener IdRoot=0; tomamos el IdRoot
-                // de cualquier COTIZ delison hijo (que sí lo trae poblado) para que el
-                // catálogo se cargue con la empresa correcta. Fallback a pedimento.IdRoot.
-                var idCompany = await _context.Ocandreqs
-                    .AsNoTracking()
-                    .Where(c => c.Type == "COTIZ"
-                             && c.TypeReference == "delison"
-                             && c.IdReference == idPedimento
-                             && c.Active == true
-                             && c.IdRoot != null
-                             && c.IdRoot != 0)
-                    .Select(c => c.IdRoot)
-                    .FirstOrDefaultAsync() ?? pedimento.IdRoot ?? 0;
+                // Resolver la empresa (IdRoot) de forma robusta. Tanto el PEDIMENTO como las COTIZ
+                // delison hijas pueden tener IdRoot=0 en datos viejos, lo que rompería el cálculo del
+                // Anticipo OC (catálogo vacío). Cadena de fallbacks por confiabilidad:
+                //   1) COTIZ delison hija con IdRoot poblado
+                //   2) OC del pedimento con IdRoot poblado (la OC sí lo trae correcto)
+                //   3) Empresa de la sucursal de la REQUIS padre (smp.dbo.Branchs → fuente 100% confiable)
+                //   4) pedimento.IdRoot
+                int idCompany =
+                    await _context.Ocandreqs.AsNoTracking()
+                        .Where(c => c.Type == "COTIZ" && c.TypeReference == "delison"
+                                 && c.IdReference == idPedimento && c.Active == true
+                                 && c.IdRoot != null && c.IdRoot != 0)
+                        .Select(c => c.IdRoot).FirstOrDefaultAsync() ?? 0;
+
+                if (idCompany == 0)
+                {
+                    idCompany = await _context.Ocandreqs.AsNoTracking()
+                        .Where(o => o.Type == "OC" && o.IdReq == pedimento.IdReq
+                                 && providerIds.Contains(o.IdProvider) && o.Active == true
+                                 && o.IdRoot != null && o.IdRoot != 0)
+                        .Select(o => o.IdRoot).FirstOrDefaultAsync() ?? 0;
+                }
+
+                if (idCompany == 0)
+                {
+                    // Sucursal de la REQUIS padre → empresa en smp.dbo.Branchs.
+                    var idBranchReq = await _context.Ocandreqs.AsNoTracking()
+                        .Where(r => r.Id == pedimento.IdReq)
+                        .Select(r => r.IdReference).FirstOrDefaultAsync();
+                    if (idBranchReq > 0)
+                    {
+                        var connCo = _context.Database.GetDbConnection();
+                        if (connCo.State != System.Data.ConnectionState.Open) await connCo.OpenAsync();
+                        using var cmdCo = connCo.CreateCommand();
+                        cmdCo.CommandText = "SELECT id_company FROM smp.dbo.Branchs WHERE id = @id";
+                        var pCo = cmdCo.CreateParameter(); pCo.ParameterName = "@id"; pCo.Value = idBranchReq;
+                        cmdCo.Parameters.Add(pCo);
+                        var res = await cmdCo.ExecuteScalarAsync();
+                        if (res != null && res != System.DBNull.Value) idCompany = System.Convert.ToInt32(res);
+                    }
+                }
+
+                if (idCompany == 0) idCompany = pedimento.IdRoot ?? 0;
 
                 // Catálogo de condiciones de pago de la empresa (para calcular Anticipo OC).
                 var condicionPagoMap = await _context.CondicionesPago
