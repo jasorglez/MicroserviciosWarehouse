@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v5.94 fix: GetOcsByPedimento resuelve idCompany robusto (COTIZ delison -> OC -> sucursal Branchs) para que Anticipo OC se calcule aunque id_businnes=0. 2026-06-03" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.12 EnrichAnticipoItems adjunta AnticipoConsumo (ledger de entradas con anticipo_aplicado) también a las filas de ENTREGA (no solo a las de anticipo), para el tooltip Pago de Entrega → Total anticipo + desglose + restante. 2026-06-04" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -136,6 +136,7 @@ builder.Services.AddScoped<ISetupOcService, SetupOcService>();
 builder.Services.AddScoped<IEntregaOcService, EntregaOcService>();
 builder.Services.AddScoped<IGastosService, GastosService>();
 builder.Services.AddScoped<IGridColumnStateService, GridColumnStateService>();
+builder.Services.AddScoped<IInventarioMpService, InventarioMpService>();
 
 builder.Services.AddHttpContextAccessor();
 

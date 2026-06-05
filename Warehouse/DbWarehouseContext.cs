@@ -70,6 +70,8 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<SetupOc> SetupOc { get; set; }
     public virtual DbSet<EntregaOcDelison> EntregasOc { get; set; }
     public virtual DbSet<GridColumnStateDelison> GridColumnStates { get; set; }
+    public virtual DbSet<GastosGeneralesDelison> GastosGenerales { get; set; }
+    public virtual DbSet<InventarioMpDelison> InventarioMp { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 

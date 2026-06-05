@@ -32,6 +32,11 @@ namespace Warehouse.Models.Delison
         [Column("close")]
         public bool Close { get; set; } = false;
 
+        // IVA propio de ESTA entrega (independiente del ítem OC). Permite que en multi-entrega
+        // cada entrega lleve o no IVA por separado. Se fija al pagar la entrega en la Hoja de Gastos.
+        [Column("mas_iva")]
+        public bool MasIva { get; set; } = false;
+
         [Column("active")]
         public bool Active { get; set; } = true;
 

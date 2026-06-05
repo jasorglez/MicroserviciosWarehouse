@@ -52,6 +52,40 @@ namespace Warehouse.Models.DTOs
         public int? NumProrrateo { get; set; }                // entregas para prorrateo (si ya se eligió)
         public int NumEntregasPlan { get; set; }              // entregas creadas para el detalle (default de prorrateo)
         public int NumEntradasAlmacen { get; set; }           // entradas reales en entradas_molienda para esta OC+material
+
+        // ── Gasto general (no-material): anticipo, servicio, nómina, impuesto… ──
+        // Cuando viene poblado, la fila NO es una entrada de almacén sino un gasto de
+        // Delison.gastos_generales. DocType='ANTICIPO' (u otro tipo) y el pago se confirma
+        // por su propio flujo (no por entradas_molienda).
+        public int? IdGastoGeneral { get; set; }
+
+        // Desglose de los artículos de la OC detrás de un anticipo (para el tooltip de la columna Artículo).
+        public List<AnticipoItemDto>? AnticipoItems { get; set; }
+
+        // Consumo del anticipo por entrega (para el tooltip de la columna Valor en la fila de anticipo).
+        public List<AnticipoConsumoDto>? AnticipoConsumo { get; set; }
+
+        // Monto del anticipo de la OC aplicado a ESTA entrada (para mostrar el neto en el histórico).
+        public decimal AnticipoAplicado { get; set; }
+
+        // Porcentaje ORIGINAL con que se calculó el anticipo (condiciones_pago.cantidad). NO recalculado por IVA.
+        public decimal AnticipoPorcentaje { get; set; }
+    }
+
+    /// <summary>Un artículo de la OC sobre la que se hizo el anticipo (para el tooltip de desglose).</summary>
+    public class AnticipoItemDto
+    {
+        public string Articulo { get; set; } = string.Empty;
+        public decimal Cantidad { get; set; }
+        public decimal PrecioUnitario { get; set; }   // base o base+IVA (round2), igual que se muestra
+        public decimal Total { get; set; }            // PrecioUnitario(round2) × Cantidad
+    }
+
+    /// <summary>Una entrega que consumió parte del anticipo (para el tooltip de consumo en la fila de anticipo).</summary>
+    public class AnticipoConsumoDto
+    {
+        public string FolioEntrega { get; set; } = string.Empty;
+        public decimal Descuento { get; set; }        // entradas_molienda.anticipo_aplicado de esa entrega
     }
 
     /// <summary>
@@ -89,6 +123,16 @@ namespace Warehouse.Models.DTOs
         public int IdOc { get; set; }
         public decimal Monto { get; set; }            // monto del anticipo (= Total OC × cantidad%)
         public DateTime? Fecha { get; set; }
+    }
+
+    /// <summary>Confirma el pago de un anticipo EN TRÁMITE desde la Captura de Gastos.
+    /// Marca el gasto general como PAGADO (con la fecha del día que se pagó) y actualiza la OC
+    /// (anticipo_estado='PAGADO', anticipo_pagado=true) para que su saldo se aplique a las entregas.</summary>
+    public class ConfirmAnticipoDto
+    {
+        public int IdGastoGeneral { get; set; }
+        public DateTime? FechaPago { get; set; }
+        public string? NotaFactura { get; set; }
     }
 
     /// <summary>Ingresa una entrada "a crédito" (material disponible, pago pendiente a N días).</summary>
