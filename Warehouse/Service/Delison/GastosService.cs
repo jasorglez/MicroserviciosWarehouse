@@ -750,7 +750,9 @@ namespace Warehouse.Service.Delison
 
                 // 6) Almacén GLOBAL de materia prima: sumar la cantidad recibida al inventario
                 // (sucursal + departamento + material). Es el "almacén final" que usará producción.
-                await AcumularInventarioMp(entrada);
+                // Si la entrada ingresó a CRÉDITO, ya se sumó al activar el crédito → no duplicar.
+                if (!entrada.Credito)
+                    await AcumularInventarioMp(entrada);
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
@@ -820,15 +822,17 @@ namespace Warehouse.Service.Delison
             }
         }
 
-        // ── Captura de Gastos: ingresar una entrada "A CRÉDITO" ──
-        // El material queda disponible (placeholder: el almacén global aún no existe → solo estado)
-        // y la entrada permanece como PENDIENTE DE PAGO a N días (no se libera). Al vencimiento se paga.
+        // ── Captura de Gastos: ingresar una entrada "A CRÉDITO" (Opción A) ──
+        // El material YA ingresa al almacén global (inventario_mp) al activar el crédito, pero la
+        // entrada NO se libera (liberacion sigue en 0) para que permanezca en Captura como PENDIENTE
+        // DE PAGO a N días. Al pagarla luego (ConfirmPayment) NO se vuelve a sumar (guarda por Credito).
         public async Task<bool> ActivarCredito(ActivarCreditoDto dto)
         {
             if (dto == null || dto.IdEntrada <= 0) return false;
             var entrada = await _context.EntradasMolienda.FindAsync(dto.IdEntrada);
             if (entrada == null) return false;
             if (entrada.Liberacion) return true;   // ya pagada → nada que hacer
+            if (entrada.Credito) return true;      // ya a crédito → no re-sumar al almacén (idempotente)
 
             entrada.Credito      = true;           // marca "ingresada a crédito" (separado de liberacion)
             // Persiste la fecha de vencimiento calculada en frontend (fechaRecepcion + N días).
@@ -836,7 +840,10 @@ namespace Warehouse.Service.Delison
             if (dto.FechaVencimiento.HasValue)
                 entrada.FechaVencimiento = DateOnly.FromDateTime(dto.FechaVencimiento.Value);
             entrada.DateModified = DateTime.UtcNow;
-            // TODO[almacén-global]: cuando exista, crear aquí el movimiento de entrada (inandout).
+
+            // A crédito → el material entra al almacén global ahora (no al pagar).
+            await AcumularInventarioMp(entrada);
+
             await _context.SaveChangesAsync();
             return true;
         }

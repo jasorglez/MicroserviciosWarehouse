@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.12 EnrichAnticipoItems adjunta AnticipoConsumo (ledger de entradas con anticipo_aplicado) también a las filas de ENTREGA (no solo a las de anticipo), para el tooltip Pago de Entrega → Total anticipo + desglose + restante. 2026-06-04" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.13 Credito Opcion A: ActivarCredito suma al almacen global (inventario_mp) al activar (sin liberar, sigue en Captura); ConfirmPayment no re-suma si entrada.Credito. 2026-06-04" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
