@@ -59,8 +59,12 @@ namespace Warehouse.Service.Delison
             // Auto-numeración para botes de catálogo (id_catalog != null, id_articulo == null)
             if (entity.IdCatalog != null && entity.IdArticulo == null)
             {
+                entity.Anio = (short)DateTime.Now.Year;
+
                 var maxNum = await _context.MaterialXModulos
                     .Where(m => m.Active
+                             && m.IdBranch       == entity.IdBranch
+                             && (m.Anio          == entity.Anio || m.Anio == null)
                              && m.IdCatalog      == entity.IdCatalog
                              && m.IdPrefijoFase  == entity.IdPrefijoFase
                              && m.IdMatPrima     == entity.IdMatPrima
@@ -94,6 +98,8 @@ namespace Warehouse.Service.Delison
             existing.Prefijo       = entity.Prefijo;
             existing.NumBote       = entity.NumBote;
             existing.IdBranch      = entity.IdBranch;
+            existing.Anio          = entity.Anio;
+            existing.Contador      = entity.Contador;
 
             await _context.SaveChangesAsync();
             return existing;

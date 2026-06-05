@@ -47,5 +47,11 @@ namespace Warehouse.Models.Delison
 
         [Column("id_branch")]
         public int? IdBranch { get; set; }
+
+        [Column("anio")]
+        public short? Anio { get; set; }
+
+        [Column("contador")]
+        public int Contador { get; set; } = 1;
     }
 }
