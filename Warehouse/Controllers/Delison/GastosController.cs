@@ -183,5 +183,28 @@ namespace Warehouse.Controllers.Delison
                 return StatusCode(500, "Error marcando el anticipo.");
             }
         }
+
+        /// <summary>
+        /// Paga un anticipo EN TRÁMITE desde la Captura de Gastos: lo marca PAGADO con la fecha del pago
+        /// y actualiza la OC (anticipo_estado='PAGADO', anticipo_pagado=true).
+        /// </summary>
+        [HttpPost("confirm-anticipo")]
+        public async Task<IActionResult> ConfirmAnticipo([FromBody] ConfirmAnticipoDto dto)
+        {
+            try
+            {
+                if (dto == null || dto.IdGastoGeneral <= 0)
+                    return BadRequest("idGastoGeneral es obligatorio.");
+
+                var ok = await _service.ConfirmAnticipo(dto);
+                if (!ok) return NotFound("Anticipo no encontrado.");
+                return Ok(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error confirmando anticipo. Gasto={IdGasto}", dto?.IdGastoGeneral);
+                return StatusCode(500, "Error confirmando el anticipo.");
+            }
+        }
     }
 }

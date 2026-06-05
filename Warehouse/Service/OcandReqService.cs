@@ -1329,12 +1329,50 @@ namespace Warehouse.Service
                                          && dc.TypeReference == "delison"
                                          && dc.IdReference == ped.Id
                                          && dc.IdProvider == oc.IdProvider)))
-                        .Select(d => new { d.Quantity, d.Price, d.MasIva })
+                        .Select(d => new { d.Id, d.Quantity, d.Price, d.MasIva })
                         .ToListAsync();
-                    // Aplica IVA por línea (mas_iva). Precio BASE (Opción B); se REDONDEA el precio
-                    // unitario con IVA a 2 dec ANTES de multiplicar por cantidad (Opción A).
-                    var totalLive = lineas.Sum(l =>
-                        Math.Round(l.Price * ((l.MasIva ?? false) ? ivaFactor : 1m), 2) * l.Quantity);
+
+                    // Total POR ENTREGA (igual que Nivel 4/5 y Total x OC): para cada ítem multi-entrega,
+                    // Σ de sus entregas round2(precio × IVA de la entrega) × (cantidad de almacén si entró,
+                    // o la planeada). Ítems sin entregas → precio × cantidad con el IVA del ítem.
+                    var itemIdsPed = lineas.Select(l => l.Id).ToList();
+                    var entregasPed = itemIdsPed.Count > 0
+                        ? await _context.EntregasOc.AsNoTracking()
+                            .Where(g => itemIdsPed.Contains(g.IdDetailsreqoc) && g.Active)
+                            .Select(g => new { g.Id, g.IdDetailsreqoc, g.MasIva, g.CantidadRecibir })
+                            .ToListAsync()
+                        : new();
+                    var entregaIdsPed = entregasPed.Select(g => g.Id).ToList();
+                    var almacenByEntregaPed = entregaIdsPed.Count > 0
+                        ? (await _context.EntradasMolienda.AsNoTracking()
+                            .Where(e => e.IdEntrega != null && entregaIdsPed.Contains(e.IdEntrega.Value) && e.Active)
+                            .GroupBy(e => e.IdEntrega!.Value)
+                            .Select(g => new { Entrega = g.Key, Qty = g.Sum(x => x.CantidadEntrada ?? 0m) })
+                            .ToListAsync())
+                            .ToDictionary(x => x.Entrega, x => x.Qty)
+                        : new Dictionary<int, decimal>();
+
+                    decimal totalLive = 0m;
+                    foreach (var l in lineas)
+                    {
+                        var itemEntregas = entregasPed.Where(g => g.IdDetailsreqoc == l.Id).ToList();
+                        if (itemEntregas.Count > 0)
+                        {
+                            foreach (var g in itemEntregas)
+                            {
+                                var factor = g.MasIva ? ivaFactor : 1m;
+                                var unit = Math.Round(l.Price * factor, 2);
+                                var qa = almacenByEntregaPed.TryGetValue(g.Id, out var q) ? q : 0m;
+                                var qty = qa > 0 ? qa : (g.CantidadRecibir ?? 0m);
+                                totalLive += unit * qty;
+                            }
+                        }
+                        else
+                        {
+                            var factor = (l.MasIva ?? false) ? ivaFactor : 1m;
+                            totalLive += Math.Round(l.Price * factor, 2) * l.Quantity;
+                        }
+                    }
 
                     result.Add(new
                     {
@@ -1586,6 +1624,7 @@ namespace Warehouse.Service
                         o.AnticipoPagado,
                         o.AnticipoMonto,
                         o.FechaAnticipo,
+                        o.AnticipoEstado,
                         Total = _context.Detailsreqoc
                             .Where(d => d.IdMovement == o.Id && d.Active == true)
                             .Sum(d => (decimal?)(Math.Round(d.Price * (d.MasIva == true ? ivaFactorPed : 1m), 2) * d.Quantity)) ?? 0m,
@@ -1595,6 +1634,96 @@ namespace Warehouse.Service
                     .AsNoTracking()
                     .ToListAsync();
 
+                // ── Base del Anticipo OC por orden ──
+                // Items normales: precio(round2 con IVA si mas_iva) × cantidad_OC.
+                // Items "COMPRA AUTORIZADA SIN LIMITE" (cantidad_OC = 0): se usa la cantidad de la
+                // REQUISICIÓN padre (mismo material) × precio, para que el anticipo no salga en 0.
+                var ocIdsAnt  = ocs.Select(o => o.Id).ToList();
+                var reqIdsAnt = ocs.Where(o => o.IdReq.HasValue).Select(o => o.IdReq!.Value).Distinct().ToList();
+
+                var ocItemsAnt = await _context.Detailsreqoc.AsNoTracking()
+                    .Where(d => ocIdsAnt.Contains(d.IdMovement) && d.Active == true)
+                    .Select(d => new { d.IdMovement, d.IdSupplie, d.TypeOc, d.Price, d.MasIva, d.Quantity })
+                    .ToListAsync();
+
+                var reqQtyMap = reqIdsAnt.Count > 0
+                    ? (await _context.Detailsreqoc.AsNoTracking()
+                        .Where(d => reqIdsAnt.Contains(d.IdMovement) && d.Active == true)
+                        .GroupBy(d => new { d.IdMovement, d.IdSupplie })
+                        .Select(g => new { g.Key.IdMovement, g.Key.IdSupplie, Qty = g.Sum(x => x.Quantity) })
+                        .ToListAsync())
+                        .ToDictionary(x => (x.IdMovement, x.IdSupplie), x => x.Qty)
+                    : new Dictionary<(int, int), decimal>();
+
+                var anticipoBaseByOc = new Dictionary<int, decimal>();
+                foreach (var o in ocs)
+                {
+                    decimal baseAnt = 0m;
+                    foreach (var it in ocItemsAnt.Where(i => i.IdMovement == o.Id))
+                    {
+                        var unit = Math.Round(it.Price * (it.MasIva == true ? ivaFactorPed : 1m), 2);
+                        decimal qty;
+                        if (string.Equals(it.TypeOc, "COMPRA AUTORIZADA SIN LIMITE", StringComparison.OrdinalIgnoreCase))
+                            qty = (o.IdReq.HasValue && reqQtyMap.TryGetValue((o.IdReq.Value, it.IdSupplie), out var rq)) ? rq : 0m;
+                        else
+                            qty = it.Quantity;
+                        baseAnt += unit * qty;
+                    }
+                    anticipoBaseByOc[o.Id] = baseAnt;
+                }
+
+                // ── Total x OC REAL = Σ por ítem de Σ por entrega: round2(precio × IVA de la entrega) ×
+                // (cantidad recibida en almacén si entró, o la planeada). Cuadra con Nivel 4/5. Ítems sin
+                // entregas (no usan el mecanismo) caen a precio × cantidad con el IVA del ítem.
+                var allItemsTot = await _context.Detailsreqoc.AsNoTracking()
+                    .Where(d => ocIdsAnt.Contains(d.IdMovement) && d.Active == true)
+                    .Select(d => new { d.Id, d.IdMovement, d.Price, d.MasIva, d.Quantity })
+                    .ToListAsync();
+                var itemIdsTot = allItemsTot.Select(i => i.Id).ToList();
+                var entregasTot = itemIdsTot.Count > 0
+                    ? await _context.EntregasOc.AsNoTracking()
+                        .Where(g => itemIdsTot.Contains(g.IdDetailsreqoc) && g.Active)
+                        .Select(g => new { g.Id, g.IdDetailsreqoc, g.MasIva, g.CantidadRecibir })
+                        .ToListAsync()
+                    : new();
+                var entregaIdsTot = entregasTot.Select(g => g.Id).ToList();
+                var almacenByEntregaTot = entregaIdsTot.Count > 0
+                    ? (await _context.EntradasMolienda.AsNoTracking()
+                        .Where(e => e.IdEntrega != null && entregaIdsTot.Contains(e.IdEntrega.Value) && e.Active)
+                        .GroupBy(e => e.IdEntrega!.Value)
+                        .Select(g => new { Entrega = g.Key, Qty = g.Sum(x => x.CantidadEntrada ?? 0m) })
+                        .ToListAsync())
+                        .ToDictionary(x => x.Entrega, x => x.Qty)
+                    : new Dictionary<int, decimal>();
+
+                var realTotalByOc = new Dictionary<int, decimal>();
+                foreach (var o in ocs)
+                {
+                    decimal ocTotal = 0m;
+                    foreach (var it in allItemsTot.Where(i => i.IdMovement == o.Id))
+                    {
+                        var itemEntregas = entregasTot.Where(g => g.IdDetailsreqoc == it.Id).ToList();
+                        if (itemEntregas.Count > 0)
+                        {
+                            foreach (var g in itemEntregas)
+                            {
+                                var factor = g.MasIva ? ivaFactorPed : 1m;
+                                var unit = Math.Round(it.Price * factor, 2);
+                                var qa = almacenByEntregaTot.TryGetValue(g.Id, out var q) ? q : 0m;
+                                var qty = qa > 0 ? qa : (g.CantidadRecibir ?? 0m);
+                                ocTotal += unit * qty;
+                            }
+                        }
+                        else
+                        {
+                            var factor = (it.MasIva == true) ? ivaFactorPed : 1m;
+                            var unit = Math.Round(it.Price * factor, 2);
+                            ocTotal += unit * it.Quantity;
+                        }
+                    }
+                    realTotalByOc[o.Id] = ocTotal;
+                }
+
                 // Mezcla en memoria: cuando la COTIZ hermana tenga los campos, sobreescriben al OC.
                 var result = ocs.Select(o =>
                 {
@@ -1603,13 +1732,15 @@ namespace Warehouse.Service
                     // Resolver FK de condición de pago: COTIZ tiene prioridad sobre OC.
                     var idCondPago = c?.IdCondicionPago ?? o.IdCondicionPago;
 
-                    // Calcular Anticipo OC = total × cantidad / 100 si calculo_anticipo = true.
+                    // Calcular Anticipo OC = base × cantidad / 100 si calculo_anticipo = true.
+                    // La base maneja el caso SIN LIMITE (cantidad de la REQUIS × precio).
                     decimal anticipoOc = 0m;
                     if (idCondPago.HasValue
                         && condicionPagoMap.TryGetValue(idCondPago.Value, out var cp)
                         && cp.CalculoAnticipo)
                     {
-                        anticipoOc = o.Total * cp.Cantidad / 100m;
+                        var baseAnt = anticipoBaseByOc.TryGetValue(o.Id, out var ba) ? ba : o.Total;
+                        anticipoOc = baseAnt * cp.Cantidad / 100m;
                     }
 
                     return new
@@ -1660,7 +1791,9 @@ namespace Warehouse.Service
                         o.AnticipoPagado,
                         o.AnticipoMonto,
                         o.FechaAnticipo,
-                        o.Total,
+                        o.AnticipoEstado,
+                        // Total x OC real (por entrega: IVA + cantidad de almacén). Fallback al subquery si faltara.
+                        Total = realTotalByOc.TryGetValue(o.Id, out var rtot) ? rtot : o.Total,
                         o.countrow
                     };
                 }).Cast<object>().ToList();

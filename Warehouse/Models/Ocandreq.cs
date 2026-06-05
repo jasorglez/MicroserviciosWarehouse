@@ -192,5 +192,11 @@ namespace Warehouse.Models
         // Número de entregas entre las que se reparte el anticipo (solo PRORRATEO).
         [Column("num_prorrateo")]
         public int? NumProrrateo { get; set; }
+
+        // Ciclo de vida del anticipo en la OC: NULL = sin registrar | 'EN_TRAMITE' (en cola en Captura)
+        // | 'PAGADO' (ya pagado en Captura). anticipo_pagado pasa a true solo cuando llega a 'PAGADO'.
+        [Column("anticipo_estado", TypeName = "VARCHAR(15)")]
+        [StringLength(15)]
+        public string? AnticipoEstado { get; set; }
     }
 }

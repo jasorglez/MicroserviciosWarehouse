@@ -1,6 +1,7 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Warehouse.Models.DTOs;
+using Warehouse.Models.Delison;
 
 namespace Warehouse.Service.Delison
 {
@@ -13,6 +14,7 @@ namespace Warehouse.Service.Delison
         Task<bool> SavePending(ConfirmPaymentDto dto);
         Task<bool> ActivarCredito(ActivarCreditoDto dto);
         Task<bool> MarcarAnticipo(MarcarAnticipoDto dto);
+        Task<bool> ConfirmAnticipo(ConfirmAnticipoDto dto);
     }
 
     /// <summary>
@@ -51,6 +53,9 @@ namespace Warehouse.Service.Delison
             // ── Lente COMPROMETIDO: suma detailsreqoc.price*quantity de OCs por datecreate     ──
             string sql = normalizedLens == "PAGADO"
                 ? @"
+                    SELECT idBranch, branchName, idDepartament, departmentName,
+                           SUM(total) AS total, SUM(numTransacciones) AS numTransacciones
+                    FROM (
                     SELECT
                         (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END) AS idBranch,
                         b.name                                                    AS branchName,
@@ -69,7 +74,24 @@ namespace Warehouse.Service.Delison
                       AND b.id_company = @idCompany
                       AND e.fecha_pago >= @start       -- ancla = fecha en que se confirmó el pago
                       AND e.fecha_pago <= @end
-                    GROUP BY (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END), b.name, o.id_departament, r.[Description]"
+                    GROUP BY (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END), b.name, o.id_departament, r.[Description]
+                    UNION ALL
+                    -- Gastos generales PAGADOS (anticipos, etc.) anclados por su fecha_pago.
+                    SELECT
+                        g.id_branch       AS idBranch,
+                        b2.name           AS branchName,
+                        g.id_departament  AS idDepartament,
+                        r2.[Description]  AS departmentName,
+                        SUM(CAST(ISNULL(g.monto, 0) AS DECIMAL(18,2))) AS total,
+                        COUNT(*)          AS numTransacciones
+                    FROM warehouses.Delison.gastos_generales g
+                    INNER JOIN smp.dbo.Branchs b2 ON b2.id = g.id_branch
+                    LEFT  JOIN security.dbo.Roles r2 ON r2.id = g.id_departament
+                    WHERE g.active = 1 AND g.estado = 'PAGADO' AND b2.id_company = @idCompany
+                      AND g.fecha_pago >= @start AND g.fecha_pago <= @end
+                    GROUP BY g.id_branch, b2.name, g.id_departament, r2.[Description]
+                    ) t
+                    GROUP BY idBranch, branchName, idDepartament, departmentName"
                 : @"
                     SELECT
                         o.id_reference                                            AS idBranch,
@@ -161,7 +183,11 @@ namespace Warehouse.Service.Delison
                     ISNULL(dreq.quantity, 0)                     AS cantidadReq,
                     ISNULL(d.price, 0)                           AS precioUnitario,
                     ISNULL(e.pago, 0)                            AS valorPago,
-                    ISNULL(d.mas_iva, 0)                         AS masIva,
+                    -- IVA por entrega SOLO en multi-entrega (>1 entrega del ítem): se lee de entregas_oc.
+                    -- Single-entrega/CR/sin-límite (<=1) → del detalle del ítem (d.mas_iva). El valor no cambia.
+                    ISNULL(CASE WHEN (SELECT COUNT(*) FROM warehouses.Delison.entregas_oc eg2
+                                      WHERE eg2.id_detailsreqoc = d.id AND eg2.active = 1) > 1
+                                THEN eg.mas_iva ELSE d.mas_iva END, 0) AS masIva,
                     COALESCE(NULLIF(e.nota_factura, ''), eg.nota_factura) AS notaFactura,
                     e.fecha_recepcion                            AS fechaRecepcion,
                     e.fecha_pago                                 AS fechaPago,
@@ -221,7 +247,7 @@ namespace Warehouse.Service.Delison
                 cmd.CommandText = sql;
                 AddParam(cmd, "@idCompany", idCompany);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                using (var reader = await cmd.ExecuteReaderAsync())
                 while (await reader.ReadAsync())
                 {
                     list.Add(new PendingPaymentDto
@@ -264,6 +290,63 @@ namespace Warehouse.Service.Delison
                         NumEntradasAlmacen  = GetInt(reader, "numEntradasAlmacen"),
                     });
                 }
+
+                // ── FASE 3: Gastos generales EN TRÁMITE (anticipos, etc.) — aparecen en la Captura ──
+                // No vienen de entradas_molienda; son filas de Delison.gastos_generales. Se marcan con
+                // DocType = tipo_gasto ('ANTICIPO') e IdGastoGeneral para que el pago se confirme por su
+                // propio flujo. Cantidad/PrecioUnitario van en 0 (un anticipo es un monto único = ValorPago).
+                const string sqlGastos = @"
+                    SELECT
+                        g.id              AS idGasto,
+                        g.id_oc           AS idOc,
+                        g.folio           AS folio,
+                        g.tipo_gasto      AS tipoGasto,
+                        g.id_branch       AS idReference,
+                        b.name            AS branchName,
+                        g.id_departament  AS idDepartament,
+                        r.[Description]   AS departmentName,
+                        g.id_provider     AS idProvider,
+                        g.proveedor       AS proveedor,
+                        g.concepto        AS concepto,
+                        g.monto           AS monto,
+                        ISNULL(g.mas_iva, 0) AS masIva,
+                        g.nota_factura    AS notaFactura,
+                        g.fecha_registro  AS fechaRegistro
+                    FROM warehouses.Delison.gastos_generales g
+                    INNER JOIN smp.dbo.Branchs b ON b.id = g.id_branch
+                    LEFT  JOIN security.dbo.Roles r ON r.id = g.id_departament
+                    WHERE g.active = 1 AND g.estado = 'EN_TRAMITE' AND g.id_company = @idCompany
+                    ORDER BY g.id DESC";
+
+                using var cmdG = connection.CreateCommand();
+                cmdG.CommandText = sqlGastos;
+                AddParam(cmdG, "@idCompany", idCompany);
+                using (var rg = await cmdG.ExecuteReaderAsync())
+                while (await rg.ReadAsync())
+                {
+                    list.Add(new PendingPaymentDto
+                    {
+                        IdGastoGeneral = GetInt(rg, "idGasto"),
+                        IdEntrada      = 0,
+                        IdOc           = GetInt(rg, "idOc"),
+                        Folio          = GetStr(rg, "folio"),
+                        DocType        = GetStr(rg, "tipoGasto"),     // 'ANTICIPO'
+                        IdReference    = GetInt(rg, "idReference"),
+                        BranchName     = GetStr(rg, "branchName"),
+                        IdDepartament  = GetInt(rg, "idDepartament"),
+                        DepartmentName = GetStrOrNull(rg, "departmentName") ?? "Sin Departamento",
+                        Articulo       = GetStrOrNull(rg, "concepto") ?? "Anticipo",
+                        Proveedor      = GetStrOrNull(rg, "proveedor"),
+                        Cantidad       = 0,
+                        PrecioUnitario = 0,
+                        ValorPago      = GetDec(rg, "monto"),
+                        MasIva         = GetBool(rg, "masIva"),
+                        NotaFactura    = GetStrOrNull(rg, "notaFactura"),
+                        FechaRecepcion = GetDateOrNull(rg, "fechaRegistro"),
+                    });
+                }
+
+                await EnrichAnticipoItems(list);
                 return list;
             }
             catch (Exception ex)
@@ -299,7 +382,12 @@ namespace Warehouse.Service.Delison
                     ISNULL(e.cantidad_entrada, 0)                AS cantidad,
                     ISNULL(d.price, 0)                           AS precioUnitario,
                     ISNULL(e.pago, 0)                            AS valorPago,
-                    ISNULL(d.mas_iva, 0)                         AS masIva,
+                    ISNULL(e.anticipo_aplicado, 0)              AS anticipoAplicado,
+                    -- IVA por entrega SOLO en multi-entrega (>1 entrega del ítem): se lee de entregas_oc.
+                    -- Single-entrega/CR/sin-límite (<=1) → del detalle del ítem (d.mas_iva). El valor no cambia.
+                    ISNULL(CASE WHEN (SELECT COUNT(*) FROM warehouses.Delison.entregas_oc eg2
+                                      WHERE eg2.id_detailsreqoc = d.id AND eg2.active = 1) > 1
+                                THEN eg.mas_iva ELSE d.mas_iva END, 0) AS masIva,
                     COALESCE(NULLIF(e.nota_factura, ''), eg.nota_factura) AS notaFactura,
                     e.fecha_recepcion                            AS fechaRecepcion,
                     e.fecha_pago                                 AS fechaPago,
@@ -345,7 +433,7 @@ namespace Warehouse.Service.Delison
                 cmd.CommandText = sql;
                 AddParam(cmd, "@idCompany", idCompany);
 
-                using var reader = await cmd.ExecuteReaderAsync();
+                using (var reader = await cmd.ExecuteReaderAsync())
                 while (await reader.ReadAsync())
                 {
                     list.Add(new PendingPaymentDto
@@ -369,6 +457,7 @@ namespace Warehouse.Service.Delison
                         Cantidad       = GetDec(reader, "cantidad"),
                         PrecioUnitario = GetDec(reader, "precioUnitario"),
                         ValorPago      = GetDec(reader, "valorPago"),
+                        AnticipoAplicado = GetDec(reader, "anticipoAplicado"),
                         MasIva         = GetBool(reader, "masIva"),
                         NotaFactura    = GetStrOrNull(reader, "notaFactura"),
                         FechaRecepcion = GetDateOrNull(reader, "fechaRecepcion"),
@@ -384,12 +473,195 @@ namespace Warehouse.Service.Delison
                         NumEntregasPlan   = GetInt(reader, "numEntregasPlan"),
                     });
                 }
+
+                // ── FASE 5: Gastos generales PAGADOS (anticipos, etc.) — cuentan en el reporte/hoja del día ──
+                // Anclados por fecha_pago (la que importa para cuadrar). El frontend filtra por rango de fechas.
+                const string sqlGastosPagados = @"
+                    SELECT
+                        g.id              AS idGasto,
+                        g.id_oc           AS idOc,
+                        g.folio           AS folio,
+                        g.tipo_gasto      AS tipoGasto,
+                        g.id_branch       AS idReference,
+                        b.name            AS branchName,
+                        g.id_departament  AS idDepartament,
+                        r.[Description]   AS departmentName,
+                        g.proveedor       AS proveedor,
+                        g.concepto        AS concepto,
+                        g.monto           AS monto,
+                        ISNULL(g.mas_iva, 0) AS masIva,
+                        g.nota_factura    AS notaFactura,
+                        g.fecha_pago      AS fechaPago
+                    FROM warehouses.Delison.gastos_generales g
+                    INNER JOIN smp.dbo.Branchs b ON b.id = g.id_branch
+                    LEFT  JOIN security.dbo.Roles r ON r.id = g.id_departament
+                    WHERE g.active = 1 AND g.estado = 'PAGADO' AND g.id_company = @idCompany
+                    ORDER BY g.fecha_pago DESC, g.id DESC";
+
+                using var cmdGp = connection.CreateCommand();
+                cmdGp.CommandText = sqlGastosPagados;
+                AddParam(cmdGp, "@idCompany", idCompany);
+                using (var rgp = await cmdGp.ExecuteReaderAsync())
+                while (await rgp.ReadAsync())
+                {
+                    list.Add(new PendingPaymentDto
+                    {
+                        IdGastoGeneral = GetInt(rgp, "idGasto"),
+                        IdEntrada      = 0,
+                        IdOc           = GetInt(rgp, "idOc"),
+                        Folio          = GetStr(rgp, "folio"),
+                        DocType        = GetStr(rgp, "tipoGasto"),     // 'ANTICIPO'
+                        IdReference    = GetInt(rgp, "idReference"),
+                        BranchName     = GetStr(rgp, "branchName"),
+                        IdDepartament  = GetInt(rgp, "idDepartament"),
+                        DepartmentName = GetStrOrNull(rgp, "departmentName") ?? "Sin Departamento",
+                        Articulo       = GetStrOrNull(rgp, "concepto") ?? "Anticipo",
+                        Proveedor      = GetStrOrNull(rgp, "proveedor"),
+                        Cantidad       = 0,
+                        PrecioUnitario = 0,
+                        ValorPago      = GetDec(rgp, "monto"),
+                        MasIva         = GetBool(rgp, "masIva"),
+                        NotaFactura    = GetStrOrNull(rgp, "notaFactura"),
+                        FechaPago      = GetDateOrNull(rgp, "fechaPago"),
+                    });
+                }
+
+                await EnrichAnticipoItems(list);
                 return list;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error obteniendo entradas pagadas. Company={IdCompany}", idCompany);
                 throw;
+            }
+        }
+
+        // Adjunta a cada fila de anticipo el desglose de artículos de su OC (para el tooltip).
+        // El precio/total replica la fórmula del comparador: round2(price × IVA si mas_iva) × cantidad.
+        private async Task EnrichAnticipoItems(List<PendingPaymentDto> list)
+        {
+            var anticipoRows = list.Where(x => x.IdGastoGeneral.HasValue && x.IdOc > 0).ToList();
+            // Entregas con anticipo: les adjuntamos el ledger de consumo para su tooltip de "Valor".
+            var entregaRows = list.Where(x => !x.IdGastoGeneral.HasValue && x.AnticipoMonto > 0m && x.IdOc > 0).ToList();
+            if (anticipoRows.Count == 0 && entregaRows.Count == 0) return;
+
+            var ocIds = anticipoRows.Select(x => x.IdOc).Distinct().ToList();
+            // OCs para el consumo: las de anticipos + las de entregas (su anticipo puede estar en otra lista).
+            var consumoOcIds = ocIds.Concat(entregaRows.Select(x => x.IdOc)).Distinct().ToList();
+            var branchIds = anticipoRows.Select(x => x.IdReference).Where(b => b > 0).Distinct().ToList();
+
+            var ivaByBranch = branchIds.Count > 0
+                ? await _context.Setups.AsNoTracking()
+                    .Where(s => branchIds.Contains(s.IdBranch) && s.Active)
+                    .GroupBy(s => s.IdBranch)
+                    .Select(g => new { Branch = g.Key, Iva = g.Max(x => x.Iva) })
+                    .ToDictionaryAsync(x => x.Branch, x => x.Iva ?? 0m)
+                : new Dictionary<int, decimal>();
+
+            var items = await _context.Detailsreqoc.AsNoTracking()
+                .Where(d => ocIds.Contains(d.IdMovement) && d.Active == true)
+                .Select(d => new { d.IdMovement, d.IdSupplie, d.TypeOc, d.NameArticle, d.Quantity, d.Price, d.MasIva })
+                .ToListAsync();
+
+            // Consumo del anticipo: entregas (entradas_molienda) de la OC con anticipo aplicado.
+            var consumo = await _context.EntradasMolienda.AsNoTracking()
+                .Where(e => consumoOcIds.Contains(e.IdOc) && e.Active
+                         && e.AnticipoAplicado != null && e.AnticipoAplicado > 0)
+                .OrderBy(e => e.Id)
+                .Select(e => new { e.IdOc, e.FolioEntrega, e.AnticipoAplicado })
+                .ToListAsync();
+
+            // Porcentaje ORIGINAL del anticipo (condiciones_pago.cantidad). Por OC: id_condicion_pago de la
+            // OC, o el de la COTIZ hermana (mismo id_req+id_provider) si la OC no lo trae. NO se recalcula con IVA.
+            var ocsCond = await _context.Ocandreqs.AsNoTracking()
+                .Where(o => ocIds.Contains(o.Id))
+                .Select(o => new { o.Id, o.IdCondicionPago, o.IdReq, o.IdProvider })
+                .ToListAsync();
+            var ocCond = new Dictionary<int, int?>();
+            var condIds = new HashSet<int>();
+            foreach (var o in ocsCond)
+            {
+                int? cond = (o.IdCondicionPago.HasValue && o.IdCondicionPago.Value > 0) ? o.IdCondicionPago : null;
+                if (cond == null)
+                {
+                    cond = await _context.Ocandreqs.AsNoTracking()
+                        .Where(c => c.Type == "COTIZ" && c.IdReq == o.IdReq && c.IdProvider == o.IdProvider
+                                 && c.Active == true && c.IdCondicionPago != null)
+                        .OrderBy(c => c.Id)
+                        .Select(c => c.IdCondicionPago)
+                        .FirstOrDefaultAsync();
+                }
+                ocCond[o.Id] = cond;
+                if (cond.HasValue && cond.Value > 0) condIds.Add(cond.Value);
+            }
+            var pctByCond = condIds.Count > 0
+                ? await _context.CondicionesPago.AsNoTracking()
+                    .Where(cp => condIds.Contains(cp.Id))
+                    .ToDictionaryAsync(cp => cp.Id, cp => cp.Cantidad)
+                : new Dictionary<int, int>();
+
+            // Cantidad de la REQUISICIÓN padre por (REQUIS, material) — para ítems SIN LIMITE (cantidad_OC = 0).
+            var ocReqMap = ocsCond.Where(o => o.IdReq.HasValue).ToDictionary(o => o.Id, o => o.IdReq!.Value);
+            var reqIds = ocReqMap.Values.Distinct().ToList();
+            var reqQtyMap = reqIds.Count > 0
+                ? (await _context.Detailsreqoc.AsNoTracking()
+                    .Where(d => reqIds.Contains(d.IdMovement) && d.Active == true)
+                    .GroupBy(d => new { d.IdMovement, d.IdSupplie })
+                    .Select(g => new { g.Key.IdMovement, g.Key.IdSupplie, Qty = g.Sum(x => x.Quantity) })
+                    .ToListAsync())
+                    .ToDictionary(x => (x.IdMovement, x.IdSupplie), x => x.Qty)
+                : new Dictionary<(int, int), decimal>();
+
+            foreach (var row in anticipoRows)
+            {
+                row.AnticipoPorcentaje =
+                    (ocCond.TryGetValue(row.IdOc, out var cid) && cid.HasValue
+                     && pctByCond.TryGetValue(cid.Value, out var cant)) ? cant : 0m;
+
+                var iva = ivaByBranch.TryGetValue(row.IdReference, out var iv) ? iv : 0m;
+                var factor = 1m + iva / 100m;
+                var reqIdRow = ocReqMap.TryGetValue(row.IdOc, out var rid) ? rid : 0;
+                row.AnticipoItems = items
+                    .Where(i => i.IdMovement == row.IdOc)
+                    .Select(i =>
+                    {
+                        var pu = (i.MasIva == true) ? Math.Round(i.Price * factor, 2) : i.Price;
+                        // SIN LIMITE: cantidad_OC = 0 → usar la cantidad de la REQUISICIÓN (mismo material).
+                        var qty = string.Equals(i.TypeOc, "COMPRA AUTORIZADA SIN LIMITE", StringComparison.OrdinalIgnoreCase)
+                            ? (reqIdRow > 0 && reqQtyMap.TryGetValue((reqIdRow, i.IdSupplie), out var rq) ? rq : 0m)
+                            : i.Quantity;
+                        return new AnticipoItemDto
+                        {
+                            Articulo       = i.NameArticle ?? "",
+                            Cantidad       = qty,
+                            PrecioUnitario = pu,
+                            Total          = pu * qty
+                        };
+                    })
+                    .ToList();
+
+                row.AnticipoConsumo = consumo
+                    .Where(c => c.IdOc == row.IdOc)
+                    .Select(c => new AnticipoConsumoDto
+                    {
+                        FolioEntrega = c.FolioEntrega ?? "",
+                        Descuento    = c.AnticipoAplicado ?? 0m
+                    })
+                    .ToList();
+            }
+
+            // Mismo ledger de consumo para las filas de ENTREGA (mismo IdOc). El frontend lo recorta
+            // hasta la entrada actual (por folio) para mostrar "Total → desglose → restante".
+            foreach (var row in entregaRows)
+            {
+                row.AnticipoConsumo = consumo
+                    .Where(c => c.IdOc == row.IdOc)
+                    .Select(c => new AnticipoConsumoDto
+                    {
+                        FolioEntrega = c.FolioEntrega ?? "",
+                        Descuento    = c.AnticipoAplicado ?? 0m
+                    })
+                    .ToList();
             }
         }
 
@@ -416,13 +688,25 @@ namespace Warehouse.Service.Delison
                 entrada.Liberacion  = true;
                 entrada.DateModified = DateTime.UtcNow;
 
+                // ¿Multi-entrega? (el ítem OC tiene más de una entrega). En ese caso el IVA es POR ENTREGA
+                // (entregas_oc.mas_iva), no del ítem OC, para que una entrega pueda llevar IVA y otra no.
+                bool esMultiEntrega = false;
+                if (dto.IdEntrega.HasValue && dto.IdDetail.HasValue)
+                {
+                    var nEntregas = await _context.EntregasOc
+                        .CountAsync(e => e.IdDetailsreqoc == dto.IdDetail.Value && e.Active);
+                    esMultiEntrega = nEntregas > 1;
+                }
+
                 // 2) Writeback al detalle (detailsreqoc)
                 if (dto.IdDetail.HasValue)
                 {
                     var d = await _context.Detailsreqoc.FindAsync(dto.IdDetail.Value);
                     if (d != null)
                     {
-                        d.MasIva = dto.MasIva; // IVA puede marcarse desde Gastos
+                        // El IVA del ítem OC solo se fija en single-entrega/CR/sin-límite. En multi-entrega
+                        // NO se toca el detalle compartido (el IVA va por entrega más abajo).
+                        if (!esMultiEntrega) d.MasIva = dto.MasIva;
                         if (string.Equals(dto.DocType, "CR", StringComparison.OrdinalIgnoreCase))
                         {
                             // Compra rápida: rellenar proveedor y precio unitario
@@ -437,15 +721,20 @@ namespace Warehouse.Service.Delison
                     }
                 }
 
-                // 3) Sync de nota/factura a la entrega (multi-entrega)
-                if (dto.IdEntrega.HasValue && !string.IsNullOrEmpty(dto.NotaFactura))
+                // 3) Entrega (multi-entrega): nota/factura + IVA propio de la entrega.
+                if (dto.IdEntrega.HasValue)
                 {
                     var eg = await _context.EntregasOc.FindAsync(dto.IdEntrega.Value);
-                    if (eg != null) eg.NotaFactura = dto.NotaFactura;
+                    if (eg != null)
+                    {
+                        if (!string.IsNullOrEmpty(dto.NotaFactura)) eg.NotaFactura = dto.NotaFactura;
+                        if (esMultiEntrega) eg.MasIva = dto.MasIva;   // IVA independiente de ESTA entrega
+                    }
                 }
 
-                // 4) Mantener el "+ IVA" consistente en la cotización/comparador (slot COTIZ origen)
-                await PropagateMasIvaToCotizAsync(entrada.IdOc, entrada.IdMaterial, dto.MasIva);
+                // 4) NO se propaga al comparador (slot COTIZ). El comparador es una FOTO del momento de
+                // la comparación y no está diseñado para multi-entrega (mostraría toda la cantidad con un
+                // IVA único, generando discrepancias). El IVA vive por entrega (almacén) y en la OC.
 
                 // 5) Anticipo: registrar el monto aplicado a esta entrada y fijar método/N en la OC (1ª vez).
                 if (dto.AnticipoAplicado.HasValue && dto.AnticipoAplicado.Value > 0)
@@ -459,6 +748,10 @@ namespace Warehouse.Service.Delison
                     }
                 }
 
+                // 6) Almacén GLOBAL de materia prima: sumar la cantidad recibida al inventario
+                // (sucursal + departamento + material). Es el "almacén final" que usará producción.
+                await AcumularInventarioMp(entrada);
+
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
                 return true;
@@ -468,6 +761,62 @@ namespace Warehouse.Service.Delison
                 await tx.RollbackAsync();
                 _logger.LogError(ex, "Error confirmando pago de la entrada {IdEntrada}", dto.IdEntrada);
                 throw;
+            }
+        }
+
+        // Suma la cantidad de una entrada LIBERADA al almacén global de materia prima (inventario_mp),
+        // agrupado por (empresa, sucursal, departamento, material). Upsert (find-or-create). Corre dentro
+        // de la transacción del llamador (se persiste con su SaveChangesAsync).
+        private async Task AcumularInventarioMp(EntradaMoliendaDelison entrada)
+        {
+            if (entrada == null || !entrada.IdMaterial.HasValue || entrada.IdMaterial.Value <= 0) return;
+            var qty = entrada.CantidadEntrada ?? 0m;
+            if (qty <= 0) return;
+
+            var oc = await _context.Ocandreqs.FindAsync(entrada.IdOc);
+            if (oc == null) return;
+
+            var idDepto  = oc.IdDepartament;
+            // Sucursal: en OC es id_reference; en CR el branch vive en la REQUIS padre (id_req).
+            var idBranch = oc.IdReference;
+            if (string.Equals(oc.Type, "CR", StringComparison.OrdinalIgnoreCase) && oc.IdReq.HasValue && oc.IdReq.Value > 0)
+            {
+                var idRef = await _context.Ocandreqs.AsNoTracking()
+                    .Where(r => r.Id == oc.IdReq.Value).Select(r => r.IdReference).FirstOrDefaultAsync();
+                if (idRef > 0) idBranch = idRef;
+            }
+
+            // Empresa robusta: IdRoot de la OC; si 0, empresa de la sucursal (Branchs).
+            int idCompany = oc.IdRoot ?? 0;
+            if (idCompany == 0 && idBranch > 0)
+            {
+                var conn = _context.Database.GetDbConnection();
+                if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+                using var cmd = conn.CreateCommand();
+                cmd.CommandText = "SELECT id_company FROM smp.dbo.Branchs WHERE id = @id";
+                var p = cmd.CreateParameter(); p.ParameterName = "@id"; p.Value = idBranch;
+                cmd.Parameters.Add(p);
+                var res = await cmd.ExecuteScalarAsync();
+                if (res != null && res != System.DBNull.Value) idCompany = System.Convert.ToInt32(res);
+            }
+            if (idCompany <= 0 || idBranch <= 0) return;
+
+            var mat = entrada.IdMaterial.Value;
+            var inv = await _context.InventarioMp.FirstOrDefaultAsync(x =>
+                x.IdCompany == idCompany && x.IdSucursal == idBranch &&
+                x.IdDepartamento == idDepto && x.IdMaterial == mat);
+            if (inv == null)
+            {
+                _context.InventarioMp.Add(new InventarioMpDelison
+                {
+                    IdCompany = idCompany, IdSucursal = idBranch, IdDepartamento = idDepto,
+                    IdMaterial = mat, Cantidad = qty, Active = true, DateModified = DateTime.Now
+                });
+            }
+            else
+            {
+                inv.Cantidad += qty;
+                inv.DateModified = DateTime.Now;
             }
         }
 
@@ -501,13 +850,116 @@ namespace Warehouse.Service.Delison
             var oc = await _context.Ocandreqs.FindAsync(dto.IdOc);
             if (oc == null) return false;
 
-            oc.AnticipoPagado = true;
-            oc.AnticipoMonto  = dto.Monto;
-            oc.FechaAnticipo  = dto.Fecha.HasValue
+            var fecha = dto.Fecha.HasValue
                 ? DateOnly.FromDateTime(dto.Fecha.Value)
                 : DateOnly.FromDateTime(DateTime.Now);
+
+            // FASE 2: el anticipo entra "EN TRÁMITE" (encolado en Captura de Gastos), NO pagado.
+            // anticipo_pagado se mantiene en false hasta que se pague en Captura → preserva la lógica
+            // de saldo/neteo (el saldo del anticipo solo se aplica a entregas cuando ya salió el dinero).
+            oc.AnticipoMonto = dto.Monto;
+            oc.FechaAnticipo = fecha;
+            if (oc.AnticipoEstado != "PAGADO")          // no degradar un anticipo ya pagado
+                oc.AnticipoEstado = "EN_TRAMITE";
+
+            // Crear/actualizar la línea de gasto (fuente de verdad para Captura/Reporte). Idempotente por OC.
+            var gasto = await _context.GastosGenerales
+                .FirstOrDefaultAsync(g => g.IdOc == dto.IdOc && g.TipoGasto == "ANTICIPO" && g.Active);
+
+            if (gasto == null)
+            {
+                // Empresa robusta: IdRoot de la OC; si 0, empresa de la sucursal (Branchs).
+                int idCompany = oc.IdRoot ?? 0;
+                int idBranch  = oc.IdReference;
+                if (idCompany == 0 && idBranch > 0)
+                {
+                    var conn = _context.Database.GetDbConnection();
+                    if (conn.State != ConnectionState.Open) await conn.OpenAsync();
+                    using var cmd = conn.CreateCommand();
+                    cmd.CommandText = "SELECT id_company FROM smp.dbo.Branchs WHERE id = @id";
+                    var p = cmd.CreateParameter(); p.ParameterName = "@id"; p.Value = idBranch;
+                    cmd.Parameters.Add(p);
+                    var res = await cmd.ExecuteScalarAsync();
+                    if (res != null && res != DBNull.Value) idCompany = Convert.ToInt32(res);
+                }
+
+                _context.GastosGenerales.Add(new GastosGeneralesDelison
+                {
+                    IdCompany     = idCompany,
+                    IdBranch      = idBranch,
+                    IdDepartament = oc.IdDepartament,
+                    IdOc          = oc.Id,
+                    TipoGasto     = "ANTICIPO",
+                    Folio         = oc.Folio,                    // folio OC base (sin -E1)
+                    Concepto      = $"Anticipo {oc.Folio}",
+                    IdProvider    = oc.IdProvider,
+                    Proveedor     = oc.Solicit,
+                    Monto         = dto.Monto,
+                    Estado        = "EN_TRAMITE",
+                    FechaRegistro = fecha,
+                    Active        = true,
+                    DateModified  = DateTime.Now,
+                });
+            }
+            else if (gasto.Estado != "PAGADO")
+            {
+                // Re-registro / edición de fecha o recálculo de monto antes de pagar.
+                gasto.Monto         = dto.Monto;
+                gasto.FechaRegistro = fecha;
+                gasto.DateModified  = DateTime.Now;
+            }
+
             await _context.SaveChangesAsync();
             return true;
+        }
+
+        // ── Captura de Gastos: PAGAR un anticipo EN TRÁMITE ──
+        // Marca el gasto general como PAGADO con la fecha del día del pago (la que cuenta para el reporte)
+        // y actualiza la OC: anticipo_estado='PAGADO' + anticipo_pagado=true (habilita el saldo/neteo en entregas).
+        public async Task<bool> ConfirmAnticipo(ConfirmAnticipoDto dto)
+        {
+            if (dto == null || dto.IdGastoGeneral <= 0) return false;
+
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var gasto = await _context.GastosGenerales.FindAsync(dto.IdGastoGeneral);
+                if (gasto == null || !gasto.Active) { await tx.RollbackAsync(); return false; }
+                if (gasto.Estado == "PAGADO") { await tx.RollbackAsync(); return true; } // idempotente
+
+                var fecha = dto.FechaPago.HasValue
+                    ? DateOnly.FromDateTime(dto.FechaPago.Value)
+                    : DateOnly.FromDateTime(DateTime.Now);
+
+                gasto.Estado      = "PAGADO";
+                gasto.FechaPago   = fecha;
+                if (!string.IsNullOrWhiteSpace(dto.NotaFactura)) gasto.NotaFactura = dto.NotaFactura;
+                gasto.DateModified = DateTime.Now;
+
+                // Reflejar en la OC para habilitar la lógica de saldo/neteo y el display PAGADO.
+                if (gasto.IdOc.HasValue && gasto.IdOc.Value > 0)
+                {
+                    var oc = await _context.Ocandreqs.FindAsync(gasto.IdOc.Value);
+                    if (oc != null)
+                    {
+                        oc.AnticipoEstado = "PAGADO";
+                        oc.AnticipoPagado = true;          // ahora sí: el dinero salió → saldo disponible
+                        oc.FechaAnticipo  = fecha;         // fecha de pago (la que se muestra read-only en Nivel 3)
+                        if (!oc.AnticipoMonto.HasValue || oc.AnticipoMonto.Value <= 0)
+                            oc.AnticipoMonto = gasto.Monto;
+                    }
+                }
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await tx.RollbackAsync();
+                _logger.LogError(ex, "Error confirmando pago de anticipo (gasto {IdGasto})", dto.IdGastoGeneral);
+                throw;
+            }
         }
 
         // ── Captura de Gastos: GUARDAR borrador (sin liberar, sin acumular cantidad) ──
@@ -535,12 +987,22 @@ namespace Warehouse.Service.Delison
                 entrada.DateModified = DateTime.UtcNow;
                 // NOTA: NO se toca entrada.Liberacion (sigue en false).
 
+                // ¿Multi-entrega? El IVA es POR ENTREGA (entregas_oc.mas_iva), no del ítem OC compartido.
+                bool esMultiEntrega = false;
+                if (dto.IdEntrega.HasValue && dto.IdDetail.HasValue)
+                {
+                    var nEntregas = await _context.EntregasOc
+                        .CountAsync(e => e.IdDetailsreqoc == dto.IdDetail.Value && e.Active);
+                    esMultiEntrega = nEntregas > 1;
+                }
+
                 if (dto.IdDetail.HasValue)
                 {
                     var d = await _context.Detailsreqoc.FindAsync(dto.IdDetail.Value);
                     if (d != null)
                     {
-                        d.MasIva = dto.MasIva;
+                        // En multi-entrega NO se toca el IVA del ítem compartido (va por entrega abajo).
+                        if (!esMultiEntrega) d.MasIva = dto.MasIva;
                         if (string.Equals(dto.DocType, "CR", StringComparison.OrdinalIgnoreCase))
                         {
                             if (!string.IsNullOrWhiteSpace(dto.Proveedor)) d.NameProvider = dto.Proveedor;
@@ -550,14 +1012,17 @@ namespace Warehouse.Service.Delison
                     }
                 }
 
-                if (dto.IdEntrega.HasValue && !string.IsNullOrEmpty(dto.NotaFactura))
+                if (dto.IdEntrega.HasValue)
                 {
                     var eg = await _context.EntregasOc.FindAsync(dto.IdEntrega.Value);
-                    if (eg != null) eg.NotaFactura = dto.NotaFactura;
+                    if (eg != null)
+                    {
+                        if (!string.IsNullOrEmpty(dto.NotaFactura)) eg.NotaFactura = dto.NotaFactura;
+                        if (esMultiEntrega) eg.MasIva = dto.MasIva;   // IVA por entrega (draft)
+                    }
                 }
 
-                // Mantener el "+ IVA" consistente en la cotización/comparador (slot COTIZ origen)
-                await PropagateMasIvaToCotizAsync(entrada.IdOc, entrada.IdMaterial, dto.MasIva);
+                // NO se propaga al comparador (slot COTIZ): es una foto del momento, no multi-entrega.
 
                 await _context.SaveChangesAsync();
                 await tx.CommitAsync();
@@ -571,37 +1036,10 @@ namespace Warehouse.Service.Delison
             }
         }
 
-        // ── Propaga el masIva capturado en Gastos de vuelta al detalle del slot COTIZ origen ──
-        // La OC no referencia directamente su COTIZ; el único vínculo es IdReq (REQUIS) + IdProvider.
-        // Tanto la cotización (getReqItems del slot) como el comparador (GetComparisonData) leen
-        // mas_iva del detalle del slot COTIZ, así que al actualizarlo aquí el "+ IVA" queda igual
-        // en cotización, comparador y gastos (mismo costo en todos lados). Corre dentro de la misma
-        // transacción → se persiste con el SaveChangesAsync del llamador.
-        private async Task PropagateMasIvaToCotizAsync(int idOc, int? idMaterial, bool masIva)
-        {
-            if (idOc <= 0 || !idMaterial.HasValue || idMaterial.Value <= 0) return;
-
-            var oc = await _context.Ocandreqs.FindAsync(idOc);
-            if (oc == null
-                || !oc.IdReq.HasValue || oc.IdReq.Value <= 0
-                || !oc.IdProvider.HasValue || oc.IdProvider.Value <= 0) return;
-
-            // Slots COTIZ del mismo proveedor bajo la misma requisición
-            var slotIds = await _context.Ocandreqs
-                .Where(c => c.Type == "COTIZ" && c.Active == true
-                            && c.IdReq == oc.IdReq && c.IdProvider == oc.IdProvider)
-                .Select(c => c.Id)
-                .ToListAsync();
-            if (slotIds.Count == 0) return;
-
-            // Detalle del mismo material dentro de esos slots
-            var slotDetails = await _context.Detailsreqoc
-                .Where(d => slotIds.Contains(d.IdMovement)
-                            && d.IdSupplie == idMaterial.Value && d.Active == true)
-                .ToListAsync();
-
-            foreach (var sd in slotDetails) sd.MasIva = masIva;
-        }
+        // ── (Eliminado) PropagateMasIvaToCotizAsync ──
+        // El comparador (slot COTIZ) ya NO se actualiza desde Gastos: es una foto del momento de la
+        // comparación y no soporta multi-entrega (mostraría toda la cantidad con un IVA único). El IVA
+        // vive por entrega (entregas_oc.mas_iva) y el costo real está en la OC y el almacén.
 
         // ── Helpers de lectura defensiva por nombre de columna ──
         private static int GetInt(System.Data.Common.DbDataReader r, string col) { var i = r.GetOrdinal(col); return r.IsDBNull(i) ? 0 : Convert.ToInt32(r.GetValue(i)); }
