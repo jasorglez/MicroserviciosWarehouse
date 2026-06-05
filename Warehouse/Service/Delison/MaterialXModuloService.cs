@@ -35,18 +35,8 @@ namespace Warehouse.Service.Delison
 
         public async Task<List<MaterialXModulo>> GetByType(int idCompany, string type)
         {
-            var conInventario = _context.InventarioMp
-                .Where(i => i.Active && i.IdCompany == idCompany)
-                .GroupBy(i => i.IdMaterial)
-                .Where(g => g.Sum(i => i.Cantidad) > 0)
-                .Select(g => g.Key);
-
             return await _context.MaterialXModulos
-                .Where(m => m.Active
-                         && m.IdCompany == idCompany
-                         && m.Type == type
-                         && m.IdArticulo != null
-                         && conInventario.Contains(m.IdArticulo!.Value))
+                .Where(m => m.Active && m.IdCompany == idCompany && m.Type == type && m.IdArticulo != null)
                 .ToListAsync();
         }
 
