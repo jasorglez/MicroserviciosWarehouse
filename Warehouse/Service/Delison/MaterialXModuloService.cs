@@ -36,7 +36,7 @@ namespace Warehouse.Service.Delison
         public async Task<List<MaterialXModulo>> GetByType(int idCompany, string type)
         {
             return await _context.MaterialXModulos
-                .Where(m => m.Active && m.IdCompany == idCompany && m.Type == type)
+                .Where(m => m.Active && m.IdCompany == idCompany && m.Type == type && m.IdArticulo != null)
                 .ToListAsync();
         }
 
