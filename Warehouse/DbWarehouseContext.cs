@@ -67,6 +67,13 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<CustomerLoyaltyCard> CustomerLoyaltyCards { get; set; }
     public virtual DbSet<EntradaMoliendaDelison> EntradasMolienda { get; set; }
     public virtual DbSet<CondicionPago> CondicionesPago { get; set; }
+    public virtual DbSet<DescripcionEmpaqueDelison> DescripcionEmpaques { get; set; }
+    public virtual DbSet<UnidadMedidaDelison> UnidadesMedida { get; set; }
+    public virtual DbSet<DimensionDelison> Dimensiones { get; set; }
+    public virtual DbSet<EmpaqueMedidaDelison> EmpaqueMedidas { get; set; }
+    public virtual DbSet<PesoVolumenDelison> PesosVolumenes { get; set; }
+    public virtual DbSet<EmpaquePesoVolumenDelison> EmpaquePesosVolumenes { get; set; }
+    public virtual DbSet<EmpaqueDescripcionDelison> EmpaqueDescripciones { get; set; }
     public virtual DbSet<SetupOc> SetupOc { get; set; }
     public virtual DbSet<EntregaOcDelison> EntregasOc { get; set; }
     public virtual DbSet<GridColumnStateDelison> GridColumnStates { get; set; }

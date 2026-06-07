@@ -578,6 +578,7 @@ namespace Warehouse.Service
                         numArticle = liveNumArticle,
                         cantidad = item.Quantity,
                         compraMinima = (int)(item.CompraMinima ?? 1),
+                        idProveedorSugerido = item.IdProveedorSugerido,  // proveedor sugerido por el panel (REQUIS)
                         recurrent = item.Recurrent ?? "Recurrente",
                         tiempoEntrega = item.TiempoEntrega ?? "0",
                         comprasMinimas = comprasMinimas,

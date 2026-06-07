@@ -75,6 +75,7 @@ namespace Warehouse.Service
                             masIva = dmc.Details.MasIva,
                             diasCondicionCompra = dmc.Details.DiasCondicionCompra,
                             datepostponeConfirmada = dmc.Details.DatePostponeConfirmada,
+                            idProveedorSugerido = dmc.Details.IdProveedorSugerido,
                             entregasCount = _context.EntregasOc.Count(e => e.IdDetailsreqoc == dmc.Details.Id && e.Active)
                         })
                     .AsNoTracking()
@@ -194,11 +195,13 @@ namespace Warehouse.Service
 
             try
             {
-                existingItem.Active = false;
+                // Borrado FÍSICO (ya no lógico): se elimina el registro de la tabla.
+                var idMovement = existingItem.IdMovement;   // se guarda antes de remover
+                _context.Detailsreqoc.Remove(existingItem);
                 await _context.SaveChangesAsync();
 
                 // ✅ Actualizar DateModified de la requisición padre
-                await UpdateParentRequisitionModified(existingItem.IdMovement);
+                await UpdateParentRequisitionModified(idMovement);
 
                 return true;
             }

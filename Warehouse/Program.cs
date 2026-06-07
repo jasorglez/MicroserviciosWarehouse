@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.13 Credito Opcion A: ActivarCredito suma al almacen global (inventario_mp) al activar (sin liberar, sigue en Captura); ConfirmPayment no re-suma si entrada.Credito. 2026-06-04" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.22 GetComparisonData expone idProveedorSugerido (de los items REQUIS del pedimento) → dropdown cotización marca el proveedor sugerido. 2026-06-06" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -132,6 +132,13 @@ builder.Services.AddScoped<ILoyaltyProgramService, LoyaltyProgramService>();
 builder.Services.AddScoped<ICustomerLoyaltyCardService, CustomerLoyaltyCardService>();
 builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
 builder.Services.AddScoped<ICondicionPagoService, CondicionPagoService>();
+builder.Services.AddScoped<IDescripcionEmpaqueService, DescripcionEmpaqueService>();
+builder.Services.AddScoped<IUnidadMedidaService, UnidadMedidaService>();
+builder.Services.AddScoped<IDimensionService, DimensionService>();
+builder.Services.AddScoped<IEmpaqueMedidaService, EmpaqueMedidaService>();
+builder.Services.AddScoped<IPesoVolumenService, PesoVolumenService>();
+builder.Services.AddScoped<IEmpaquePesoVolumenService, EmpaquePesoVolumenService>();
+builder.Services.AddScoped<IEmpaqueDescripcionService, EmpaqueDescripcionService>();
 builder.Services.AddScoped<ISetupOcService, SetupOcService>();
 builder.Services.AddScoped<IEntregaOcService, EntregaOcService>();
 builder.Services.AddScoped<IGastosService, GastosService>();

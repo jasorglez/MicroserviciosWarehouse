@@ -117,5 +117,10 @@ namespace Warehouse.Models
 
         [Column("datepostpone_confirmada")]
         public bool? DatePostponeConfirmada { get; set; } = false;
+
+        // Proveedor que el panel de presentaciones sugirió en la requisición (para resaltarlo
+        // en el dropdown de la cotización). NULL si no se usó el panel.
+        [Column("id_proveedor_sugerido")]
+        public int? IdProveedorSugerido { get; set; }
     }
 }

@@ -126,5 +126,10 @@ namespace Warehouse.Models
 
         [Column("costo", TypeName = "DECIMAL(18,2)")]
         public decimal? Costo { get; set; }
+
+        // Flag: la requisición valida por presentaciones/volumen (además del mínimo de compra).
+        [Column("valida_presentaciones")]
+        [DefaultValue(false)]
+        public bool ValidaPresentaciones { get; set; } = false;
     }
 }

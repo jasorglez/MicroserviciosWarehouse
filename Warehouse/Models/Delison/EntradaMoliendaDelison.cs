@@ -43,6 +43,11 @@ namespace Warehouse.Models.Delison
         [MaxLength(20)]
         public string? NotaFactura { get; set; }
 
+        // Número / folio del documento (nota o factura). Editable desde Captura de Gastos.
+        [Column("num_nota_factura")]
+        [MaxLength(50)]
+        public string? NumNotaFactura { get; set; }
+
         [Column("usuario")]
         [MaxLength(100)]
         public string? Usuario { get; set; }

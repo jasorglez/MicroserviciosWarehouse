@@ -72,5 +72,9 @@ namespace Warehouse.Models.Views
 
         [Column("active")]
         public bool? Active { get; set; }
+
+        // Flag: la requisición de este material valida por presentaciones/volumen (además del mínimo).
+        [Column("valida_presentaciones")]
+        public bool? ValidaPresentaciones { get; set; }
     }
 }

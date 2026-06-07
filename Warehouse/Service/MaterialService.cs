@@ -526,6 +526,7 @@ namespace Warehouse.Service
                 if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
                 if (material.Active.HasValue) existingItem.Active = material.Active;
                 if (material.PorAutorizar.HasValue) existingItem.PorAutorizar = material.PorAutorizar;
+                existingItem.ValidaPresentaciones = material.ValidaPresentaciones;
 
                 // Si cambió la clasificación (categoría/familia/subfamilia), regenerar el num-mat (insumo).
                 bool clasificacionCambio =

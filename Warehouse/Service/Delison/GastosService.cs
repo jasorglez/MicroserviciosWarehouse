@@ -1,5 +1,6 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
+using Warehouse.Models;
 using Warehouse.Models.DTOs;
 using Warehouse.Models.Delison;
 
@@ -189,6 +190,7 @@ namespace Warehouse.Service.Delison
                                       WHERE eg2.id_detailsreqoc = d.id AND eg2.active = 1) > 1
                                 THEN eg.mas_iva ELSE d.mas_iva END, 0) AS masIva,
                     COALESCE(NULLIF(e.nota_factura, ''), eg.nota_factura) AS notaFactura,
+                    e.num_nota_factura                           AS numNotaFactura,
                     e.fecha_recepcion                            AS fechaRecepcion,
                     e.fecha_pago                                 AS fechaPago,
                     ISNULL(cp.calculo_anticipo, 0)               AS calculoAnticipo,
@@ -275,6 +277,7 @@ namespace Warehouse.Service.Delison
                         ValorPago      = GetDec(reader, "valorPago"),
                         MasIva         = GetBool(reader, "masIva"),
                         NotaFactura    = GetStrOrNull(reader, "notaFactura"),
+                        NumNotaFactura = GetStrOrNull(reader, "numNotaFactura"),
                         FechaRecepcion = GetDateOrNull(reader, "fechaRecepcion"),
                         FechaPago      = GetDateOrNull(reader, "fechaPago"),
                         CalculoAnticipo   = GetBool(reader, "calculoAnticipo"),
@@ -389,6 +392,7 @@ namespace Warehouse.Service.Delison
                                       WHERE eg2.id_detailsreqoc = d.id AND eg2.active = 1) > 1
                                 THEN eg.mas_iva ELSE d.mas_iva END, 0) AS masIva,
                     COALESCE(NULLIF(e.nota_factura, ''), eg.nota_factura) AS notaFactura,
+                    e.num_nota_factura                           AS numNotaFactura,
                     e.fecha_recepcion                            AS fechaRecepcion,
                     e.fecha_pago                                 AS fechaPago,
                     ISNULL(cp.calculo_anticipo, 0)               AS calculoAnticipo,
@@ -460,6 +464,7 @@ namespace Warehouse.Service.Delison
                         AnticipoAplicado = GetDec(reader, "anticipoAplicado"),
                         MasIva         = GetBool(reader, "masIva"),
                         NotaFactura    = GetStrOrNull(reader, "notaFactura"),
+                        NumNotaFactura = GetStrOrNull(reader, "numNotaFactura"),
                         FechaRecepcion = GetDateOrNull(reader, "fechaRecepcion"),
                         FechaPago      = GetDateOrNull(reader, "fechaPago"),
                         CalculoAnticipo   = GetBool(reader, "calculoAnticipo"),
@@ -684,7 +689,8 @@ namespace Warehouse.Service.Delison
                 entrada.FechaPago   = dto.FechaPago.HasValue
                     ? DateOnly.FromDateTime(dto.FechaPago.Value)
                     : DateOnly.FromDateTime(DateTime.Now);
-                entrada.NotaFactura = dto.NotaFactura;
+                entrada.NotaFactura    = dto.NotaFactura;
+                entrada.NumNotaFactura = dto.NumNotaFactura;
                 entrada.Liberacion  = true;
                 entrada.DateModified = DateTime.UtcNow;
 
@@ -839,10 +845,53 @@ namespace Warehouse.Service.Delison
             // Esto permite que el usuario la edite posteriormente desde Captura de Gastos.
             if (dto.FechaVencimiento.HasValue)
                 entrada.FechaVencimiento = DateOnly.FromDateTime(dto.FechaVencimiento.Value);
+            // Persiste tipo y número de documento si vienen del frontend.
+            if (!string.IsNullOrWhiteSpace(dto.NotaFactura))    entrada.NotaFactura    = dto.NotaFactura;
+            if (!string.IsNullOrWhiteSpace(dto.NumNotaFactura)) entrada.NumNotaFactura = dto.NumNotaFactura;
             entrada.DateModified = DateTime.UtcNow;
 
             // A crédito → el material entra al almacén global ahora (no al pagar).
             await AcumularInventarioMp(entrada);
+
+            // ── Replica en Cuentas x Pagar del proveedor (proveedorxtablas type='CUENTA') ──
+            // Solo si se conoce el proveedor (IdProvider > 0 en la OC).
+            var oc = await _context.Ocandreqs.AsNoTracking().FirstOrDefaultAsync(o => o.Id == entrada.IdOc);
+            if (oc != null && (oc.IdProvider ?? 0) > 0)
+            {
+                // Obtiene la fecha de la OC y de la requisición para los campos de fecha.
+                var fechaOc  = oc.DateModified;
+                var fechaReq = oc.DateModified; // fallback; se intenta refinar con la REQUIS padre
+                var reqOc = await _context.Ocandreqs.AsNoTracking()
+                    .FirstOrDefaultAsync(o => o.Id == oc.IdReq);
+                if (reqOc != null) fechaReq = reqOc.DateModified;
+
+                // Calcula el monto: usa entrada.Pago si > 0, si no precio × cantidad del detalle.
+                decimal monto = entrada.Pago ?? 0m;
+                if (monto == 0m)
+                {
+                    var det = await _context.Detailsreqoc.AsNoTracking()
+                        .FirstOrDefaultAsync(d => d.IdMovement == oc.Id && d.IdSupplie == (entrada.IdMaterial ?? 0) && d.Active == true);
+                    if (det != null)
+                        monto = det.Price * (entrada.CantidadEntrada ?? 0m);
+                }
+
+                _context.ProveedorXTablas.Add(new ProveedorXTabla
+                {
+                    IdTabla  = oc.IdProvider ?? 0,
+                    Campo2   = entrada.NotaFactura ?? "",          // Tipo Factura/Nota
+                    Campo11  = entrada.NumNotaFactura ?? "",       // Numero Factura/Nota (texto)
+                    Campo3   = fechaReq.ToString("yyyy-MM-dd"),   // Fecha Requisicion
+                    Campo8   = fechaOc,                            // Fecha OC
+                    Campo4   = monto.ToString("F2"),               // Total por nota
+                    Campo5   = "0",                                // Abono a Cuenta (inicial 0)
+                    Campo6   = monto.ToString("F2"),               // Restante (= total inicial)
+                    Type     = "CUENTA",
+                    Active   = true,
+                    Vigente  = true,
+                    Principal = false,
+                    Campo1   = 0,
+                });
+            }
 
             await _context.SaveChangesAsync();
             return true;
@@ -985,9 +1034,10 @@ namespace Warehouse.Service.Delison
                 // Si ya está liberada, no se toca (ya se pagó).
                 if (entrada.Liberacion) { await tx.RollbackAsync(); return true; }
 
-                entrada.Pago        = dto.ValorPago;
-                entrada.FechaPago   = dto.FechaPago.HasValue ? DateOnly.FromDateTime(dto.FechaPago.Value) : (DateOnly?)null;
-                entrada.NotaFactura = dto.NotaFactura;
+                entrada.Pago           = dto.ValorPago;
+                entrada.FechaPago      = dto.FechaPago.HasValue ? DateOnly.FromDateTime(dto.FechaPago.Value) : (DateOnly?)null;
+                entrada.NotaFactura    = dto.NotaFactura;
+                entrada.NumNotaFactura = dto.NumNotaFactura;
                 // Persiste la fecha de vencimiento si el usuario la editó manualmente.
                 if (dto.FechaVencimiento.HasValue)
                     entrada.FechaVencimiento = DateOnly.FromDateTime(dto.FechaVencimiento.Value);

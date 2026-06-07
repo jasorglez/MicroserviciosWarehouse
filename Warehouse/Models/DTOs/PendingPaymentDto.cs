@@ -34,6 +34,7 @@ namespace Warehouse.Models.DTOs
         public decimal ValorPago { get; set; }                // entradas_molienda.pago (default = lo de molienda)
         public bool MasIva { get; set; }                      // detailsreqoc.mas_iva
         public string? NotaFactura { get; set; }
+        public string? NumNotaFactura { get; set; }
 
         public DateTime? FechaRecepcion { get; set; }
         public DateTime? FechaPago { get; set; }
@@ -109,6 +110,7 @@ namespace Warehouse.Models.DTOs
         public decimal? PrecioUnitario { get; set; }
         public bool MasIva { get; set; }
         public string? NotaFactura { get; set; }
+        public string? NumNotaFactura { get; set; }
         public decimal Cantidad { get; set; }                    // para acumular en sin límite
 
         // ── Aplicación de anticipo al confirmar/guardar (bloque ANTICIPO) ──
@@ -141,5 +143,9 @@ namespace Warehouse.Models.DTOs
         public int IdEntrada { get; set; }
         /// <summary>Fecha de vencimiento calculada en el frontend (fechaRecepcion + N días). Se persiste en BD para permitir edición posterior.</summary>
         public DateTime? FechaVencimiento { get; set; }
+        /// <summary>Tipo de documento: "Nota" o "Factura". Se persiste en entradas_molienda y se replica a proveedorxtablas (campo2).</summary>
+        public string? NotaFactura { get; set; }
+        /// <summary>Número / folio del documento. Se persiste en entradas_molienda y se replica a proveedorxtablas (campo11).</summary>
+        public string? NumNotaFactura { get; set; }
     }
 }
