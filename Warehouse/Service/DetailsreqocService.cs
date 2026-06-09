@@ -49,6 +49,7 @@ namespace Warehouse.Service
                             quantity = dmc.Details.Quantity,
                             price = dmc.Details.Price,
                             total = dmc.Details.Total,
+                            idCurrency = dmc.Details.IdCurrency,   // moneda del precio (Fase 2): para que la COTIZ por proveedor muestre la abreviatura
                             intorext = dmc.Details.Intorext,
                             type = dmc.Details.Type,
                             idProvider = dmc.Details.IdProvider,

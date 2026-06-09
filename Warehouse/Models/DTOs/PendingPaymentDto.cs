@@ -71,6 +71,11 @@ namespace Warehouse.Models.DTOs
 
         // Porcentaje ORIGINAL con que se calculó el anticipo (condiciones_pago.cantidad). NO recalculado por IVA.
         public decimal AnticipoPorcentaje { get; set; }
+
+        // ── Fase 4: info de conversión a MXN (histórico ya pagado). ValorPago ya viene en MXN. ──
+        public decimal? TipoCambio { get; set; }   // TC aplicado al pagar (null/1 = MXN)
+        public string? Moneda { get; set; }        // ISO de la moneda original (MXN/USD/EUR)
+        public string? FuenteTc { get; set; }      // BANXICO | RESPALDO | MANUAL
     }
 
     /// <summary>Un artículo de la OC sobre la que se hizo el anticipo (para el tooltip de desglose).</summary>
@@ -117,6 +122,11 @@ namespace Warehouse.Models.DTOs
         public decimal? AnticipoAplicado { get; set; }           // monto del anticipo aplicado a esta entrada
         public string? MetodoAnticipo { get; set; }              // 'FIFO' | 'PRORRATEO' (se fija en la 1ª entrada)
         public int? NumProrrateo { get; set; }                   // entregas elegidas para prorrateo
+
+        // ── Fase 4: conversión a MXN (moneda extranjera). El backend persiste monto_mxn = ValorPago × TipoCambio. ──
+        public decimal? TipoCambio { get; set; }                 // pesos por unidad de la moneda (MXN=1)
+        public string? Moneda { get; set; }                      // ISO: MXN | USD | EUR
+        public string? FuenteTc { get; set; }                    // BANXICO | RESPALDO | MANUAL
     }
 
     /// <summary>Marca el anticipo de una OC como pagado (desde el grid de Órdenes de Compra).</summary>
@@ -135,6 +145,11 @@ namespace Warehouse.Models.DTOs
         public int IdGastoGeneral { get; set; }
         public DateTime? FechaPago { get; set; }
         public string? NotaFactura { get; set; }
+
+        // Fase 4: conversión a MXN del anticipo. monto_mxn = gasto.Monto × TipoCambio.
+        public decimal? TipoCambio { get; set; }
+        public string? Moneda { get; set; }
+        public string? FuenteTc { get; set; }
     }
 
     /// <summary>Ingresa una entrada "a crédito" (material disponible, pago pendiente a N días).</summary>

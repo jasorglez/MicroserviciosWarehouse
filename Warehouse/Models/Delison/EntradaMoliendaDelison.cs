@@ -86,6 +86,16 @@ namespace Warehouse.Models.Delison
         [Column("anticipo_aplicado", TypeName = "decimal(16,2)")]
         public decimal? AnticipoAplicado { get; set; }
 
+        // Fase 4: conversión a MXN del pago (monto en moneda original = Pago). monto_mxn = Pago × tipo_cambio.
+        [Column("monto_mxn", TypeName = "decimal(18,2)")]
+        public decimal? MontoMxn { get; set; }
+        [Column("tipo_cambio", TypeName = "decimal(18,6)")]
+        public decimal? TipoCambio { get; set; }
+        [Column("moneda", TypeName = "varchar(5)")]
+        public string? Moneda { get; set; }
+        [Column("fuente_tc", TypeName = "varchar(15)")]
+        public string? FuenteTc { get; set; }   // BANXICO | RESPALDO | MANUAL
+
         [Column("datemodified")]
         public DateTime DateModified { get; set; } = DateTime.UtcNow;
     }

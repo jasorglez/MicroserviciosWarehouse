@@ -128,8 +128,10 @@ namespace Warehouse.Models
         public decimal? Costo { get; set; }
 
         // Flag: la requisición valida por presentaciones/volumen (además del mínimo de compra).
+        // Nullable para soportar partial-merge en Update: un payload mínimo (ej. { fecha })
+        // llega con NULL y NO debe apagar la bandera. En Create se materializa a false si llega NULL.
         [Column("valida_presentaciones")]
         [DefaultValue(false)]
-        public bool ValidaPresentaciones { get; set; } = false;
+        public bool? ValidaPresentaciones { get; set; }
     }
 }

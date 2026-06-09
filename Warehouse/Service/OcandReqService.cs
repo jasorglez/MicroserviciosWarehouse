@@ -529,12 +529,13 @@ namespace Warehouse.Service
                 foreach (var item in items)
                 {
                     var precios = new Dictionary<int, decimal>();
-                    var comprasMinimas = new Dictionary<int, int>();
+                    var comprasMinimas = new Dictionary<int, decimal>();   // decimal: compra mínima admite 1 decimal
                     var tiemposEntrega = new Dictionary<int, string>();
                     var cantidades = new Dictionary<int, decimal>();
                     var slotItemIds = new Dictionary<int, int>();
                     var tiposOc = new Dictionary<int, string>();
                     var masIvasPorProv = new Dictionary<int, bool>();
+                    var monedasPorProv = new Dictionary<int, int?>();   // Fase 2: moneda del precio por proveedor (NULL = MXN)
                     var itemName = (item.NameArticle ?? item.Observation ?? "").Trim().ToLower();
 
                     Detailsreqoc? FindMatch(List<Detailsreqoc> slotItems) =>
@@ -553,11 +554,12 @@ namespace Warehouse.Service
                         var slotItems = itemsBySlot[slot.Id];
                         var precio = FindMatch(slotItems);
                         precios[idProv] = precio?.Price ?? item.Price;
-                        comprasMinimas[idProv] = (int)(precio?.CompraMinima ?? item.CompraMinima ?? 1);
+                        comprasMinimas[idProv] = precio?.CompraMinima ?? item.CompraMinima ?? 1;
                         tiemposEntrega[idProv] = precio?.TiempoEntrega ?? item.TiempoEntrega ?? "0";
                         cantidades[idProv] = precio?.CantidadConceptualizada ?? 0;
                         tiposOc[idProv] = precio?.TypeOc ?? "";
                         masIvasPorProv[idProv] = precio?.MasIva ?? false;
+                        monedasPorProv[idProv] = precio?.IdCurrency;   // Fase 2: hereda la moneda del slot (NULL = MXN)
                         if (precio != null) slotItemIds[idProv] = precio.Id;
                     }
 
@@ -577,7 +579,7 @@ namespace Warehouse.Service
                         nombre = item.NameArticle ?? item.Observation ?? "",
                         numArticle = liveNumArticle,
                         cantidad = item.Quantity,
-                        compraMinima = (int)(item.CompraMinima ?? 1),
+                        compraMinima = item.CompraMinima ?? 1,
                         idProveedorSugerido = item.IdProveedorSugerido,  // proveedor sugerido por el panel (REQUIS)
                         recurrent = item.Recurrent ?? "Recurrente",
                         tiempoEntrega = item.TiempoEntrega ?? "0",
@@ -587,6 +589,7 @@ namespace Warehouse.Service
                         cantidades = cantidades,
                         tiposOc = tiposOc,
                         masIvas = masIvasPorProv,
+                        monedas = monedasPorProv,
                         slotItemIds = slotItemIds
                     });
                 }
@@ -1630,7 +1633,13 @@ namespace Warehouse.Service
                             .Where(d => d.IdMovement == o.Id && d.Active == true)
                             .Sum(d => (decimal?)(Math.Round(d.Price * (d.MasIva == true ? ivaFactorPed : 1m), 2) * d.Quantity)) ?? 0m,
                         countrow = _context.Detailsreqoc
-                            .Count(d => d.IdMovement == o.Id && d.Active == true)
+                            .Count(d => d.IdMovement == o.Id && d.Active == true),
+                        // Moneda REAL de la OC = la de sus ítems (un solo proveedor → una sola moneda).
+                        // La cabecera o.IdCurrency suele venir 0/sin poblar, por eso se toma del primer ítem.
+                        ItemCurrency = _context.Detailsreqoc
+                            .Where(d => d.IdMovement == o.Id && d.Active == true)
+                            .Select(d => d.IdCurrency)
+                            .FirstOrDefault()
                     })
                     .AsNoTracking()
                     .ToListAsync();
@@ -1759,7 +1768,8 @@ namespace Warehouse.Service
                         o.TypeOc,
                         o.DateSupply,
                         o.IdPayment,
-                        o.IdCurrency,
+                        // Moneda de la OC tomada de sus ítems (Opción A). Si no hay ítems, cae al header.
+                        IdCurrency = o.ItemCurrency ?? o.IdCurrency,
                         o.Conditions,
                         o.IdAuthorize,
                         o.IdSolicit,

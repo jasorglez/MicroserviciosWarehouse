@@ -78,6 +78,16 @@ namespace Warehouse.Models.Delison
         [StringLength(100)]
         public string? NotaFactura { get; set; }
 
+        // Fase 4: conversión a MXN del anticipo (monto en moneda original = Monto). monto_mxn = Monto × tipo_cambio.
+        [Column("monto_mxn", TypeName = "decimal(18,2)")]
+        public decimal? MontoMxn { get; set; }
+        [Column("tipo_cambio", TypeName = "decimal(18,6)")]
+        public decimal? TipoCambio { get; set; }
+        [Column("moneda", TypeName = "varchar(5)")]
+        public string? Moneda { get; set; }
+        [Column("fuente_tc", TypeName = "varchar(15)")]
+        public string? FuenteTc { get; set; }   // BANXICO | RESPALDO | MANUAL
+
         [Column("active")]
         public bool Active { get; set; } = true;
 

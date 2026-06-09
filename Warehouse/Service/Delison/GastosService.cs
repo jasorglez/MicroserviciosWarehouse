@@ -62,7 +62,7 @@ namespace Warehouse.Service.Delison
                         b.name                                                    AS branchName,
                         o.id_departament                                          AS idDepartament,
                         r.[Description]                                           AS departmentName,
-                        SUM(CAST(ISNULL(e.pago, 0) AS DECIMAL(18,2)))             AS total,
+                        SUM(CAST(ISNULL(e.monto_mxn, ISNULL(e.pago, 0)) AS DECIMAL(18,2))) AS total,  -- Fase 4: total en MXN
                         COUNT(*)                                                  AS numTransacciones
                     FROM warehouses.Delison.entradas_molienda e
                     INNER JOIN warehouses.dbo.ocandreq o ON o.id = e.id_oc
@@ -83,7 +83,7 @@ namespace Warehouse.Service.Delison
                         b2.name           AS branchName,
                         g.id_departament  AS idDepartament,
                         r2.[Description]  AS departmentName,
-                        SUM(CAST(ISNULL(g.monto, 0) AS DECIMAL(18,2))) AS total,
+                        SUM(CAST(ISNULL(g.monto_mxn, ISNULL(g.monto, 0)) AS DECIMAL(18,2))) AS total,  -- Fase 4: total en MXN
                         COUNT(*)          AS numTransacciones
                     FROM warehouses.Delison.gastos_generales g
                     INNER JOIN smp.dbo.Branchs b2 ON b2.id = g.id_branch
@@ -184,6 +184,7 @@ namespace Warehouse.Service.Delison
                     ISNULL(dreq.quantity, 0)                     AS cantidadReq,
                     ISNULL(d.price, 0)                           AS precioUnitario,
                     ISNULL(e.pago, 0)                            AS valorPago,
+                    cur.valueAddition                            AS monedaItem,   -- Fase 4: moneda del ítem (para convertir al pagar)
                     -- IVA por entrega SOLO en multi-entrega (>1 entrega del ítem): se lee de entregas_oc.
                     -- Single-entrega/CR/sin-límite (<=1) → del detalle del ítem (d.mas_iva). El valor no cambia.
                     ISNULL(CASE WHEN (SELECT COUNT(*) FROM warehouses.Delison.entregas_oc eg2
@@ -212,6 +213,7 @@ namespace Warehouse.Service.Delison
                 FROM warehouses.Delison.entradas_molienda e
                 INNER JOIN warehouses.dbo.ocandreq o ON o.id = e.id_oc
                 LEFT  JOIN warehouses.dbo.detailsreqoc d ON d.id_movement = o.id AND d.id_supplie = e.id_material AND d.active = 1
+                LEFT  JOIN warehouses.dbo.catalog cur ON cur.id = d.id_currency   -- Fase 4: moneda del ítem
                 -- Detalle de la REQUIS padre para obtener la cantidad requisitada
                 LEFT  JOIN warehouses.dbo.detailsreqoc dreq ON dreq.id_movement = o.id_req AND dreq.id_supplie = e.id_material AND dreq.active = 1
                 LEFT  JOIN warehouses.dbo.condiciones_pago cp ON cp.id = COALESCE(o.id_condicion_pago,
@@ -275,6 +277,7 @@ namespace Warehouse.Service.Delison
                         CantidadReq    = GetDec(reader, "cantidadReq"),
                         PrecioUnitario = GetDec(reader, "precioUnitario"),
                         ValorPago      = GetDec(reader, "valorPago"),
+                        Moneda         = GetStrOrNull(reader, "monedaItem"),   // Fase 4: moneda del ítem a convertir
                         MasIva         = GetBool(reader, "masIva"),
                         NotaFactura    = GetStrOrNull(reader, "notaFactura"),
                         NumNotaFactura = GetStrOrNull(reader, "numNotaFactura"),
@@ -312,6 +315,10 @@ namespace Warehouse.Service.Delison
                         g.proveedor       AS proveedor,
                         g.concepto        AS concepto,
                         g.monto           AS monto,
+                        (SELECT TOP 1 cur2.valueAddition
+                           FROM warehouses.dbo.detailsreqoc d2
+                           LEFT JOIN warehouses.dbo.catalog cur2 ON cur2.id = d2.id_currency
+                           WHERE d2.id_movement = g.id_oc AND d2.active = 1 AND d2.id_currency IS NOT NULL) AS monedaItem,
                         ISNULL(g.mas_iva, 0) AS masIva,
                         g.nota_factura    AS notaFactura,
                         g.fecha_registro  AS fechaRegistro
@@ -343,6 +350,7 @@ namespace Warehouse.Service.Delison
                         Cantidad       = 0,
                         PrecioUnitario = 0,
                         ValorPago      = GetDec(rg, "monto"),
+                        Moneda         = GetStrOrNull(rg, "monedaItem"),   // Fase 4: moneda del anticipo (ítems de la OC)
                         MasIva         = GetBool(rg, "masIva"),
                         NotaFactura    = GetStrOrNull(rg, "notaFactura"),
                         FechaRecepcion = GetDateOrNull(rg, "fechaRegistro"),
@@ -384,7 +392,10 @@ namespace Warehouse.Service.Delison
                     ISNULL(NULLIF(d.name_provider, ''), d.provint) AS proveedor,
                     ISNULL(e.cantidad_entrada, 0)                AS cantidad,
                     ISNULL(d.price, 0)                           AS precioUnitario,
-                    ISNULL(e.pago, 0)                            AS valorPago,
+                    ISNULL(e.monto_mxn, ISNULL(e.pago, 0))       AS valorPago,   -- Fase 4: histórico en MXN
+                    e.tipo_cambio                                AS tipoCambio,
+                    e.moneda                                     AS moneda,
+                    e.fuente_tc                                  AS fuenteTc,
                     ISNULL(e.anticipo_aplicado, 0)              AS anticipoAplicado,
                     -- IVA por entrega SOLO en multi-entrega (>1 entrega del ítem): se lee de entregas_oc.
                     -- Single-entrega/CR/sin-límite (<=1) → del detalle del ítem (d.mas_iva). El valor no cambia.
@@ -462,6 +473,9 @@ namespace Warehouse.Service.Delison
                         PrecioUnitario = GetDec(reader, "precioUnitario"),
                         ValorPago      = GetDec(reader, "valorPago"),
                         AnticipoAplicado = GetDec(reader, "anticipoAplicado"),
+                        TipoCambio     = GetDecOrNull(reader, "tipoCambio"),
+                        Moneda         = GetStrOrNull(reader, "moneda"),
+                        FuenteTc       = GetStrOrNull(reader, "fuenteTc"),
                         MasIva         = GetBool(reader, "masIva"),
                         NotaFactura    = GetStrOrNull(reader, "notaFactura"),
                         NumNotaFactura = GetStrOrNull(reader, "numNotaFactura"),
@@ -493,7 +507,10 @@ namespace Warehouse.Service.Delison
                         r.[Description]   AS departmentName,
                         g.proveedor       AS proveedor,
                         g.concepto        AS concepto,
-                        g.monto           AS monto,
+                        ISNULL(g.monto_mxn, g.monto) AS monto,   -- Fase 4: histórico en MXN
+                        g.tipo_cambio     AS tipoCambio,
+                        g.moneda          AS moneda,
+                        g.fuente_tc       AS fuenteTc,
                         ISNULL(g.mas_iva, 0) AS masIva,
                         g.nota_factura    AS notaFactura,
                         g.fecha_pago      AS fechaPago
@@ -525,6 +542,9 @@ namespace Warehouse.Service.Delison
                         Cantidad       = 0,
                         PrecioUnitario = 0,
                         ValorPago      = GetDec(rgp, "monto"),
+                        TipoCambio     = GetDecOrNull(rgp, "tipoCambio"),
+                        Moneda         = GetStrOrNull(rgp, "moneda"),
+                        FuenteTc       = GetStrOrNull(rgp, "fuenteTc"),
                         MasIva         = GetBool(rgp, "masIva"),
                         NotaFactura    = GetStrOrNull(rgp, "notaFactura"),
                         FechaPago      = GetDateOrNull(rgp, "fechaPago"),
@@ -693,6 +713,13 @@ namespace Warehouse.Service.Delison
                 entrada.NumNotaFactura = dto.NumNotaFactura;
                 entrada.Liberacion  = true;
                 entrada.DateModified = DateTime.UtcNow;
+
+                // Fase 4: conversión a MXN del pago (moneda extranjera). MXN → TC=1.
+                var tc = dto.TipoCambio.HasValue && dto.TipoCambio.Value > 0 ? dto.TipoCambio.Value : 1m;
+                entrada.Moneda     = string.IsNullOrWhiteSpace(dto.Moneda) ? "MXN" : dto.Moneda.Trim().ToUpperInvariant();
+                entrada.TipoCambio = tc;
+                entrada.FuenteTc   = dto.FuenteTc;
+                entrada.MontoMxn   = Math.Round(dto.ValorPago * tc, 2);
 
                 // ¿Multi-entrega? (el ítem OC tiene más de una entrega). En ese caso el IVA es POR ENTREGA
                 // (entregas_oc.mas_iva), no del ítem OC, para que una entrega pueda llevar IVA y otra no.
@@ -992,6 +1019,13 @@ namespace Warehouse.Service.Delison
                 if (!string.IsNullOrWhiteSpace(dto.NotaFactura)) gasto.NotaFactura = dto.NotaFactura;
                 gasto.DateModified = DateTime.Now;
 
+                // Fase 4: conversión a MXN del anticipo (moneda extranjera). MXN → TC=1.
+                var tcAnt = dto.TipoCambio.HasValue && dto.TipoCambio.Value > 0 ? dto.TipoCambio.Value : 1m;
+                gasto.Moneda     = string.IsNullOrWhiteSpace(dto.Moneda) ? "MXN" : dto.Moneda.Trim().ToUpperInvariant();
+                gasto.TipoCambio = tcAnt;
+                gasto.FuenteTc   = dto.FuenteTc;
+                gasto.MontoMxn   = Math.Round(gasto.Monto * tcAnt, 2);
+
                 // Reflejar en la OC para habilitar la lógica de saldo/neteo y el display PAGADO.
                 if (gasto.IdOc.HasValue && gasto.IdOc.Value > 0)
                 {
@@ -1102,6 +1136,7 @@ namespace Warehouse.Service.Delison
         private static int GetInt(System.Data.Common.DbDataReader r, string col) { var i = r.GetOrdinal(col); return r.IsDBNull(i) ? 0 : Convert.ToInt32(r.GetValue(i)); }
         private static int? GetIntOrNull(System.Data.Common.DbDataReader r, string col) { var i = r.GetOrdinal(col); return r.IsDBNull(i) ? (int?)null : Convert.ToInt32(r.GetValue(i)); }
         private static decimal GetDec(System.Data.Common.DbDataReader r, string col) { var i = r.GetOrdinal(col); return r.IsDBNull(i) ? 0m : Convert.ToDecimal(r.GetValue(i)); }
+        private static decimal? GetDecOrNull(System.Data.Common.DbDataReader r, string col) { var i = r.GetOrdinal(col); return r.IsDBNull(i) ? (decimal?)null : Convert.ToDecimal(r.GetValue(i)); }
         private static bool GetBool(System.Data.Common.DbDataReader r, string col) { var i = r.GetOrdinal(col); return !r.IsDBNull(i) && Convert.ToBoolean(r.GetValue(i)); }
         private static string GetStr(System.Data.Common.DbDataReader r, string col) { var i = r.GetOrdinal(col); return r.IsDBNull(i) ? string.Empty : r.GetValue(i).ToString() ?? string.Empty; }
         private static string? GetStrOrNull(System.Data.Common.DbDataReader r, string col) { var i = r.GetOrdinal(col); return r.IsDBNull(i) ? null : r.GetValue(i).ToString(); }
