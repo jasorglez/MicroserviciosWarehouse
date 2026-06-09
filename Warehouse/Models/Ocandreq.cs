@@ -5,14 +5,14 @@ using System.Text.Json.Serialization;
 
 namespace Warehouse.Models
 {
-    [Table("ocandreq")]
+    [Table("ocandreq", Schema = "bi2")]
     public class Ocandreq
     {
         [Key]
         [Column("id")]
         public int Id { get; set; }
 
-        [Column("id_businnes")]
+        [Column("id_root")]
         public int? IdRoot { get; set; } = 0;
 
         [Required]
