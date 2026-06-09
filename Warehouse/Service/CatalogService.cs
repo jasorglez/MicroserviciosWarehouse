@@ -505,6 +505,13 @@ namespace Warehouse.Service
                 return false;
             }
         }
+        public async Task<List<Ubication>> GetUbications()
+        {
+            return await _context.Ubications
+                .OrderBy(u => u.Description)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 
     public interface ICatalogService
@@ -525,5 +532,6 @@ namespace Warehouse.Service
         Task<bool> updateValueBit(int id, bool value, string type);
         Task<bool> UpdatexPermission(int id, ProcessXPermission perm);
         Task Savexpermission(ProcessXPermission perm);
+        Task<List<Ubication>> GetUbications();
     }
 }

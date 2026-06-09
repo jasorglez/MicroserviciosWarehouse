@@ -262,6 +262,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("ubications")]
+        public async Task<ActionResult<List<Ubication>>> GetUbications()
+        {
+            try
+            {
+                var items = await _catalogService.GetUbications();
+                return Ok(items);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving Ubications");
+                return StatusCode(500, "An error occurred while retrieving Ubications.");
+            }
+        }
+
         [HttpGet("family")]
         public async Task<ActionResult<List<object>>> GetFamilyCatalogs(int idCompany)
         {
