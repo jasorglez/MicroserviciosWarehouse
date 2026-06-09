@@ -28,13 +28,13 @@ namespace Warehouse.Models.Views
         public int StockMax { get; set; }
 
         [Column("entrada")]
-        public int Entrada { get; set; }
+        public decimal Entrada { get; set; }
 
         [Column("salida")]
-        public int Salida { get; set; }
+        public decimal Salida { get; set; }
 
         [Column("existencia")]
-        public int Existencia { get; set; }
+        public decimal Existencia { get; set; }
 
         [Column("ventaMN")]
         public decimal VentaMN { get; set; }
