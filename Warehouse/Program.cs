@@ -39,8 +39,8 @@ builder.Services.AddCors(options =>
         });
 });               
 
-// Añadir HttpClient para Twilio
-//builder.Services.AddHttpClient();
+// HttpClient (Fase 4: consumir Banxico SIE + API de respaldo para tipo de cambio).
+builder.Services.AddHttpClient();
 
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(x =>
@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.22 GetComparisonData expone idProveedorSugerido (de los items REQUIS del pedimento) → dropdown cotización marca el proveedor sugerido. 2026-06-06" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.32 Fase 4 conversion MXN al pagar: ExchangeRateService (Banxico FIX + respaldo frankfurter + cache currency_rates), endpoint GET Currency/rate; ConfirmPayment/ConfirmAnticipo persisten monto_mxn/tipo_cambio/moneda/fuente_tc; reporte Gastos suma monto_mxn; pending/historico exponen moneda del item. Correr add_currency_rates_table.sql + add_montomxn_to_entradas_y_gastos.sql. 2026-06-08" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -144,6 +144,7 @@ builder.Services.AddScoped<IEntregaOcService, EntregaOcService>();
 builder.Services.AddScoped<IGastosService, GastosService>();
 builder.Services.AddScoped<IGridColumnStateService, GridColumnStateService>();
 builder.Services.AddScoped<IInventarioMpService, InventarioMpService>();
+builder.Services.AddScoped<IExchangeRateService, ExchangeRateService>();
 
 builder.Services.AddHttpContextAccessor();
 

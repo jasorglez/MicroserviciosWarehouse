@@ -9,6 +9,7 @@ public interface IItemCommentsService
     Task<ItemComment> AddAsync(ItemComment comment);
     Task<ItemComment?> UpdateAsync(int id, string text);
     Task<DocumentCommentFlags> GetFlagsAsync(string documentType, int idDocument);
+    Task<int> DeleteByArticleAsync(string documentType, int idDocument, string numArticle, string? textPrefix = null);
 }
 
 public class DocumentCommentFlags
@@ -60,6 +61,29 @@ public class ItemCommentsService : IItemCommentsService
         comment.Text = text;
         await _context.SaveChangesAsync();
         return comment;
+    }
+
+    // Borrado FÍSICO de comentarios de un artículo dentro de un documento.
+    // - Sin textPrefix: borra TODOS los comentarios del artículo. Se usa al eliminar un renglón
+    //   de la requisición (los comentarios se atan a documentType+idDocument+numArticle, NO al id
+    //   del renglón, así que al re-agregar el mismo artículo no deben reaparecer).
+    // - Con textPrefix: borra solo los que empiezan con ese prefijo (ej. "🧮 [Req]" = comentarios
+    //   del panel de presentaciones), para REEMPLAZAR el anterior y dejar solo el último, sin tocar
+    //   los comentarios manuales del usuario.
+    public async Task<int> DeleteByArticleAsync(string documentType, int idDocument, string numArticle, string? textPrefix = null)
+    {
+        if (string.IsNullOrEmpty(numArticle)) return 0;
+        var query = _context.ItemComments
+            .Where(c => c.DocumentType == documentType
+                     && c.IdDocument == idDocument
+                     && c.NumArticle == numArticle);
+        if (!string.IsNullOrEmpty(textPrefix))
+            query = query.Where(c => c.Text.StartsWith(textPrefix));
+        var rows = await query.ToListAsync();
+        if (rows.Count == 0) return 0;
+        _context.ItemComments.RemoveRange(rows);
+        await _context.SaveChangesAsync();
+        return rows.Count;
     }
 
     public async Task<DocumentCommentFlags> GetFlagsAsync(string documentType, int idDocument)

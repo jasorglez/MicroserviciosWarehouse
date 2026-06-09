@@ -69,9 +69,13 @@ namespace Warehouse.Models
         [DefaultValue(0)]
         public int? IdParent { get; set; } = 0;
 
-        [Column("minima_compra")]
+        [Column("minima_compra", TypeName = "decimal(16,2)")]
         [DefaultValue(0)]
-        public int? MinCompra { get; set; } = 0;
+        public decimal? MinCompra { get; set; } = 0;
+
+        // Moneda del precio unitario (campo9). FK lógica a catalog (type='CURRENCY'). NULL = MXN.
+        [Column("id_currency")]
+        public int? IdCurrency { get; set; }
 
         [Column("sub_parent_id")]
         [DefaultValue(0)]

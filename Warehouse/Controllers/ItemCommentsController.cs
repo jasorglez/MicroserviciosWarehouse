@@ -52,6 +52,16 @@ public class ItemCommentsController : ControllerBase
         if (updated == null) return NotFound();
         return Ok(updated);
     }
+
+    // DELETE api/ItemComments/by-article?documentType=REQ&idDocument=5&numArticle=ABC-01
+    // Borrado FÍSICO de comentarios de un artículo en un documento. Sin textPrefix borra todos
+    // (al eliminar el renglón); con textPrefix borra solo los que empiezan así (reemplazo del panel).
+    [HttpDelete("by-article")]
+    public async Task<IActionResult> DeleteByArticle([FromQuery] string documentType, [FromQuery] int idDocument, [FromQuery] string numArticle, [FromQuery] string? textPrefix = null)
+    {
+        var deleted = await _service.DeleteByArticleAsync(documentType, idDocument, numArticle, textPrefix);
+        return Ok(new { deleted });
+    }
 }
 
 public class EditCommentDto

@@ -88,6 +88,8 @@ namespace Warehouse.Service
             existing.Campo11 = proveedor.Campo11;
             // Min. compras (MATERIAL en frontend): mapea a minima_compra / MinCompra
             existing.MinCompra = proveedor.MinCompra;
+            // Moneda del precio unitario (campo9).
+            existing.IdCurrency = proveedor.IdCurrency;
             // IdParent (genérico, no usado actualmente)
             existing.IdParent = proveedor.IdParent;
             //existing.Type = proveedor.Type;

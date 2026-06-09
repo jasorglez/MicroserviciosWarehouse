@@ -82,8 +82,8 @@ namespace Warehouse.Models
         [Column("tiempoentrega")]
         public string? TiempoEntrega { get; set; }
 
-        [Column("compraminima")]
-        public int? CompraMinima { get; set; }
+        [Column("compraminima", TypeName = "decimal(16,2)")]
+        public decimal? CompraMinima { get; set; }
 
         [Column("autorizado")]
         public bool? Autorizado { get; set; } = false;
@@ -122,5 +122,11 @@ namespace Warehouse.Models
         // en el dropdown de la cotización). NULL si no se usó el panel.
         [Column("id_proveedor_sugerido")]
         public int? IdProveedorSugerido { get; set; }
+
+        // Moneda del precio del ítem. Se hereda del proveedor (proveedorxtablas.id_currency)
+        // al tomar su costo en la COTIZ y viaja hasta la OC. NULL = MXN por default.
+        // La conversión a pesos se hará al momento del pago (Gastos / anticipo), no aquí.
+        [Column("id_currency")]
+        public int? IdCurrency { get; set; }
     }
 }

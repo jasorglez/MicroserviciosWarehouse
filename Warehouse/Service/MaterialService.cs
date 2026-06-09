@@ -434,7 +434,8 @@ namespace Warehouse.Service
                     Merma = material.Merma,
                     Fecha = material.Date ?? DateTime.UtcNow,
                     Active = material.Active ?? true, // Valor por defecto si es null
-                    PorAutorizar = material.PorAutorizar ?? false // Mapear porAutorizar
+                    PorAutorizar = material.PorAutorizar ?? false, // Mapear porAutorizar
+                    ValidaPresentaciones = material.ValidaPresentaciones ?? false // Respetar la bandera en create (NULL → false)
                 };
 
                 _context.Materials.Add(newMaterial);
@@ -526,7 +527,10 @@ namespace Warehouse.Service
                 if (!string.IsNullOrEmpty(material.TypeMaterial)) existingItem.TypeMaterial = material.TypeMaterial;
                 if (material.Active.HasValue) existingItem.Active = material.Active;
                 if (material.PorAutorizar.HasValue) existingItem.PorAutorizar = material.PorAutorizar;
-                existingItem.ValidaPresentaciones = material.ValidaPresentaciones;
+                // Partial-merge: solo tocar la bandera si el payload la trae explícita.
+                // Un update mínimo (ej. { fecha } desde bumpFechaForCascadeMaterials) llega con
+                // NULL y NO debe apagar valida_presentaciones.
+                if (material.ValidaPresentaciones.HasValue) existingItem.ValidaPresentaciones = material.ValidaPresentaciones.Value;
 
                 // Si cambió la clasificación (categoría/familia/subfamilia), regenerar el num-mat (insumo).
                 bool clasificacionCambio =

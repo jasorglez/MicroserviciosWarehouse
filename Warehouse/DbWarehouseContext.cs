@@ -79,6 +79,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<GridColumnStateDelison> GridColumnStates { get; set; }
     public virtual DbSet<GastosGeneralesDelison> GastosGenerales { get; set; }
     public virtual DbSet<InventarioMpDelison> InventarioMp { get; set; }
+    public virtual DbSet<CurrencyRateDelison> CurrencyRates { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
 
