@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Warehouse.Models;
 using Warehouse.Service;
 using Warehouse.Models.Views;
 
@@ -149,6 +150,32 @@ namespace Warehouse.Controllers
             {
                 _logger.LogError(ex, "Error al buscar productos con término {Termino}", termino);
                 return StatusCode(500, new { error = "Error interno del servidor al buscar productos" });
+            }
+        }
+
+        /// <summary>
+        /// Realiza un ajuste físico de inventario creando un movimiento de entrada o salida
+        /// </summary>
+        [HttpPost("ajuste")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> AjustarInventario([FromBody] AjusteInventarioDto dto)
+        {
+            try
+            {
+                if (dto.IdMaterial <= 0 || dto.IdWarehouse <= 0)
+                    return BadRequest(new { error = "idMaterial e idWarehouse son requeridos y deben ser > 0" });
+                if (dto.CantidadFisica < 0)
+                    return BadRequest(new { error = "La cantidad física no puede ser negativa" });
+
+                var result = await _inventarioService.AjustarInventarioAsync(dto);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al ajustar inventario para material {IdMaterial}", dto.IdMaterial);
+                return StatusCode(500, new { error = "Error interno al ajustar inventario" });
             }
         }
 
