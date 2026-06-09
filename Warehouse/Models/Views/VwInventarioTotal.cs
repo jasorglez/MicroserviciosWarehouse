@@ -6,7 +6,7 @@ namespace Warehouse.Models.Views
     /// <summary>
     /// Modelo para la vista VW_InventarioTotal
     /// </summary>
-    [Table("VW_InventarioTotal", Schema = "warehouses")]
+    [Table("VW_InventarioTotal", Schema = "dbo")]
     public class VwInventarioTotal
     {
         [Key]
