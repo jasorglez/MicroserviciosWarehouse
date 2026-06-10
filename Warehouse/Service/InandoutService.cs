@@ -111,8 +111,10 @@ namespace Warehouse.Service
 
             try
             {
-                
-                if (inandout.IdType != 0)
+                if (inandout.Folio != null)
+                    existingItem.Folio = inandout.Folio;
+
+                if (inandout.IdType != null && inandout.IdType != 0)
                     existingItem.IdType = inandout.IdType;
 
                 if (inandout.Date.HasValue)
@@ -121,8 +123,11 @@ namespace Warehouse.Service
                 if (inandout.DeliveryDate.HasValue)
                     existingItem.DeliveryDate = inandout.DeliveryDate;
 
-                if (inandout.IdOc.HasValue)
-                    existingItem.IdOc = inandout.IdOc;
+                // IdOt: permite null (sin OT) o cualquier valor
+                existingItem.IdOt = inandout.IdOt;
+
+                // IdOc: permite 0 (sin OC) o cualquier valor
+                existingItem.IdOc = inandout.IdOc;
 
                 if (inandout.NumBill != null)
                     existingItem.NumBill = inandout.NumBill;
@@ -137,7 +142,7 @@ namespace Warehouse.Service
                     existingItem.IdAutoriza = inandout.IdAutoriza;
 
                 if (inandout.Comment != null)
-                    existingItem.Comment = inandout.Comment; 
+                    existingItem.Comment = inandout.Comment;
 
                 await _context.SaveChangesAsync();
                 return existingItem;
