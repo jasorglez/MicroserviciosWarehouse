@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.32 Fase 4 conversion MXN al pagar: ExchangeRateService (Banxico FIX + respaldo frankfurter + cache currency_rates), endpoint GET Currency/rate; ConfirmPayment/ConfirmAnticipo persisten monto_mxn/tipo_cambio/moneda/fuente_tc; reporte Gastos suma monto_mxn; pending/historico exponen moneda del item. Correr add_currency_rates_table.sql + add_montomxn_to_entradas_y_gastos.sql. 2026-06-08" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.34 Fase 4 almacen: GetOcsByReqMaterial expone Moneda (ISO del item via catalog.id_currency) para que almmolienda muestre la moneda y el precio convertido en Nivel 3/4. 2026-06-09" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

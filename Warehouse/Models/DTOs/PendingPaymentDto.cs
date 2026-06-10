@@ -76,6 +76,9 @@ namespace Warehouse.Models.DTOs
         public decimal? TipoCambio { get; set; }   // TC aplicado al pagar (null/1 = MXN)
         public string? Moneda { get; set; }        // ISO de la moneda original (MXN/USD/EUR)
         public string? FuenteTc { get; set; }      // BANXICO | RESPALDO | MANUAL
+        // TC con que se PAGÓ el anticipo de la OC (gastos_generales.tipo_cambio). El anticipo aplicado
+        // y su desglose vienen en moneda original; el frontend los convierte a MXN con este TC.
+        public decimal? TcAnticipo { get; set; }
     }
 
     /// <summary>Un artículo de la OC sobre la que se hizo el anticipo (para el tooltip de desglose).</summary>

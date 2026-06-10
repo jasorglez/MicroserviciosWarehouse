@@ -396,6 +396,9 @@ namespace Warehouse.Service.Delison
                     e.tipo_cambio                                AS tipoCambio,
                     e.moneda                                     AS moneda,
                     e.fuente_tc                                  AS fuenteTc,
+                    -- TC con que se pagó el anticipo de esta OC (para convertir el anticipo aplicado a MXN).
+                    (SELECT TOP 1 ga.tipo_cambio FROM warehouses.Delison.gastos_generales ga
+                       WHERE ga.id_oc = o.id AND ga.tipo_gasto = 'ANTICIPO' AND ga.active = 1) AS tcAnticipo,
                     ISNULL(e.anticipo_aplicado, 0)              AS anticipoAplicado,
                     -- IVA por entrega SOLO en multi-entrega (>1 entrega del ítem): se lee de entregas_oc.
                     -- Single-entrega/CR/sin-límite (<=1) → del detalle del ítem (d.mas_iva). El valor no cambia.
@@ -476,6 +479,7 @@ namespace Warehouse.Service.Delison
                         TipoCambio     = GetDecOrNull(reader, "tipoCambio"),
                         Moneda         = GetStrOrNull(reader, "moneda"),
                         FuenteTc       = GetStrOrNull(reader, "fuenteTc"),
+                        TcAnticipo     = GetDecOrNull(reader, "tcAnticipo"),
                         MasIva         = GetBool(reader, "masIva"),
                         NotaFactura    = GetStrOrNull(reader, "notaFactura"),
                         NumNotaFactura = GetStrOrNull(reader, "numNotaFactura"),
@@ -545,6 +549,7 @@ namespace Warehouse.Service.Delison
                         TipoCambio     = GetDecOrNull(rgp, "tipoCambio"),
                         Moneda         = GetStrOrNull(rgp, "moneda"),
                         FuenteTc       = GetStrOrNull(rgp, "fuenteTc"),
+                        TcAnticipo     = GetDecOrNull(rgp, "tipoCambio"),   // la fila ES el anticipo → su propio TC
                         MasIva         = GetBool(rgp, "masIva"),
                         NotaFactura    = GetStrOrNull(rgp, "notaFactura"),
                         FechaPago      = GetDateOrNull(rgp, "fechaPago"),

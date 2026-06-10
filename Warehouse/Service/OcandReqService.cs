@@ -738,6 +738,8 @@ namespace Warehouse.Service
                         Cantidad     = d.Quantity,
                         Price       = d.Price,
                         MasIva       = d.MasIva,
+                        // Moneda del ítem (ISO) para mostrar/convertir en almacén molienda (Fase 4).
+                        Moneda      = _context.Catalogs.Where(c => c.Id == d.IdCurrency).Select(c => c.ValueAddition).FirstOrDefault(),
                         CondEspecial = oc.Conditions ?? "",
                         CantidadMinimaRequerida = d.CaducidadMinimaRequerida,
                         FechaXEntrega = d.DatePostpone,
