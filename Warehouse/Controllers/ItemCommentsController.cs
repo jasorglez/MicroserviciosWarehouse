@@ -36,6 +36,14 @@ public class ItemCommentsController : ControllerBase
         return Ok(articleComments);
     }
 
+    // GET api/ItemComments/count?documentType=MEDICION&idDocument=5
+    [HttpGet("count")]
+    public async Task<IActionResult> Count([FromQuery] string documentType, [FromQuery] int idDocument)
+    {
+        var count = await _service.CountAsync(documentType, idDocument);
+        return Ok(new { count });
+    }
+
     // POST api/ItemComments
     [HttpPost]
     public async Task<IActionResult> Post([FromBody] ItemComment comment)
