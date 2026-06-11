@@ -74,6 +74,7 @@ namespace Warehouse.Service.Delison
             existing.Description = entity.Description.Trim();
             existing.Active = entity.Active;
             existing.Molienda = entity.Molienda;
+            existing.IdMaterial = entity.IdMaterial;   // enlace categoría organoléptica → material
 
             await _context.SaveChangesAsync();
             return existing;

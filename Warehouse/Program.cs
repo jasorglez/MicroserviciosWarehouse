@@ -131,6 +131,9 @@ builder.Services.AddScoped<IDetailsMoliendaDelisonService, DetailsMoliendaDeliso
 builder.Services.AddScoped<ILoyaltyProgramService, LoyaltyProgramService>();
 builder.Services.AddScoped<ICustomerLoyaltyCardService, CustomerLoyaltyCardService>();
 builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
+builder.Services.AddScoped<IDatosExternosMoliendaService, DatosExternosMoliendaService>();
+builder.Services.AddScoped<ICaracteristicasMateriaPrimaService, CaracteristicasMateriaPrimaService>();
+builder.Services.AddScoped<IRevisionCaracteristicasEntradaService, RevisionCaracteristicasEntradaService>();
 builder.Services.AddScoped<ICondicionPagoService, CondicionPagoService>();
 builder.Services.AddScoped<IDescripcionEmpaqueService, DescripcionEmpaqueService>();
 builder.Services.AddScoped<IUnidadMedidaService, UnidadMedidaService>();
