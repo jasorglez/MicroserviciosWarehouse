@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.34 Fase 4 almacen: GetOcsByReqMaterial expone Moneda (ISO del item via catalog.id_currency) para que almmolienda muestre la moneda y el precio convertido en Nivel 3/4. 2026-06-09" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.35 Inventario Materia Prima EN VIVO: GetGerencial/GetPorSucursal calculan desde entradas_molienda(liberadas)+datos_externos_molienda (− salidas=0), ya NO leen el snapshot inventario_mp (que no descontaba al borrar). inventario_mp se reserva para histórico. 2026-06-11" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {

@@ -49,4 +49,19 @@ public class InventarioMpController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    // Detalle de lotes de una celda (material × departamento × sucursal).
+    [HttpGet("detalle/{idMaterial}/{idDepartamento}/{idSucursal}")]
+    public async Task<ActionResult<InventarioMpDetalleDto>> GetDetalle(int idMaterial, int idDepartamento, int idSucursal)
+    {
+        try
+        {
+            return Ok(await _service.GetDetalle(idMaterial, idDepartamento, idSucursal));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error detalle inventario MP material {IdMaterial} depto {IdDepto} sucursal {IdSuc}", idMaterial, idDepartamento, idSucursal);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }

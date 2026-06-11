@@ -28,12 +28,42 @@ namespace Warehouse.Service.Delison
         public List<InventarioMpFilaDto> Filas { get; set; } = new();
     }
 
+    // ── Detalle de lotes al click en una celda (material × departamento × sucursal) ──
+    public class InventarioMpDetalleDto
+    {
+        public decimal Total { get; set; }
+        public List<InventarioMpLoteDto> Lotes { get; set; } = new();
+    }
+
+    // Una fila Nivel 1 = un lote DE UNA ENTRADA (datos_externos_molienda).
+    public class InventarioMpLoteDto
+    {
+        public int IdEntrada { get; set; }
+        public int IdDatoExterno { get; set; }
+        public string Lote { get; set; } = "";
+        public string FolioEntrada { get; set; } = "";
+        public decimal CantidadInventario { get; set; }   // cantidad_x_lote − salidas (hoy 0)
+        public List<InventarioMpMovimientoDto> Movimientos { get; set; } = new();
+    }
+
+    // Nivel 2 = movimiento (entrada o salida) del lote-entrada.
+    public class InventarioMpMovimientoDto
+    {
+        public string Tipo { get; set; } = "ENTRADA";   // ENTRADA | SALIDA
+        public string? Fecha { get; set; }              // yyyy-MM-dd
+        public decimal? CantidadEntrada { get; set; }
+        public decimal? CantidadSalida { get; set; }
+        public string Quien { get; set; } = "";         // nombre de quien recibió/utilizó
+    }
+
     public interface IInventarioMpService
     {
         // Vista GERENCIAL (sidebar = todas las sucursales): columnas = sucursales.
         Task<InventarioMpVistaDto> GetGerencial(int idCompany);
         // Vista POR SUCURSAL: columnas = departamentos (solo los que tienen datos).
         Task<InventarioMpVistaDto> GetPorSucursal(int idCompany, int idSucursal);
+        // Detalle de lotes de una celda (material × departamento × sucursal).
+        Task<InventarioMpDetalleDto> GetDetalle(int idMaterial, int idDepartamento, int idSucursal);
     }
 
     public class InventarioMpService : IInventarioMpService
@@ -77,42 +107,109 @@ namespace Warehouse.Service.Delison
             return filas;
         }
 
+        // Un lote (datos_externos) de una entrada liberada, ya resuelto a sucursal+departamento+material.
+        private sealed class MovLoteVivo
+        {
+            public int IdMaterial;
+            public int IdSucursal;
+            public int IdDepartamento;
+            public decimal Cantidad;
+        }
+
+        // Inventario EN VIVO (NO snapshot): lotes (datos_externos_molienda) de entradas LIBERADAS,
+        // resueltos a sucursal+departamento como en AcumularInventarioMp. Si se borran las entradas/lotes
+        // de origen, esto da 0 automáticamente. − salidas (actividades que gastan MP; aún no existen).
+        private async Task<List<MovLoteVivo>> GetMovimientosVivos()
+        {
+            // 1) Lotes + entrada (liberadas, activas, con material).
+            var lotes = await (from d in _context.DatosExternosMolienda
+                               where d.Active
+                               join e in _context.EntradasMolienda on d.IdEntrada equals e.Id
+                               where e.Active && e.Liberacion && e.IdMaterial != null
+                               select new { e.IdOc, IdMaterial = e.IdMaterial!.Value, Cant = d.CantidadXLote ?? 0m })
+                              .ToListAsync();
+            if (lotes.Count == 0) return new List<MovLoteVivo>();
+
+            // 2) OC → (departamento, branch). CR: branch en la REQUIS padre (id_req).
+            var ocIds = lotes.Select(l => l.IdOc).Distinct().ToList();
+            var ocs = await _context.Ocandreqs.Where(o => ocIds.Contains(o.Id))
+                .Select(o => new { o.Id, o.IdDepartament, o.Type, o.IdReq, o.IdReference }).ToListAsync();
+            var reqIds = ocs.Where(o => string.Equals(o.Type, "CR", StringComparison.OrdinalIgnoreCase) && o.IdReq.HasValue)
+                            .Select(o => o.IdReq!.Value).Distinct().ToList();
+            var reqBranch = reqIds.Count > 0
+                ? await _context.Ocandreqs.Where(r => reqIds.Contains(r.Id))
+                    .Select(r => new { r.Id, r.IdReference }).ToDictionaryAsync(x => x.Id, x => x.IdReference)
+                : new Dictionary<int, int>();
+
+            var ocMap = new Dictionary<int, (int depto, int branch)>();
+            foreach (var o in ocs)
+            {
+                int branch = o.IdReference;
+                if (string.Equals(o.Type, "CR", StringComparison.OrdinalIgnoreCase) && o.IdReq.HasValue
+                    && reqBranch.TryGetValue(o.IdReq.Value, out var rb) && rb > 0)
+                    branch = rb;
+                ocMap[o.Id] = (o.IdDepartament, branch);
+            }
+
+            var movs = new List<MovLoteVivo>();
+            foreach (var l in lotes)
+            {
+                if (!ocMap.TryGetValue(l.IdOc, out var m)) continue;
+                // − salidas: 0 por ahora (no existe la fuente de consumo).
+                movs.Add(new MovLoteVivo { IdMaterial = l.IdMaterial, IdSucursal = m.branch, IdDepartamento = m.depto, Cantidad = l.Cant });
+            }
+            return movs;
+        }
+
+        private async Task<Dictionary<int, string>> GetNombresSucursales(IDbConnection conn, List<int> ids)
+        {
+            var map = new Dictionary<int, string>();
+            if (ids.Count == 0) return map;
+            using var cmd = conn.CreateCommand();
+            var ins = string.Join(",", ids.Select((_, i) => "@b" + i));
+            cmd.CommandText = $"SELECT id, name FROM smp.dbo.Branchs WHERE id IN ({ins})";
+            for (int i = 0; i < ids.Count; i++) AddParam(cmd, "@b" + i, ids[i]);
+            using var r = await ((System.Data.Common.DbCommand)cmd).ExecuteReaderAsync();
+            while (await r.ReadAsync()) map[r.GetInt32(0)] = r.IsDBNull(1) ? "" : r.GetString(1);
+            return map;
+        }
+
+        private async Task<Dictionary<int, string>> GetNombresDepartamentos(IDbConnection conn, List<int> ids)
+        {
+            var map = new Dictionary<int, string>();
+            if (ids.Count == 0) return map;
+            using var cmd = conn.CreateCommand();
+            var ins = string.Join(",", ids.Select((_, i) => "@d" + i));
+            cmd.CommandText = $"SELECT id, LTRIM(RTRIM(COALESCE(Description,''))) FROM security.dbo.Roles WHERE id IN ({ins})";
+            for (int i = 0; i < ids.Count; i++) AddParam(cmd, "@d" + i, ids[i]);
+            using var r = await ((System.Data.Common.DbCommand)cmd).ExecuteReaderAsync();
+            while (await r.ReadAsync()) map[r.GetInt32(0)] = r.IsDBNull(1) ? "" : r.GetString(1);
+            return map;
+        }
+
         public async Task<InventarioMpVistaDto> GetGerencial(int idCompany)
         {
             var vista = new InventarioMpVistaDto();
             var conn = _context.Database.GetDbConnection();
             if (conn.State != ConnectionState.Open) await ((System.Data.Common.DbConnection)conn).OpenAsync();
 
-            // 1) Filas = todas las MP de la empresa.
+            // Filas = todas las MP de la empresa (filtro por empresa = solo sus materiales).
             var filas = await GetMateriasPrimas(conn, idCompany);
             var filaPorMat = filas.ToDictionary(f => f.IdMaterial);
 
-            // 2) Sumas por (material, sucursal). Columnas = sucursales presentes.
-            var columnas = new Dictionary<int, string>();
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = @"
-                    SELECT i.id_material, i.id_sucursal, b.name AS sucursal, SUM(i.cantidad) AS cant
-                    FROM warehouses.Delison.inventario_mp i
-                    INNER JOIN smp.dbo.Branchs b ON b.id = i.id_sucursal
-                    WHERE i.active = 1 AND i.id_company = @c
-                    GROUP BY i.id_material, i.id_sucursal, b.name";
-                AddParam(cmd, "@c", idCompany);
-                using var r = await ((System.Data.Common.DbCommand)cmd).ExecuteReaderAsync();
-                while (await r.ReadAsync())
-                {
-                    var idMat = r.GetInt32(0);
-                    var idSuc = r.GetInt32(1);
-                    var sucNombre = r.IsDBNull(2) ? $"Sucursal {idSuc}" : r.GetString(2);
-                    var cant = r.IsDBNull(3) ? 0m : r.GetDecimal(3);
+            // Cálculo EN VIVO. Se agrega por (material, sucursal); solo cuenta a materiales de esta empresa.
+            var movs = await GetMovimientosVivos();
+            var sucNombres = await GetNombresSucursales(conn, movs.Select(m => m.IdSucursal).Distinct().Where(x => x > 0).ToList());
 
-                    if (!columnas.ContainsKey(idSuc)) columnas[idSuc] = sucNombre;
-                    if (filaPorMat.TryGetValue(idMat, out var fila))
-                    {
-                        fila.Valores[idSuc] = (fila.Valores.TryGetValue(idSuc, out var v) ? v : 0m) + cant;
-                        fila.Total += cant;
-                    }
-                }
+            var columnas = new Dictionary<int, string>();
+            foreach (var m in movs)
+            {
+                if (!filaPorMat.TryGetValue(m.IdMaterial, out var fila)) continue;
+                if (!columnas.ContainsKey(m.IdSucursal))
+                    columnas[m.IdSucursal] = sucNombres.TryGetValue(m.IdSucursal, out var n) && !string.IsNullOrWhiteSpace(n)
+                        ? n : $"Sucursal {m.IdSucursal}";
+                fila.Valores[m.IdSucursal] = (fila.Valores.TryGetValue(m.IdSucursal, out var v) ? v : 0m) + m.Cantidad;
+                fila.Total += m.Cantidad;
             }
 
             vista.Columnas = columnas
@@ -132,37 +229,19 @@ namespace Warehouse.Service.Delison
             var filas = await GetMateriasPrimas(conn, idCompany);
             var filaPorMat = filas.ToDictionary(f => f.IdMaterial);
 
-            // Sumas por (material, departamento) de ESA sucursal. Columnas = departamentos
-            // con datos (los que están en 0 en todas las MP no aparecen). Nombre desde Roles.
-            var columnas = new Dictionary<int, string>();
-            using (var cmd = conn.CreateCommand())
-            {
-                cmd.CommandText = @"
-                    SELECT i.id_departamento,
-                           LTRIM(RTRIM(COALESCE(rol.Description, ''))) AS departamento,
-                           i.id_material, SUM(i.cantidad) AS cant
-                    FROM warehouses.Delison.inventario_mp i
-                    LEFT JOIN security.dbo.Roles rol ON rol.id = i.id_departamento
-                    WHERE i.active = 1 AND i.id_company = @c AND i.id_sucursal = @s
-                    GROUP BY i.id_departamento, rol.Description, i.id_material";
-                AddParam(cmd, "@c", idCompany);
-                AddParam(cmd, "@s", idSucursal);
-                using var r = await ((System.Data.Common.DbCommand)cmd).ExecuteReaderAsync();
-                while (await r.ReadAsync())
-                {
-                    var idDep = r.GetInt32(0);
-                    var depNombre = r.IsDBNull(1) || string.IsNullOrWhiteSpace(r.GetString(1))
-                        ? $"Departamento {idDep}" : r.GetString(1);
-                    var idMat = r.GetInt32(2);
-                    var cant  = r.IsDBNull(3) ? 0m : r.GetDecimal(3);
+            // Cálculo EN VIVO de ESA sucursal. Columnas = departamentos con datos. Nombre desde Roles.
+            var movs = (await GetMovimientosVivos()).Where(m => m.IdSucursal == idSucursal).ToList();
+            var depNombres = await GetNombresDepartamentos(conn, movs.Select(m => m.IdDepartamento).Distinct().Where(x => x > 0).ToList());
 
-                    if (!columnas.ContainsKey(idDep)) columnas[idDep] = depNombre;
-                    if (filaPorMat.TryGetValue(idMat, out var fila))
-                    {
-                        fila.Valores[idDep] = (fila.Valores.TryGetValue(idDep, out var v) ? v : 0m) + cant;
-                        fila.Total += cant;
-                    }
-                }
+            var columnas = new Dictionary<int, string>();
+            foreach (var m in movs)
+            {
+                if (!filaPorMat.TryGetValue(m.IdMaterial, out var fila)) continue;
+                if (!columnas.ContainsKey(m.IdDepartamento))
+                    columnas[m.IdDepartamento] = depNombres.TryGetValue(m.IdDepartamento, out var n) && !string.IsNullOrWhiteSpace(n)
+                        ? n : $"Departamento {m.IdDepartamento}";
+                fila.Valores[m.IdDepartamento] = (fila.Valores.TryGetValue(m.IdDepartamento, out var v) ? v : 0m) + m.Cantidad;
+                fila.Total += m.Cantidad;
             }
 
             vista.Columnas = columnas
@@ -171,6 +250,96 @@ namespace Warehouse.Service.Delison
                 .ToList();
             vista.Filas = filas;
             return vista;
+        }
+
+        // ── Detalle de lotes de una celda (material × departamento × sucursal) ──
+        // Espejo de AcumularInventarioMp: entradas LIBERADAS de ese material, cuya OC tiene ese
+        // departamento y cuyo branch (OC=id_reference; CR=REQUIS padre) es la sucursal. Por cada
+        // entrada que cumple → sus lotes (datos_externos_molienda) son las filas de Nivel 1.
+        // Salidas aún no existen → la cantidad inventario = cantidad_x_lote, sin restar nada.
+        public async Task<InventarioMpDetalleDto> GetDetalle(int idMaterial, int idDepartamento, int idSucursal)
+        {
+            var dto = new InventarioMpDetalleDto();
+            if (idMaterial <= 0 || idDepartamento <= 0 || idSucursal <= 0) return dto;
+
+            // 1) Entradas liberadas del material.
+            var entradas = await _context.EntradasMolienda
+                .Where(e => e.Active && e.Liberacion && e.IdMaterial == idMaterial)
+                .Select(e => new { e.Id, e.IdOc, e.FolioEntrega, e.FechaRecepcion, e.Usuario })
+                .ToListAsync();
+            if (entradas.Count == 0) return dto;
+
+            // 2) Resolver OC → (departamento, branch). Branch: OC=id_reference, CR=id_reference de la REQUIS padre.
+            var ocIds = entradas.Select(e => e.IdOc).Distinct().ToList();
+            var ocs = await _context.Ocandreqs
+                .Where(o => ocIds.Contains(o.Id))
+                .Select(o => new { o.Id, o.IdDepartament, o.Type, o.IdReq, o.IdReference })
+                .ToListAsync();
+
+            var reqIds = ocs.Where(o => string.Equals(o.Type, "CR", StringComparison.OrdinalIgnoreCase) && o.IdReq.HasValue)
+                            .Select(o => o.IdReq!.Value).Distinct().ToList();
+            var reqBranch = reqIds.Count > 0
+                ? await _context.Ocandreqs.Where(r => reqIds.Contains(r.Id))
+                    .Select(r => new { r.Id, r.IdReference }).ToDictionaryAsync(x => x.Id, x => x.IdReference)
+                : new Dictionary<int, int>();
+
+            // idOc → (depto, branch)
+            var ocMap = new Dictionary<int, (int depto, int branch)>();
+            foreach (var o in ocs)
+            {
+                int branch = o.IdReference;
+                if (string.Equals(o.Type, "CR", StringComparison.OrdinalIgnoreCase) && o.IdReq.HasValue
+                    && reqBranch.TryGetValue(o.IdReq.Value, out var rb) && rb > 0)
+                    branch = rb;
+                ocMap[o.Id] = (o.IdDepartament, branch);
+            }
+
+            // 3) Entradas que caen en este departamento + sucursal.
+            var entradasFiltradas = entradas
+                .Where(e => ocMap.TryGetValue(e.IdOc, out var m) && m.depto == idDepartamento && m.branch == idSucursal)
+                .ToList();
+            if (entradasFiltradas.Count == 0) return dto;
+
+            var entradaIds = entradasFiltradas.Select(e => e.Id).ToList();
+            var entradaById = entradasFiltradas.ToDictionary(e => e.Id);
+
+            // 4) Lotes (datos_externos) de esas entradas.
+            var lotes = await _context.DatosExternosMolienda
+                .Where(d => d.Active && entradaIds.Contains(d.IdEntrada))
+                .Select(d => new { d.Id, d.IdEntrada, d.Lote, d.CantidadXLote })
+                .ToListAsync();
+
+            foreach (var l in lotes.OrderBy(l => l.IdEntrada).ThenBy(l => l.Id))
+            {
+                var cant = l.CantidadXLote ?? 0m;   // − salidas (hoy 0)
+                if (cant <= 0) continue;             // lote en 0 desaparece
+                entradaById.TryGetValue(l.IdEntrada, out var ent);
+                var loteDto = new InventarioMpLoteDto
+                {
+                    IdEntrada = l.IdEntrada,
+                    IdDatoExterno = l.Id,
+                    Lote = l.Lote ?? "",
+                    FolioEntrada = ent?.FolioEntrega ?? "",
+                    CantidadInventario = cant,
+                    Movimientos = new List<InventarioMpMovimientoDto>
+                    {
+                        // Movimiento de ENTRADA (lo único que existe por ahora).
+                        new InventarioMpMovimientoDto
+                        {
+                            Tipo = "ENTRADA",
+                            Fecha = ent?.FechaRecepcion?.ToString("yyyy-MM-dd"),
+                            CantidadEntrada = cant,
+                            CantidadSalida = null,
+                            Quien = ent?.Usuario ?? ""
+                        }
+                        // SALIDAS: pendientes (feature de actividades que gastan materia prima).
+                    }
+                };
+                dto.Lotes.Add(loteDto);
+                dto.Total += cant;
+            }
+
+            return dto;
         }
 
         private static void AddParam(IDbCommand cmd, string name, object value)
