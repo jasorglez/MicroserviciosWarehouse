@@ -712,6 +712,20 @@ namespace Warehouse.Service
                     departmentList.Add(62);
                 }
 
+                // Folio y sucursal de la REQUIS padre (para componer el Folio CR de las Compras Rápidas).
+                var reqParent = await _context.Ocandreqs
+                    .Where(r => r.Id == idReq)
+                    .Select(r => new { r.Folio, r.IdReference })
+                    .FirstOrDefaultAsync();
+                var reqFolioNoDash = (reqParent?.Folio ?? "").Replace("-", "");
+                // Iniciales del proveedor para el folio CR (consecutive_oc_proveedor de la sucursal, default 3).
+                var providerInitials = await _context.PrefixSetups
+                    .Where(p => p.IdProjectOrBranch == (reqParent != null ? reqParent.IdReference : 0)
+                                && p.Type == "branch" && p.Active)
+                    .Select(p => p.ConsecutiveOcProveedor)
+                    .FirstOrDefaultAsync() ?? 3;
+                if (providerInitials <= 0) providerInitials = 3;
+
                 var result = await (
                     from oc in _context.Ocandreqs
                     join d in _context.Detailsreqoc on oc.Id equals d.IdMovement
@@ -724,6 +738,7 @@ namespace Warehouse.Service
                     {
                         oc.Id,
                         oc.Folio,
+                        oc.IdDepartament,
                         // Close POR ARTÍCULO (línea), no por OC global: si la línea tiene entregas,
                         // está cerrada cuando todas sus entregas están cerradas; si no tiene entregas,
                         // cae al close de la OC (CR / legacy). Así cerrar un artículo de 1 entrega no
@@ -735,6 +750,9 @@ namespace Warehouse.Service
                         TipoOc       = d.TypeOc,   // 'COMPRA INMEDIATA', 'COMPRA AUTORIZADA EN OTRA FECHA', etc. (tipo OC del detalle)
                         IdDetail     = d.Id,
                         Proveedor    = d.NameProvider ?? d.ProvInt ?? "",
+                        IdProvider   = oc.IdProvider ?? 0,
+                        // CR pagada (entrada liberada): habilita el sufijo de proveedor en el folio CR.
+                        Paid         = _context.EntradasMolienda.Any(e => e.IdOc == oc.Id && e.Active && e.Liberacion),
                         Cantidad     = d.Quantity,
                         Price       = d.Price,
                         MasIva       = d.MasIva,
@@ -749,7 +767,52 @@ namespace Warehouse.Service
                     }
                 ).AsNoTracking().ToListAsync();
 
-                return result.Cast<object>().ToList();
+                // Prefijo de departamento (security.dbo.Roles.prefijo) para componer el Folio CR
+                // de las Compras Rápidas: CR-{folioReq sin guion}-{prefijoDepto} (ej. CR-BOD9-GO).
+                var crDeptIds = result.Where(x => x.Type == "CR")
+                    .Select(x => x.IdDepartament).Distinct().Where(id => id > 0).ToList();
+                var deptPrefixMap = new Dictionary<int, string>();
+                if (crDeptIds.Any())
+                {
+                    var connection = _context.Database.GetDbConnection();
+                    if (connection.State != System.Data.ConnectionState.Open)
+                        await connection.OpenAsync();
+                    using var cmd = connection.CreateCommand();
+                    cmd.CommandText = $"SELECT id, prefijo FROM security.dbo.Roles WHERE id IN ({string.Join(",", crDeptIds)})";
+                    using var reader = await cmd.ExecuteReaderAsync();
+                    while (await reader.ReadAsync())
+                        deptPrefixMap[reader.GetInt32(0)] = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                }
+
+                return result.Select(x =>
+                {
+                    var deptPrefix = deptPrefixMap.TryGetValue(x.IdDepartament, out var pf) ? pf : "";
+                    var folioFinal = x.Type == "CR"
+                        ? $"CR-{reqFolioNoDash}"
+                          + (string.IsNullOrWhiteSpace(deptPrefix) ? "" : $"-{deptPrefix}")
+                          + (x.Paid ? BuildProviderSuffix(x.Proveedor, x.IdProvider, providerInitials) : "")
+                        : x.Folio;
+                    return (object)new
+                    {
+                        x.Id,
+                        Folio = folioFinal,
+                        x.Close,
+                        x.Type,
+                        x.TipoOc,
+                        x.IdDetail,
+                        x.Proveedor,
+                        x.Cantidad,
+                        x.Price,
+                        x.MasIva,
+                        x.Moneda,
+                        x.CondEspecial,
+                        x.CantidadMinimaRequerida,
+                        x.FechaXEntrega,
+                        x.Resta,
+                        x.DiasCondicionCompra,
+                        x.EntregasCount
+                    };
+                }).ToList();
             }
             catch (Exception ex)
             {
@@ -963,6 +1026,18 @@ namespace Warehouse.Service
             }
         }
 
+        // Sufijo de proveedor para el folio CR: -{abreviatura}{id}, donde abreviatura = primeras N
+        // letras del nombre del proveedor en mayúsculas (misma regla que el folio de OC). Vacío si la
+        // CR aún no tiene proveedor (no pagada). N = consecutive_oc_proveedor de la sucursal (default 3).
+        private static string BuildProviderSuffix(string? providerName, int providerId, int initials)
+        {
+            if (providerId <= 0 || string.IsNullOrWhiteSpace(providerName)) return "";
+            if (initials <= 0) initials = 3;
+            var code = providerName.Trim().ToUpperInvariant();
+            if (code.Length > initials) code = code.Substring(0, initials);
+            return $"-{code}{providerId}";
+        }
+
         public async Task<List<object>> GetCompraRapidaItems(int idBranch, int idMaterial = 0)
         {
             try
@@ -1026,9 +1101,11 @@ namespace Warehouse.Service
                         .ToDictionaryAsync(m => m.Id, m => m.Insumo)
                     : new Dictionary<int, string?>();
 
-                // Nombres de departamentos desde security.dbo.Roles (mismo origen que GetOcsByBranch).
+                // Nombres y PREFIJOS de departamentos desde security.dbo.Roles (mismo origen que GetOcsByBranch).
+                // El prefijo se usa para componer el Folio CR (CR-{sucursalSinGuion}-{prefijoDepto}).
                 var deptIds = items.Select(x => x.IdDepartament).Distinct().Where(id => id > 0).ToList();
                 var deptMap = new Dictionary<int, string>();
+                var deptPrefixMap = new Dictionary<int, string>();
                 if (deptIds.Any())
                 {
                     var connection = _context.Database.GetDbConnection();
@@ -1036,36 +1113,40 @@ namespace Warehouse.Service
                         await connection.OpenAsync();
 
                     using var cmd = connection.CreateCommand();
-                    cmd.CommandText = $"SELECT id, description FROM security.dbo.Roles WHERE id IN ({string.Join(",", deptIds)})";
+                    cmd.CommandText = $"SELECT id, description, prefijo FROM security.dbo.Roles WHERE id IN ({string.Join(",", deptIds)})";
 
                     using var reader = await cmd.ExecuteReaderAsync();
                     while (await reader.ReadAsync())
-                        deptMap[reader.GetInt32(0)] = reader.GetString(1);
+                    {
+                        var did = reader.GetInt32(0);
+                        deptMap[did] = reader.IsDBNull(1) ? "" : reader.GetString(1);
+                        deptPrefixMap[did] = reader.IsDBNull(2) ? "" : reader.GetString(2);
+                    }
                 }
 
                 // ── Datos capturados al PAGAR la Compra Rápida (Hoja de Gastos) ──
                 // Proveedor y precio base viven en el detalle del documento CR; pago/nota/fecha/cantidad
                 // viven en su entrada (entradas_molienda). Una CR tiene a lo más UNA entrada.
                 var crIds = items.Where(x => x.CrId.HasValue).Select(x => x.CrId!.Value).Distinct().ToList();
-                var crDetalleMap = new Dictionary<int, (string? Provider, decimal Price, bool MasIva)>();
-                var crEntradaMap = new Dictionary<int, (decimal Pago, string? Nota, DateOnly? Fecha, decimal Cantidad)>();
+                var crDetalleMap = new Dictionary<int, (string? Provider, int ProviderId, decimal Price, bool MasIva)>();
+                var crEntradaMap = new Dictionary<int, (decimal Pago, string? Nota, DateOnly? Fecha, decimal Cantidad, bool Liberacion, decimal? MontoMxn, string? Moneda, decimal? TipoCambio)>();
                 if (crIds.Any())
                 {
                     var crDetalles = await _context.Detailsreqoc
                         .Where(dd => crIds.Contains(dd.IdMovement) && dd.Active == true)
-                        .Select(dd => new { dd.IdMovement, dd.NameProvider, dd.Price, dd.MasIva })
+                        .Select(dd => new { dd.IdMovement, dd.NameProvider, dd.IdProvider, dd.Price, dd.MasIva })
                         .ToListAsync();
                     foreach (var cd in crDetalles)
                         if (!crDetalleMap.ContainsKey(cd.IdMovement))
-                            crDetalleMap[cd.IdMovement] = (cd.NameProvider, cd.Price, cd.MasIva ?? false);
+                            crDetalleMap[cd.IdMovement] = (cd.NameProvider, cd.IdProvider ?? 0, cd.Price, cd.MasIva ?? false);
 
                     var crEntradas = await _context.EntradasMolienda
                         .Where(e => crIds.Contains(e.IdOc) && e.Active)
-                        .Select(e => new { e.IdOc, e.Pago, e.NotaFactura, e.FechaRecepcion, e.CantidadEntrada })
+                        .Select(e => new { e.IdOc, e.Pago, e.NotaFactura, e.FechaRecepcion, e.CantidadEntrada, e.Liberacion, e.MontoMxn, e.Moneda, e.TipoCambio })
                         .ToListAsync();
                     foreach (var ce in crEntradas)
                         if (!crEntradaMap.ContainsKey(ce.IdOc))
-                            crEntradaMap[ce.IdOc] = (ce.Pago ?? 0m, ce.NotaFactura, ce.FechaRecepcion, ce.CantidadEntrada ?? 0m);
+                            crEntradaMap[ce.IdOc] = (ce.Pago ?? 0m, ce.NotaFactura, ce.FechaRecepcion, ce.CantidadEntrada ?? 0m, ce.Liberacion, ce.MontoMxn, ce.Moneda, ce.TipoCambio);
                 }
 
                 // IVA% de la sucursal (setup almacén) para mostrar el precio unitario igual que en Gastos:
@@ -1076,17 +1157,38 @@ namespace Warehouse.Service
                     .FirstOrDefaultAsync() ?? 0m;
                 var ivaFactorCr = 1m + ivaPctCr / 100m;
 
+                // Iniciales del proveedor para el folio CR (consecutive_oc_proveedor de la sucursal, default 3).
+                var providerInitials = await _context.PrefixSetups
+                    .Where(p => p.IdProjectOrBranch == idBranch && p.Type == "branch" && p.Active)
+                    .Select(p => p.ConsecutiveOcProveedor)
+                    .FirstOrDefaultAsync() ?? 3;
+                if (providerInitials <= 0) providerInitials = 3;
+
                 return items.Select(x =>
                 {
                     var crId = x.CrId ?? 0;
                     crDetalleMap.TryGetValue(crId, out var det);   // default: null/0/false si no hay CR
                     crEntradaMap.TryGetValue(crId, out var ent);   // default: 0/null si no hay entrada
                     var precioUnit = det.MasIva ? Math.Round(det.Price * ivaFactorCr, 2) : det.Price;
+                    // Precio unitario en MXN: si moneda extranjera, aplica el TC guardado en entradas_molienda.
+                    var monedaCr = string.IsNullOrWhiteSpace(ent.Moneda) ? "MXN" : ent.Moneda;
+                    decimal precioUnitMxn = precioUnit;
+                    if (monedaCr != "MXN" && ent.TipoCambio.HasValue && ent.TipoCambio.Value > 0)
+                        precioUnitMxn = Math.Round(precioUnit * ent.TipoCambio.Value, 2);
+                    // Folio CR: CR-{folioReq sin guiones}-{prefijo del departamento}[-{abrev}{idProveedor}].
+                    // El sufijo de proveedor aparece una vez pagada la CR (ya tiene proveedor + id).
+                    var deptPrefix = deptPrefixMap.TryGetValue(x.IdDepartament, out var dp) ? dp : "";
+                    var reqFolioNoDash = (x.ReqFolio ?? "").Replace("-", "");
+                    var folioCr = $"CR-{reqFolioNoDash}" + (string.IsNullOrWhiteSpace(deptPrefix) ? "" : $"-{deptPrefix}");
+                    // Sufijo de proveedor solo cuando la CR ya está pagada (entrada liberada).
+                    if (ent.Liberacion)
+                        folioCr += BuildProviderSuffix(det.Provider, det.ProviderId, providerInitials);
                     return (object)new
                     {
                         x.Id,
                         x.ReqId,
                         x.ReqFolio,
+                        FolioCr = folioCr,
                         x.IdReference,
                         x.IdDepartament,
                         x.IdSupplie,
@@ -1108,8 +1210,14 @@ namespace Warehouse.Service
                         x.CrId,
                         // ── Datos del pago de la Compra Rápida (para columna Proveedor + tooltip) ──
                         Proveedor = det.Provider,
-                        PrecioUnitario = precioUnit,             // base o base+IVA (igual que P. Unit. en Gastos)
+                        PrecioUnitario = precioUnit,             // base o base+IVA en moneda original
+                        PrecioUnitarioMxn = precioUnitMxn,       // precio convertido a MXN (celda)
+                        PrecioUnitarioOriginal = precioUnit,     // precio en moneda original (tooltip si ≠ MXN)
                         TotalPagado = ent.Pago,                  // monto realmente pagado (con/sin IVA según el check)
+                        // Total CR: costo total en MXN (monto_mxn = pago × TC). Solo cuando la CR ya
+                        // está pagada (entrada liberada); antes va null para que la celda quede vacía.
+                        TotalCr = ent.Liberacion ? (ent.MontoMxn ?? ent.Pago) : (decimal?)null,
+                        Moneda = monedaCr,
                         NotaFactura = ent.Nota,
                         FechaEntradaAlmacen = ent.Fecha,
                         CantidadEntradaAlmacen = ent.Cantidad

@@ -1,5 +1,6 @@
 using System.Data;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Warehouse.Models;
 using Warehouse.Models.DTOs;
 using Warehouse.Models.Delison;
@@ -70,6 +71,8 @@ namespace Warehouse.Service.Delison
                     LEFT  JOIN warehouses.dbo.ocandreq oreq ON oreq.id = o.id_req
                     INNER JOIN smp.dbo.Branchs b ON b.id = (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END)
                     LEFT  JOIN security.dbo.Roles r ON r.id = o.id_departament
+                -- Iniciales del proveedor en el folio CR (consecutive_oc_proveedor por sucursal)
+                LEFT  JOIN warehouses.dbo.prefix_setup ps ON ps.id_project_or_branch = (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END) AND ps.[type] = 'branch' AND ps.active = 1
                     WHERE e.active = 1
                       AND e.liberacion = 1            -- solo entradas YA pagadas/liberadas en Gastos
                       AND b.id_company = @idCompany
@@ -105,6 +108,8 @@ namespace Warehouse.Service.Delison
                     INNER JOIN warehouses.dbo.detailsreqoc d ON d.id_movement = o.id AND d.active = 1
                     INNER JOIN smp.dbo.Branchs b ON b.id = o.id_reference
                     LEFT  JOIN security.dbo.Roles r ON r.id = o.id_departament
+                -- Iniciales del proveedor en el folio CR (consecutive_oc_proveedor por sucursal)
+                LEFT  JOIN warehouses.dbo.prefix_setup ps ON ps.id_project_or_branch = (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END) AND ps.[type] = 'branch' AND ps.active = 1
                     WHERE o.active = 1
                       AND o.[type] = 'OC'
                       AND b.id_company = @idCompany
@@ -163,7 +168,16 @@ namespace Warehouse.Service.Delison
                 SELECT
                     e.id                                         AS idEntrada,
                     e.id_oc                                      AS idOc,
-                    COALESCE(NULLIF(e.folio_entrega, ''), o.folio) AS folio,
+                    CASE WHEN o.[type] = 'CR'
+                         THEN 'CR-' + REPLACE(ISNULL(oreq.folio, ''), '-', '')
+                              + CASE WHEN ISNULL(r.prefijo, '') <> '' THEN '-' + r.prefijo ELSE '' END
+                              + CASE WHEN e.liberacion = 1 AND ISNULL(o.id_provider, 0) > 0
+                                          AND ISNULL(NULLIF(d.name_provider, ''), d.provint) IS NOT NULL
+                                     THEN '-' + UPPER(LEFT(LTRIM(ISNULL(NULLIF(d.name_provider, ''), d.provint)),
+                                                           ISNULL(NULLIF(ps.consecutive_oc_proveedor, 0), 3)))
+                                              + CAST(o.id_provider AS VARCHAR(20))
+                                     ELSE '' END
+                         ELSE COALESCE(NULLIF(e.folio_entrega, ''), o.folio) END AS folio,
                     o.[type]                                     AS docType,
                     d.typeoc                                     AS tipoOc,
                     CASE WHEN e.id_entrega IS NOT NULL THEN 'ENTREGA'
@@ -226,6 +240,8 @@ namespace Warehouse.Service.Delison
                 LEFT  JOIN warehouses.dbo.ocandreq oreq ON oreq.id = o.id_req
                 INNER JOIN smp.dbo.Branchs b ON b.id = (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END)
                 LEFT  JOIN security.dbo.Roles r ON r.id = o.id_departament
+                -- Iniciales del proveedor en el folio CR (consecutive_oc_proveedor por sucursal)
+                LEFT  JOIN warehouses.dbo.prefix_setup ps ON ps.id_project_or_branch = (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END) AND ps.[type] = 'branch' AND ps.active = 1
                 WHERE e.active = 1
                   AND e.liberacion = 0
                   AND b.id_company = @idCompany
@@ -374,7 +390,16 @@ namespace Warehouse.Service.Delison
                 SELECT
                     e.id                                         AS idEntrada,
                     e.id_oc                                      AS idOc,
-                    COALESCE(NULLIF(e.folio_entrega, ''), o.folio) AS folio,
+                    CASE WHEN o.[type] = 'CR'
+                         THEN 'CR-' + REPLACE(ISNULL(oreq.folio, ''), '-', '')
+                              + CASE WHEN ISNULL(r.prefijo, '') <> '' THEN '-' + r.prefijo ELSE '' END
+                              + CASE WHEN e.liberacion = 1 AND ISNULL(o.id_provider, 0) > 0
+                                          AND ISNULL(NULLIF(d.name_provider, ''), d.provint) IS NOT NULL
+                                     THEN '-' + UPPER(LEFT(LTRIM(ISNULL(NULLIF(d.name_provider, ''), d.provint)),
+                                                           ISNULL(NULLIF(ps.consecutive_oc_proveedor, 0), 3)))
+                                              + CAST(o.id_provider AS VARCHAR(20))
+                                     ELSE '' END
+                         ELSE COALESCE(NULLIF(e.folio_entrega, ''), o.folio) END AS folio,
                     o.[type]                                     AS docType,
                     d.typeoc                                     AS tipoOc,
                     CASE WHEN e.id_entrega IS NOT NULL THEN 'ENTREGA'
@@ -435,6 +460,8 @@ namespace Warehouse.Service.Delison
                 LEFT  JOIN warehouses.dbo.ocandreq oreq ON oreq.id = o.id_req
                 INNER JOIN smp.dbo.Branchs b ON b.id = (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END)
                 LEFT  JOIN security.dbo.Roles r ON r.id = o.id_departament
+                -- Iniciales del proveedor en el folio CR (consecutive_oc_proveedor por sucursal)
+                LEFT  JOIN warehouses.dbo.prefix_setup ps ON ps.id_project_or_branch = (CASE WHEN o.[type] = 'CR' THEN oreq.id_reference ELSE o.id_reference END) AND ps.[type] = 'branch' AND ps.active = 1
                 WHERE e.active = 1
                   AND e.liberacion = 1
                   AND b.id_company = @idCompany
@@ -747,9 +774,18 @@ namespace Warehouse.Service.Delison
                         if (!esMultiEntrega) d.MasIva = dto.MasIva;
                         if (string.Equals(dto.DocType, "CR", StringComparison.OrdinalIgnoreCase))
                         {
-                            // Compra rápida: rellenar proveedor y precio unitario
+                            // Compra rápida: rellenar proveedor, precio unitario y moneda.
                             if (!string.IsNullOrWhiteSpace(dto.Proveedor)) d.NameProvider = dto.Proveedor;
                             if (dto.PrecioUnitario.HasValue) d.Price = dto.PrecioUnitario.Value;
+                            if (dto.IdCurrency.HasValue && dto.IdCurrency.Value > 0) d.IdCurrency = dto.IdCurrency.Value;
+                            // Id del proveedor: en el detalle y en el documento CR, para componer el
+                            // folio CR-{sucursal}-{depto}-{abrev}{id} en todas las vistas de nomenclatura.
+                            if (dto.IdProvider.HasValue && dto.IdProvider.Value > 0)
+                            {
+                                d.IdProvider = dto.IdProvider.Value;
+                                var crOc = await _context.Ocandreqs.FindAsync(entrada.IdOc);
+                                if (crOc != null) crOc.IdProvider = dto.IdProvider.Value;
+                            }
                         }
                         if (string.Equals(dto.CloseSource, "SIN_LIMITE", StringComparison.OrdinalIgnoreCase))
                         {
@@ -833,6 +869,7 @@ namespace Warehouse.Service.Delison
                 var conn = _context.Database.GetDbConnection();
                 if (conn.State != ConnectionState.Open) await conn.OpenAsync();
                 using var cmd = conn.CreateCommand();
+                cmd.Transaction = _context.Database.CurrentTransaction?.GetDbTransaction();
                 cmd.CommandText = "SELECT id_company FROM smp.dbo.Branchs WHERE id = @id";
                 var p = cmd.CreateParameter(); p.ParameterName = "@id"; p.Value = idBranch;
                 cmd.Parameters.Add(p);
@@ -1103,6 +1140,14 @@ namespace Warehouse.Service.Delison
                         {
                             if (!string.IsNullOrWhiteSpace(dto.Proveedor)) d.NameProvider = dto.Proveedor;
                             if (dto.PrecioUnitario.HasValue) d.Price = dto.PrecioUnitario.Value;
+                            if (dto.IdCurrency.HasValue && dto.IdCurrency.Value > 0) d.IdCurrency = dto.IdCurrency.Value;
+                            // Id del proveedor (detalle + documento CR) para componer el folio CR.
+                            if (dto.IdProvider.HasValue && dto.IdProvider.Value > 0)
+                            {
+                                d.IdProvider = dto.IdProvider.Value;
+                                var crOc = await _context.Ocandreqs.FindAsync(entrada.IdOc);
+                                if (crOc != null) crOc.IdProvider = dto.IdProvider.Value;
+                            }
                         }
                         // NOTA: NO se acumula Quantity (eso es solo al confirmar el pago).
                     }

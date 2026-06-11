@@ -115,6 +115,8 @@ namespace Warehouse.Models.DTOs
         public DateTime? FechaPago { get; set; }
         public DateTime? FechaVencimiento { get; set; }
         public string? Proveedor { get; set; }
+        public int? IdProvider { get; set; }   // CR: id del proveedor (para componer folio CR-...-{abrev}{id})
+        public int? IdCurrency { get; set; }   // CR: id del catálogo de moneda (para actualizar detailsreqoc.id_currency)
         public decimal? PrecioUnitario { get; set; }
         public bool MasIva { get; set; }
         public string? NotaFactura { get; set; }

@@ -24,5 +24,10 @@ namespace Warehouse.Models.Delison
 
         [Column("molienda")]
         public bool Molienda { get; set; } = false;
+
+        // Categoría "Características de {material}": id del material (MaterialXModulo.idArticulo)
+        // al que está ligado el catálogo organoléptico. NULL = categoría general (Botes, Parámetros…).
+        [Column("id_material")]
+        public int? IdMaterial { get; set; }
     }
 }
