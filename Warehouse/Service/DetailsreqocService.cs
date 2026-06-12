@@ -77,6 +77,7 @@ namespace Warehouse.Service
                             diasCondicionCompra = dmc.Details.DiasCondicionCompra,
                             datepostponeConfirmada = dmc.Details.DatePostponeConfirmada,
                             idProveedorSugerido = dmc.Details.IdProveedorSugerido,
+                            liberarAlmacen = dmc.Details.LiberarAlmacen,   // "Liberar para almacén" por ítem (gate de lectura del almacén)
                             entregasCount = _context.EntregasOc.Count(e => e.IdDetailsreqoc == dmc.Details.Id && e.Active)
                         })
                     .AsNoTracking()
@@ -280,6 +281,14 @@ namespace Warehouse.Service
             await _context.SaveChangesAsync();
         }
 
+        public async Task PatchLiberarAlmacen(int id, bool value)
+        {
+            var item = await _context.Detailsreqoc.FindAsync(id);
+            if (item == null) return;
+            item.LiberarAlmacen = value;
+            await _context.SaveChangesAsync();
+        }
+
         public async Task PatchCantidadConceptualizada(int id, decimal cantidad)
         {
             var item = await _context.Detailsreqoc.FindAsync(id);
@@ -364,6 +373,7 @@ namespace Warehouse.Service
         Task<bool> Delete(int id);
         Task<FrequentArticlesResponse> GetFrequentArticles(string solicit, int idDepartment, int idBranch);
         Task PatchTypeOc(int id, string typeOc);
+        Task PatchLiberarAlmacen(int id, bool value);
         Task PatchCantidadConceptualizada(int id, decimal cantidad);
         Task PatchDatePostponeConfirmada(int id, bool value);
         Task SyncObservationBySupplieAndProvider(int idSupplie, int idProvider, string observation);

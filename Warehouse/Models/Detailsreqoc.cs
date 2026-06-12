@@ -128,5 +128,11 @@ namespace Warehouse.Models
         // La conversión a pesos se hará al momento del pago (Gastos / anticipo), no aquí.
         [Column("id_currency")]
         public int? IdCurrency { get; set; }
+
+        // Liberar para almacén: cuando true, el almacén del departamento que pidió la OC puede
+        // leer/recibir este ítem. Las OC creadas en "Generar OC" nacen FALSE (gated hasta marcar el
+        // check en Selección de OC); CR y datos existentes = TRUE (default). Gate en GetOcsByReqMaterial.
+        [Column("liberar_almacen")]
+        public bool LiberarAlmacen { get; set; } = true;
     }
 }

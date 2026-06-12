@@ -69,6 +69,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<DatosExternosMoliendaDelison> DatosExternosMolienda { get; set; }
     public virtual DbSet<CaracteristicasMateriaPrimaDelison> CaracteristicasMateriaPrima { get; set; }
     public virtual DbSet<RevisionCaracteristicasEntradaDelison> RevisionCaracteristicasEntrada { get; set; }
+    public virtual DbSet<SalidasMpDelison> SalidasMp { get; set; }
     public virtual DbSet<CondicionPago> CondicionesPago { get; set; }
     public virtual DbSet<DescripcionEmpaqueDelison> DescripcionEmpaques { get; set; }
     public virtual DbSet<UnidadMedidaDelison> UnidadesMedida { get; set; }

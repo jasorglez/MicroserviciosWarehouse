@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.35 Inventario Materia Prima EN VIVO: GetGerencial/GetPorSucursal calculan desde entradas_molienda(liberadas)+datos_externos_molienda (− salidas=0), ya NO leen el snapshot inventario_mp (que no descontaba al borrar). inventario_mp se reserva para histórico. 2026-06-11" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.38 Liberar para almacén por ítem: detailsreqoc.liberar_almacen (BIT, default 1). GetReqsByBranchMaterial → la requisición sigue si tiene OCs pero # OC cuenta solo liberadas; GetOcsByReqMaterial filtra ítems liberados; GetDetails expone liberarAlmacen; PATCH Detailsreqoc/{id}/liberar-almacen. Generar OC envía ítems con liberar_almacen=0. 2026-06-11" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -134,6 +134,7 @@ builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
 builder.Services.AddScoped<IDatosExternosMoliendaService, DatosExternosMoliendaService>();
 builder.Services.AddScoped<ICaracteristicasMateriaPrimaService, CaracteristicasMateriaPrimaService>();
 builder.Services.AddScoped<IRevisionCaracteristicasEntradaService, RevisionCaracteristicasEntradaService>();
+builder.Services.AddScoped<ISalidasMpService, SalidasMpService>();
 builder.Services.AddScoped<ICondicionPagoService, CondicionPagoService>();
 builder.Services.AddScoped<IDescripcionEmpaqueService, DescripcionEmpaqueService>();
 builder.Services.AddScoped<IUnidadMedidaService, UnidadMedidaService>();

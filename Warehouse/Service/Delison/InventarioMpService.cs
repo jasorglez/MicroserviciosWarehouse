@@ -126,9 +126,17 @@ namespace Warehouse.Service.Delison
                                where d.Active
                                join e in _context.EntradasMolienda on d.IdEntrada equals e.Id
                                where e.Active && e.Liberacion && e.IdMaterial != null
-                               select new { e.IdOc, IdMaterial = e.IdMaterial!.Value, Cant = d.CantidadXLote ?? 0m })
+                               select new { DatoId = d.Id, e.IdOc, IdMaterial = e.IdMaterial!.Value, Cant = d.CantidadXLote ?? 0m })
                               .ToListAsync();
             if (lotes.Count == 0) return new List<MovLoteVivo>();
+
+            // Salidas (consumo) por lote → para descontar del inventario.
+            var datoIds = lotes.Select(l => l.DatoId).Distinct().ToList();
+            var salidasPorLote = await _context.SalidasMp
+                .Where(s => s.Active && datoIds.Contains(s.IdDatoExterno))
+                .GroupBy(s => s.IdDatoExterno)
+                .Select(g => new { IdDato = g.Key, Sum = g.Sum(x => x.Cantidad) })
+                .ToDictionaryAsync(x => x.IdDato, x => x.Sum);
 
             // 2) OC → (departamento, branch). CR: branch en la REQUIS padre (id_req).
             var ocIds = lotes.Select(l => l.IdOc).Distinct().ToList();
@@ -155,8 +163,10 @@ namespace Warehouse.Service.Delison
             foreach (var l in lotes)
             {
                 if (!ocMap.TryGetValue(l.IdOc, out var m)) continue;
-                // − salidas: 0 por ahora (no existe la fuente de consumo).
-                movs.Add(new MovLoteVivo { IdMaterial = l.IdMaterial, IdSucursal = m.branch, IdDepartamento = m.depto, Cantidad = l.Cant });
+                var gastado = salidasPorLote.TryGetValue(l.DatoId, out var sg) ? sg : 0m;
+                var neto = l.Cant - gastado;   // entrada del lote − salidas
+                if (neto <= 0) continue;        // lote agotado → no suma al inventario
+                movs.Add(new MovLoteVivo { IdMaterial = l.IdMaterial, IdSucursal = m.branch, IdDepartamento = m.depto, Cantidad = neto });
             }
             return movs;
         }
@@ -309,34 +319,59 @@ namespace Warehouse.Service.Delison
                 .Select(d => new { d.Id, d.IdEntrada, d.Lote, d.CantidadXLote })
                 .ToListAsync();
 
+            // 5) Salidas (consumo) de esos lotes → movimientos de salida + descuento.
+            var datoIds = lotes.Select(l => l.Id).ToList();
+            var salidas = await _context.SalidasMp
+                .Where(s => s.Active && datoIds.Contains(s.IdDatoExterno))
+                .Select(s => new { s.Id, s.IdDatoExterno, s.Cantidad, s.Fecha, s.Usuario })
+                .ToListAsync();
+            var salidasPorLote = salidas.GroupBy(s => s.IdDatoExterno)
+                .ToDictionary(g => g.Key, g => g.OrderBy(x => x.Fecha).ThenBy(x => x.Id).ToList());
+
             foreach (var l in lotes.OrderBy(l => l.IdEntrada).ThenBy(l => l.Id))
             {
-                var cant = l.CantidadXLote ?? 0m;   // − salidas (hoy 0)
-                if (cant <= 0) continue;             // lote en 0 desaparece
+                var entrada = l.CantidadXLote ?? 0m;
+                var lotSalidas = salidasPorLote.TryGetValue(l.Id, out var ls) ? ls : new();
+                var gastado = lotSalidas.Sum(x => x.Cantidad);
+                var neto = entrada - gastado;        // entrada del lote − salidas
+                if (neto <= 0) continue;             // lote en 0 desaparece
                 entradaById.TryGetValue(l.IdEntrada, out var ent);
-                var loteDto = new InventarioMpLoteDto
+
+                var movimientos = new List<InventarioMpMovimientoDto>
+                {
+                    // ENTRADA (el ingreso original del lote).
+                    new InventarioMpMovimientoDto
+                    {
+                        Tipo = "ENTRADA",
+                        Fecha = ent?.FechaRecepcion?.ToString("yyyy-MM-dd"),
+                        CantidadEntrada = entrada,
+                        CantidadSalida = null,
+                        Quien = ent?.Usuario ?? ""
+                    }
+                };
+                // SALIDAS (cada consumo registrado).
+                foreach (var s in lotSalidas)
+                {
+                    movimientos.Add(new InventarioMpMovimientoDto
+                    {
+                        Tipo = "SALIDA",
+                        Fecha = s.Fecha?.ToString("yyyy-MM-dd"),
+                        CantidadEntrada = null,
+                        CantidadSalida = s.Cantidad,
+                        Quien = s.Usuario ?? ""
+                    });
+                }
+
+                dto.Lotes.Add(new InventarioMpLoteDto
                 {
                     IdEntrada = l.IdEntrada,
                     IdDatoExterno = l.Id,
                     Lote = l.Lote ?? "",
                     FolioEntrada = ent?.FolioEntrega ?? "",
-                    CantidadInventario = cant,
-                    Movimientos = new List<InventarioMpMovimientoDto>
-                    {
-                        // Movimiento de ENTRADA (lo único que existe por ahora).
-                        new InventarioMpMovimientoDto
-                        {
-                            Tipo = "ENTRADA",
-                            Fecha = ent?.FechaRecepcion?.ToString("yyyy-MM-dd"),
-                            CantidadEntrada = cant,
-                            CantidadSalida = null,
-                            Quien = ent?.Usuario ?? ""
-                        }
-                        // SALIDAS: pendientes (feature de actividades que gastan materia prima).
-                    }
-                };
-                dto.Lotes.Add(loteDto);
-                dto.Total += cant;
+                    CantidadInventario = neto,   // entrada − salidas
+                    Movimientos = movimientos
+                });
+                dto.Total += neto;
             }
 
             return dto;

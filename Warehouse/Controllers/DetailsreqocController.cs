@@ -147,6 +147,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpPatch("{id}/liberar-almacen")]
+        public async Task<IActionResult> PatchLiberarAlmacen(int id, [FromBody] bool value)
+        {
+            try
+            {
+                await _service.PatchLiberarAlmacen(id, value);
+                return Ok(new { message = "LiberarAlmacen updated" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error patching liberarAlmacen for detail {Id}", id);
+                return StatusCode(500, "An error occurred while updating liberarAlmacen");
+            }
+        }
+
         [HttpPatch("{id}/cantidad-conceptualizada")]
         public async Task<IActionResult> PatchCantidadConceptualizada(int id, [FromBody] decimal cantidad)
         {
