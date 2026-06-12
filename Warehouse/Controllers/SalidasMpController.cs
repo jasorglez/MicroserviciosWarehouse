@@ -34,6 +34,21 @@ public class SalidasMpController : ControllerBase
         }
     }
 
+    // Resumen de salidas para el Nivel 2 "Salidas" del Almacén Molienda.
+    [HttpGet("resumen/{idMaterial}/{idSucursal}")]
+    public async Task<ActionResult<List<SalidaResumenDto>>> GetResumen(int idMaterial, int idSucursal)
+    {
+        try
+        {
+            return Ok(await _service.GetResumenByMaterialAndSucursal(idMaterial, idSucursal));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resumen salidas material {IdMat} suc {IdSuc}", idMaterial, idSucursal);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
     [HttpGet("byOrigen/{tipoOrigen}/{idOrigen}")]
     public async Task<ActionResult<List<SalidasMpDelison>>> GetByOrigen(string tipoOrigen, int idOrigen)
     {

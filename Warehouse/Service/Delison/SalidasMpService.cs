@@ -4,6 +4,16 @@ using Warehouse.Models.Delison;
 namespace Warehouse.Service.Delison
 {
     // Un lote disponible para consumir (modal FEFO de Molienda Nivel 3).
+    // Resumen de una salida para el Nivel 2 "Salidas" del Almacén Molienda.
+    public class SalidaResumenDto
+    {
+        public string FolioEntrada { get; set; } = "";
+        public string Lote { get; set; } = "";
+        public string? Fecha { get; set; }     // yyyy-MM-dd
+        public decimal Cantidad { get; set; }
+        public string? Usuario { get; set; }
+    }
+
     public class LoteDisponibleDto
     {
         public int IdDatoExterno { get; set; }
@@ -22,6 +32,8 @@ namespace Warehouse.Service.Delison
     {
         // Lotes disponibles para consumir un material en sucursal+departamento, FEFO (menor caducidad primero).
         Task<List<LoteDisponibleDto>> GetLotesDisponibles(int idMaterial, int idDepartamento, int idSucursal);
+        // Resumen de salidas para el Nivel 2 "Salidas" del Almacén Molienda.
+        Task<List<SalidaResumenDto>> GetResumenByMaterialAndSucursal(int idMaterial, int idSucursal);
         // CRUD de salidas (consumo por lote).
         Task<List<SalidasMpDelison>> GetByOrigen(string tipoOrigen, int idOrigen);
         Task<SalidasMpDelison> Create(SalidasMpDelison data);
@@ -145,6 +157,76 @@ namespace Warehouse.Service.Delison
                 .ThenBy(x => x.FechaCaducidad)
                 .ThenBy(x => x.FolioEntrada)
                 .ToList();
+        }
+
+        public async Task<List<SalidaResumenDto>> GetResumenByMaterialAndSucursal(int idMaterial, int idSucursal)
+        {
+            if (idMaterial <= 0 || idSucursal <= 0) return new List<SalidaResumenDto>();
+
+            // 1. Entradas liberadas del material.
+            var entradas = await _context.EntradasMolienda
+                .Where(e => e.Active && e.Liberacion && e.IdMaterial == idMaterial)
+                .Select(e => new { e.Id, e.IdOc, e.FolioEntrega })
+                .ToListAsync();
+            if (entradas.Count == 0) return new List<SalidaResumenDto>();
+
+            // 2. Resolver sucursal de cada OC (igual que GetLotesDisponibles).
+            var ocIds = entradas.Select(e => e.IdOc).Distinct().ToList();
+            var ocs = await _context.Ocandreqs.Where(o => ocIds.Contains(o.Id))
+                .Select(o => new { o.Id, o.Type, o.IdReq, o.IdReference }).ToListAsync();
+            var reqIds = ocs.Where(o => string.Equals(o.Type, "CR", StringComparison.OrdinalIgnoreCase) && o.IdReq.HasValue)
+                            .Select(o => o.IdReq!.Value).Distinct().ToList();
+            var reqBranch = reqIds.Count > 0
+                ? await _context.Ocandreqs.Where(r => reqIds.Contains(r.Id))
+                    .Select(r => new { r.Id, r.IdReference }).ToDictionaryAsync(x => x.Id, x => x.IdReference)
+                : new Dictionary<int, int>();
+            var ocBranch = new Dictionary<int, int>();
+            foreach (var o in ocs)
+            {
+                int branch = o.IdReference;
+                if (string.Equals(o.Type, "CR", StringComparison.OrdinalIgnoreCase) && o.IdReq.HasValue
+                    && reqBranch.TryGetValue(o.IdReq.Value, out var rb) && rb > 0) branch = rb;
+                ocBranch[o.Id] = branch;
+            }
+
+            // 3. Filtrar entradas de esta sucursal.
+            var entradasFiltradas = entradas
+                .Where(e => ocBranch.TryGetValue(e.IdOc, out var b) && b == idSucursal)
+                .ToList();
+            if (entradasFiltradas.Count == 0) return new List<SalidaResumenDto>();
+
+            var entradaIds = entradasFiltradas.Select(e => e.Id).ToList();
+            var folioById  = entradasFiltradas.ToDictionary(e => e.Id, e => e.FolioEntrega ?? "");
+
+            // 4. Lotes de esas entradas.
+            var lotes = await _context.DatosExternosMolienda
+                .Where(d => d.Active && entradaIds.Contains(d.IdEntrada))
+                .Select(d => new { d.Id, d.IdEntrada, d.Lote })
+                .ToListAsync();
+            if (lotes.Count == 0) return new List<SalidaResumenDto>();
+
+            var loteById = lotes.ToDictionary(l => l.Id);
+            var datoIds  = lotes.Select(l => l.Id).ToList();
+
+            // 5. Salidas de esos lotes.
+            var salidas = await _context.SalidasMp
+                .Where(s => s.Active && datoIds.Contains(s.IdDatoExterno))
+                .OrderBy(s => s.Fecha).ThenBy(s => s.Id)
+                .ToListAsync();
+
+            return salidas.Select(s =>
+            {
+                loteById.TryGetValue(s.IdDatoExterno, out var lote);
+                folioById.TryGetValue(lote?.IdEntrada ?? 0, out var folio);
+                return new SalidaResumenDto
+                {
+                    FolioEntrada = folio ?? "",
+                    Lote         = lote?.Lote ?? "",
+                    Fecha        = s.Fecha?.ToString("yyyy-MM-dd"),
+                    Cantidad     = s.Cantidad,
+                    Usuario      = s.Usuario
+                };
+            }).ToList();
         }
 
         public async Task<List<SalidasMpDelison>> GetByOrigen(string tipoOrigen, int idOrigen)
