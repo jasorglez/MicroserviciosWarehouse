@@ -10,6 +10,7 @@ public interface IItemCommentsService
     Task<ItemComment?> UpdateAsync(int id, string text);
     Task<DocumentCommentFlags> GetFlagsAsync(string documentType, int idDocument);
     Task<int> DeleteByArticleAsync(string documentType, int idDocument, string numArticle, string? textPrefix = null);
+    Task<int> CountAsync(string documentType, int idDocument);
 }
 
 public class DocumentCommentFlags
@@ -84,6 +85,12 @@ public class ItemCommentsService : IItemCommentsService
         _context.ItemComments.RemoveRange(rows);
         await _context.SaveChangesAsync();
         return rows.Count;
+    }
+
+    public async Task<int> CountAsync(string documentType, int idDocument)
+    {
+        return await _context.ItemComments
+            .CountAsync(c => c.DocumentType == documentType && c.IdDocument == idDocument && c.Active);
     }
 
     public async Task<DocumentCommentFlags> GetFlagsAsync(string documentType, int idDocument)
