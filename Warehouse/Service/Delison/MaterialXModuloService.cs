@@ -44,6 +44,7 @@ namespace Warehouse.Service.Delison
         {
             return await _context.MaterialXModulos
                 .Where(m => m.IdCompany == idCompany && m.IdCatalog == idCatalog)
+                .OrderBy(m => m.Prefijo)
                 .ToListAsync();
         }
 
