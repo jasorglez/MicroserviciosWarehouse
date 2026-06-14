@@ -9,6 +9,7 @@ using System.Text.Json.Serialization;
 using Warehouse;
 using Warehouse.Service;
 using Warehouse.Service.Delison;
+using Warehouse.Middleware;
 //using Warehouse.Service.Whatsapp;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -40,7 +41,7 @@ builder.Services.AddCors(options =>
 });
 
 // Añadir HttpClient para Twilio
-//builder.Services.AddHttpClient();
+builder.Services.AddHttpClient();
 
 // Add services to the container.
 builder.Services.AddControllers().AddJsonOptions(x => 
@@ -160,6 +161,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseCors("AllowWarehouseOrigin");
+app.UseMiddleware<ApiLogForwarderMiddleware>();
 
 //app.UseAuthorization();
 app.UseAuthorization();
