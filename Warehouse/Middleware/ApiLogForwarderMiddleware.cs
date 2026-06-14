@@ -93,7 +93,7 @@ namespace Warehouse.Middleware
                 var json = new StringContent(
                     JsonSerializer.Serialize(new[] { entry }),
                     Encoding.UTF8, "application/json");
-                await client.PostAsync($"{_securityBaseUrl}/api/ApiLog/ingest", json);
+                await client.PostAsync($"{_securityBaseUrl}/ApiLog/ingest", json);
             }
             catch { /* nunca bloquear */ }
         }
