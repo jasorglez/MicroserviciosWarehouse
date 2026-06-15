@@ -350,6 +350,12 @@ namespace Warehouse.Service
                 if (cat.ValueAdditionBit.HasValue)
                     existingCat.ValueAdditionBit = cat.ValueAdditionBit;
 
+                if (cat.ValueAdditionBit2.HasValue)
+                    existingCat.ValueAdditionBit2 = cat.ValueAdditionBit2;
+
+                if (cat.ValueAdditionBit3.HasValue)
+                    existingCat.ValueAdditionBit3 = cat.ValueAdditionBit3;
+
                 if (cat.Vigente.HasValue)
                     existingCat.Vigente = cat.Vigente;
 
