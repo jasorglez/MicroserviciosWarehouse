@@ -133,5 +133,9 @@ namespace Warehouse.Models
         [Column("valida_presentaciones")]
         [DefaultValue(false)]
         public bool? ValidaPresentaciones { get; set; }
+
+        [Column("prefijo", TypeName = "NVARCHAR")]
+        [StringLength(100)]
+        public string? Prefijo { get; set; }
     }
 }

@@ -92,6 +92,14 @@ namespace Warehouse.Service
                     .AsNoTracking()
                     .ToListAsync();
 
+                // Join secundario para obtener prefijo (la vista está encriptada y no expone el campo).
+                var ids = result.Select(r => r.Id).ToList();
+                var prefijoMap = await _context.Materials
+                    .Where(m => ids.Contains(m.Id))
+                    .Select(m => new { m.Id, m.Prefijo })
+                    .AsNoTracking()
+                    .ToDictionaryAsync(m => m.Id, m => m.Prefijo);
+
                 // Aplicar valores por defecto después de cargar desde BD
                 foreach (var item in result)
                 {
@@ -107,6 +115,7 @@ namespace Warehouse.Service
                     item.Parametros ??= 0;
                     item.SubfamilyCount ??= 0;
                     item.Costo ??= 0m;
+                    item.Prefijo = prefijoMap.GetValueOrDefault(item.Id);
                 }
 
                 return result;
@@ -531,6 +540,7 @@ namespace Warehouse.Service
                 // Un update mínimo (ej. { fecha } desde bumpFechaForCascadeMaterials) llega con
                 // NULL y NO debe apagar valida_presentaciones.
                 if (material.ValidaPresentaciones.HasValue) existingItem.ValidaPresentaciones = material.ValidaPresentaciones.Value;
+                if (material.Prefijo != null) existingItem.Prefijo = material.Prefijo;
 
                 // Si cambió la clasificación (categoría/familia/subfamilia), regenerar el num-mat (insumo).
                 bool clasificacionCambio =

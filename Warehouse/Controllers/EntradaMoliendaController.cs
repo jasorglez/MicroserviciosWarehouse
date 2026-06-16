@@ -61,6 +61,21 @@ public class EntradaMoliendaController : ControllerBase
         }
     }
 
+    // Resumen de entradas por lote para el Nivel 2 "Entradas" simple (1ra/2da Fase).
+    [HttpGet("resumen/{idMaterial}/{idSucursal}")]
+    public async Task<ActionResult<List<EntradaResumenDto>>> GetResumen(int idMaterial, int idSucursal)
+    {
+        try
+        {
+            return Ok(await _service.GetResumenByMaterialAndSucursal(idMaterial, idSucursal));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resumen entradas material {IdMat} suc {IdSuc}", idMaterial, idSucursal);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
     [HttpGet("{id}")]
     public async Task<ActionResult<EntradaMoliendaDelison>> GetById(int id)
     {

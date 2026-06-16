@@ -76,5 +76,10 @@ namespace Warehouse.Models.Views
         // Flag: la requisición de este material valida por presentaciones/volumen (además del mínimo).
         [Column("valida_presentaciones")]
         public bool? ValidaPresentaciones { get; set; }
+
+        // No mapeado al view (encrypted). Poblado manualmente en GetMaterialsWithCounts
+        // haciendo join secundario con la tabla Materials.
+        [NotMapped]
+        public string? Prefijo { get; set; }
     }
 }

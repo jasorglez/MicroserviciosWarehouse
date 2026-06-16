@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.38 Liberar para almacén por ítem: detailsreqoc.liberar_almacen (BIT, default 1). GetReqsByBranchMaterial → la requisición sigue si tiene OCs pero # OC cuenta solo liberadas; GetOcsByReqMaterial filtra ítems liberados; GetDetails expone liberarAlmacen; PATCH Detailsreqoc/{id}/liberar-almacen. Generar OC envía ítems con liberar_almacen=0. 2026-06-11" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.40 Materials: columna prefijo (NVARCHAR 100) en tabla Materials + GetMaterialsWithCounts join secundario para exponer prefijo. Update persiste prefijo. 2026-06-15" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
