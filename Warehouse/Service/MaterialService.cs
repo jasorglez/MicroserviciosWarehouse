@@ -293,6 +293,7 @@ namespace Warehouse.Service
                            m.description,
                            ISNULL(ms.description, '')        AS measure,
                            ISNULL(m.costoMN, 0)              AS costoMN,
+                           ISNULL(m.ventaMN, 0)               AS ventaMN,
                            ISNULL(cf.description, '')        AS familia
                     FROM   materials m
                     LEFT JOIN catalog ms ON ms.id = m.id_medida AND ms.type = 'MEASURE'
@@ -312,7 +313,8 @@ namespace Warehouse.Service
                         description = reader.GetString(1),
                         measure     = reader.GetString(2),
                         costoMN     = reader.GetDecimal(3),
-                        familia     = reader.GetString(4),
+                        ventaMN     = reader.GetDecimal(4),
+                        familia     = reader.GetString(5),
                     });
                 }
                 return result;
