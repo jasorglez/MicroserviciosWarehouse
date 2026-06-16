@@ -22,10 +22,11 @@ builder.Services.AddCors(options =>
         {
             builder
 
-                .WithOrigins("https://localhost", "http://localhost:4200", 
+                .WithOrigins("https://localhost", "http://localhost:4200",
                              "http://localhost:5173",
                              "https://be-app-five.vercel.app", "http://localhost:8100",
-                             "https://localhost:7089", "https://biapp.com.mx", 
+                             "https://localhost:7089", "https://biapp.com.mx",
+                             "https://www.biapp.com.mx",
                              "https://localhost:4200", "https://www.bi2.com.mx",
                              "https://smp-git-main-jasorglezs-projects.vercel.app",
                              "https://smp-beta.vercel.app",
@@ -33,7 +34,7 @@ builder.Services.AddCors(options =>
                              "https://pruebas.bi2.mx",
                              "https://clinica.biapp.com.mx",
                              "https://clinica-pruebas.bi2.mx",
-                             "https://www.hco-siaf.com") 
+                             "https://www.hco-siaf.com")
                 .AllowAnyMethod()
                 .AllowAnyHeader()
                 .AllowCredentials();
