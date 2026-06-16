@@ -350,6 +350,12 @@ namespace Warehouse.Service
                 if (cat.ValueAdditionBit.HasValue)
                     existingCat.ValueAdditionBit = cat.ValueAdditionBit;
 
+                if (cat.ValueAdditionBit2.HasValue)
+                    existingCat.ValueAdditionBit2 = cat.ValueAdditionBit2;
+
+                if (cat.ValueAdditionBit3.HasValue)
+                    existingCat.ValueAdditionBit3 = cat.ValueAdditionBit3;
+
                 if (cat.Vigente.HasValue)
                     existingCat.Vigente = cat.Vigente;
 
@@ -533,6 +539,28 @@ namespace Warehouse.Service
                 return false;
             }
         }
+
+        public async Task<List<object>> GetProductosEF(int idCompany)
+        {
+            // Returns PRESENT-PROD (sabores) with valueadditionbit3=true, grouped by CATEGORY-PROD
+            var results = await (
+                from sabor in _context.Catalogs
+                join categoria in _context.Catalogs on sabor.ParentId equals categoria.Id
+                where sabor.IdCompany == idCompany
+                      && sabor.Type == "PRESENT-PROD"
+                      && sabor.ValueAdditionBit3 == true
+                      && sabor.Active == 1
+                orderby categoria.Description, sabor.Description
+                select new
+                {
+                    id = sabor.Id,
+                    producto = sabor.Description,
+                    categoria = categoria.Description
+                }
+            ).AsNoTracking().ToListAsync();
+
+            return results.Cast<object>().ToList();
+        }
     }
 
     public interface ICatalogService
@@ -553,5 +581,6 @@ namespace Warehouse.Service
         Task<bool> updateValueBit(int id, bool value, string type);
         Task<bool> UpdatexPermission(int id, ProcessXPermission perm);
         Task Savexpermission(ProcessXPermission perm);
+        Task<List<object>> GetProductosEF(int idCompany);
     }
 }

@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.40 Materials: columna prefijo (NVARCHAR 100) en tabla Materials + GetMaterialsWithCounts join secundario para exponer prefijo. Update persiste prefijo. 2026-06-15" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.38 2026-06-15 Columna Uso Fermentación y Extracción" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
