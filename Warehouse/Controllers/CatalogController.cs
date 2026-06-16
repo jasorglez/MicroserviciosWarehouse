@@ -330,6 +330,21 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("productos-ef")]
+        public async Task<ActionResult<List<object>>> GetProductosEF(int idCompany)
+        {
+            try
+            {
+                var items = await _catalogService.GetProductosEF(idCompany);
+                return Ok(items);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving productos EF");
+                return StatusCode(500, "An error occurred while retrieving productos EF.");
+            }
+        }
+
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
