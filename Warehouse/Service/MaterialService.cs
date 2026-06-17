@@ -100,6 +100,15 @@ namespace Warehouse.Service
                     .AsNoTracking()
                     .ToDictionaryAsync(m => m.Id, m => m.Prefijo);
 
+                // Contar registros activos en MaterialxFinalProduct por material (para "Donde Usa").
+                // La vista computa subfamily_count con otra lógica; lo sobreescribimos con el valor real.
+                var finalProductCountMap = await _context.MaterialxFinalProducts
+                    .Where(mfp => ids.Contains(mfp.idMaterial) && mfp.Active)
+                    .GroupBy(mfp => mfp.idMaterial)
+                    .Select(g => new { IdMaterial = g.Key, Count = g.Count() })
+                    .AsNoTracking()
+                    .ToDictionaryAsync(x => x.IdMaterial, x => x.Count);
+
                 // Aplicar valores por defecto después de cargar desde BD
                 foreach (var item in result)
                 {
@@ -113,7 +122,7 @@ namespace Warehouse.Service
                     item.Fecha      ??= DateTime.MinValue;
                     item.ProviderCount ??= 0;
                     item.Parametros ??= 0;
-                    item.SubfamilyCount ??= 0;
+                    item.SubfamilyCount = finalProductCountMap.GetValueOrDefault(item.Id, 0);
                     item.Costo ??= 0m;
                     item.Prefijo = prefijoMap.GetValueOrDefault(item.Id);
                 }

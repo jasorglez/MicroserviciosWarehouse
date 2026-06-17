@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.38 2026-06-15 Columna Uso Fermentación y Extracción" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.39 2026-06-17 Donde Usa: subfamilyCount ahora refleja conteo real de MaterialxFinalProduct" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
