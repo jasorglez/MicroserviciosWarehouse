@@ -56,7 +56,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
 
-   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.39 2026-06-17 Donde Usa: subfamilyCount ahora refleja conteo real de MaterialxFinalProduct" });
+   c.SwaggerDoc("v5.32", new OpenApiInfo { Title = "Microservicio Warehouse", Version = "v6.41 2026-06-17 Costos Ponderados de Basicos (BOM): CostosPonderados (KPIs+desglose proveedor) + ventana configurable" });
   
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
@@ -134,6 +134,8 @@ builder.Services.AddScoped<IEntradaMoliendaService, EntradaMoliendaService>();
 builder.Services.AddScoped<IDatosExternosMoliendaService, DatosExternosMoliendaService>();
 builder.Services.AddScoped<ICaracteristicasMateriaPrimaService, CaracteristicasMateriaPrimaService>();
 builder.Services.AddScoped<IRevisionCaracteristicasEntradaService, RevisionCaracteristicasEntradaService>();
+builder.Services.AddScoped<IProductoTerminadoBomService, ProductoTerminadoBomService>();
+builder.Services.AddScoped<ICostosPonderadosService, CostosPonderadosService>();
 builder.Services.AddScoped<ISalidasMpService, SalidasMpService>();
 builder.Services.AddScoped<ICondicionPagoService, CondicionPagoService>();
 builder.Services.AddScoped<IDescripcionEmpaqueService, DescripcionEmpaqueService>();
