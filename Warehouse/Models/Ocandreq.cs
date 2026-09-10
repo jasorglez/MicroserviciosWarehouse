@@ -38,6 +38,9 @@ namespace Warehouse.Models
         [Column("id_provider")]
         public int? IdProvider { get; set; } = 0;
 
+        [Column("id_warehouse")]
+        public int? IdWarehouse { get; set; }
+
         [Required]
         [Column("id_departament")]
         public int IdDepartament { get; set; } = 0;
