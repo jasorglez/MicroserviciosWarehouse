@@ -21,11 +21,11 @@ namespace Warehouse.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetInsAndOuts(int idProject, int IdWarehouse, string type)
+        public async Task<IActionResult> GetInsAndOuts(int? idProject, int idWarehouse, string type)
         {
             try
             {
-                var result = await _service.GetInsAndOuts(idProject, IdWarehouse, type);
+                var result = await _service.GetInsAndOuts(idProject, idWarehouse, type);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -115,6 +115,5 @@ namespace Warehouse.Controllers
         }
     }
 }
-
 
 
