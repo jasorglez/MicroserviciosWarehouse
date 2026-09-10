@@ -48,7 +48,9 @@ namespace Warehouse.Service
                         o.IdProvider,
                         o.IdWarehouse,
                         o.IdContract,
-                        o.IdBranchExecution,
+                        IdBranchExecution = o.IdBranchExecution ?? _context.Warehouses
+                            .Where(w => w.Id == o.IdWarehouse)
+                            .Select(w => (int?)w.IdBranch).FirstOrDefault(),
                         o.Solicit,
                         o.Priority,
                         o.Type,
@@ -117,7 +119,9 @@ namespace Warehouse.Service
                         o.IdProvider,
                         o.IdWarehouse,
                         o.IdContract,
-                        o.IdBranchExecution,
+                        IdBranchExecution = o.IdBranchExecution ?? _context.Warehouses
+                            .Where(w => w.Id == o.IdWarehouse)
+                            .Select(w => (int?)w.IdBranch).FirstOrDefault(),
                         o.Solicit,
                         o.Priority,
                         o.Type,
@@ -187,7 +191,9 @@ namespace Warehouse.Service
                         o.IdProvider,
                         o.IdWarehouse,
                         o.IdContract,
-                        o.IdBranchExecution,
+                        IdBranchExecution = o.IdBranchExecution ?? _context.Warehouses
+                            .Where(w => w.Id == o.IdWarehouse)
+                            .Select(w => (int?)w.IdBranch).FirstOrDefault(),
                         o.Solicit,
                         o.Priority,
                         o.Type,
