@@ -22,10 +22,10 @@ namespace Warehouse.Models.Views
         public string? Description { get; set; }
 
         [Column("stockmin")]
-        public int StockMin { get; set; }
+        public int? StockMin { get; set; }
 
         [Column("stockmax")]
-        public int StockMax { get; set; }
+        public int? StockMax { get; set; }
 
         [Column("entrada")]
         public decimal Entrada { get; set; }
@@ -37,10 +37,10 @@ namespace Warehouse.Models.Views
         public decimal Existencia { get; set; }
 
         [Column("ventaMN")]
-        public decimal VentaMN { get; set; }
+        public decimal? VentaMN { get; set; }
 
         [Column("total")]
-        public decimal Total { get; set; }
+        public decimal? Total { get; set; }
 
         [Column("estado_stock")]
         [StringLength(50)]
