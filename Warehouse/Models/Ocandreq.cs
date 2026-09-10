@@ -41,6 +41,11 @@ namespace Warehouse.Models
         [Column("id_warehouse")]
         public int? IdWarehouse { get; set; }
 
+        [Column("id_contract")]
+        public int? IdContract { get; set; }
+        [Column("id_branch_execution")]
+        public int? IdBranchExecution { get; set; }
+
         [Required]
         [Column("id_departament")]
         public int IdDepartament { get; set; } = 0;
