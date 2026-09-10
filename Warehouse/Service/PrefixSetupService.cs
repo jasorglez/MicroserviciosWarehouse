@@ -78,6 +78,10 @@ namespace Warehouse.Service
                 existingPrefixSetup.ConsecutiveCotiz = prefixSetup.ConsecutiveCotiz;
                 existingPrefixSetup.PrefixOc = prefixSetup.PrefixOc;
                 existingPrefixSetup.ConsecutiveOc = prefixSetup.ConsecutiveOc;
+                existingPrefixSetup.PrefixEntry = prefixSetup.PrefixEntry;
+                existingPrefixSetup.ConsecutiveEntry = prefixSetup.ConsecutiveEntry;
+                existingPrefixSetup.PrefixOut = prefixSetup.PrefixOut;
+                existingPrefixSetup.ConsecutiveOut = prefixSetup.ConsecutiveOut;
                 existingPrefixSetup.Active = prefixSetup.Active;
 
                 await _context.SaveChangesAsync();

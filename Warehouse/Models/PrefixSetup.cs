@@ -38,6 +38,20 @@ namespace Warehouse.Models
         [Column("consecutive_oc")]
         public int? ConsecutiveOc { get; set; }
 
+        [StringLength(10)]
+        [Column("prefix_entry")]
+        public string? PrefixEntry { get; set; }
+
+        [Column("consecutive_entry")]
+        public int? ConsecutiveEntry { get; set; }
+
+        [StringLength(10)]
+        [Column("prefix_out")]
+        public string? PrefixOut { get; set; }
+
+        [Column("consecutive_out")]
+        public int? ConsecutiveOut { get; set; }
+
         [Column("active")]
         public bool Active { get; set; } = true;
     }
