@@ -24,22 +24,23 @@ namespace Warehouse.Service;
                         detail => detail.IdProduct,
                         material => material.Id,
                         (detail, material) => new { detail, material })
-                    .Join(_context.Catalogs,
+                    .GroupJoin(_context.Catalogs,
                         detailMaterial => detailMaterial.material.IdMedida,
                         catalog => catalog.Id,
-                        (detailMaterial, catalog) => new
+                        (detailMaterial, catalogs) => new { detailMaterial, catalog = catalogs.FirstOrDefault(c => c.Type == "MEASURE" && c.Active == 1) })
+                    .Select(x => new
                         {
-                            detailMaterial.detail.Id,
-                            code = detailMaterial.material.Insumo,
-                            detailMaterial.detail.IdInandout,
-                            detailMaterial.detail.IdProduct,
-                            description = detailMaterial.material.Description,
-                            measure = catalog.Description,
-                            detailMaterial.detail.Quantity,
-                            detailMaterial.detail.Pending,
-                            detailMaterial.detail.Total,
-                            detailMaterial.detail.Type,
-                            detailMaterial.detail.Active
+                            x.detailMaterial.detail.Id,
+                            code = x.detailMaterial.material.Insumo,
+                            x.detailMaterial.detail.IdInandout,
+                            x.detailMaterial.detail.IdProduct,
+                            description = x.detailMaterial.material.Description,
+                            measure = x.catalog != null ? x.catalog.Description : "",
+                            x.detailMaterial.detail.Quantity,
+                            x.detailMaterial.detail.Pending,
+                            x.detailMaterial.detail.Total,
+                            x.detailMaterial.detail.Type,
+                            x.detailMaterial.detail.Active
                         })
                     .ToListAsync<object>();
             }

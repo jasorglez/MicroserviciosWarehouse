@@ -265,6 +265,10 @@ namespace Warehouse.Service
                     {
                         s.Id,
                         s.Description,
+                        measure = _context.Catalogs
+                            .Where(c => c.Id == s.IdMedida && c.Type == "MEASURE" && c.Active == 1)
+                            .Select(c => c.Description)
+                            .FirstOrDefault() ?? "",
                         s.Vigente,
                         s.Active,
                     })
