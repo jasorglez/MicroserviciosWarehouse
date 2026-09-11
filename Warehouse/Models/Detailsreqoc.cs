@@ -29,6 +29,12 @@ namespace Warehouse.Models
         [Column("price", TypeName = "decimal(16,2)")]
         public decimal Price { get; set; }
 
+        [Column("iva", TypeName = "decimal(16,2)")]
+        public decimal Iva { get; set; } = 0;
+
+        [Column("retention", TypeName = "decimal(16,2)")]
+        public decimal Retention { get; set; } = 0;
+
         // Columna calculada en SQL: ([quantity] * [price])
         [DatabaseGenerated(DatabaseGeneratedOption.Computed)]
         [Column("total", TypeName = "decimal(16,2)")]

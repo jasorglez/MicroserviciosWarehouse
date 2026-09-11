@@ -48,6 +48,8 @@ namespace Warehouse.Service
                             measure = c != null ? c.Description : string.Empty,  // Descripción de la unidad de medida
                             dmc.Details.Quantity,
                             dmc.Details.Price,
+                            dmc.Details.Iva,
+                            dmc.Details.Retention,
                             dmc.Details.Total,
                             dmc.Details.Intorext,
                             dmc.Details.Type,

@@ -94,6 +94,9 @@ namespace Warehouse.Models
         [Column("discount", TypeName = "DECIMAL(38,2)")]
         public decimal? Discount { get; set; } = 0;
 
+        [Column("iva", TypeName = "DECIMAL(38,2)")]
+        public decimal? Iva { get; set; } = 0;
+
         [Column("iva_retention", TypeName = "DECIMAL(38,2)")]
         public decimal? IvaRetention { get; set; } = 0;
 
