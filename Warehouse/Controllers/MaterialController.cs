@@ -209,6 +209,10 @@ namespace Warehouse.Controllers
 
                     return CreatedAtAction(nameof(CreateMaterial), new { id = material.Id }, material);
                 }
+                catch (InvalidOperationException ex) when (ex.Message.StartsWith("Ya existe un material", StringComparison.Ordinal))
+                {
+                    return BadRequest(new { message = ex.Message });
+                }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Error creating material");

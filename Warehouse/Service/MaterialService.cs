@@ -2,6 +2,8 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Data.SqlClient;
+using System.Globalization;
+using System.Text;
 using Warehouse.Models;
 using Warehouse.Models.Views;
 
@@ -385,6 +387,21 @@ namespace Warehouse.Service
         {
             try
             {
+                var normalizedDescription = NormalizeDescription(material.Description);
+                if (string.IsNullOrWhiteSpace(normalizedDescription))
+                    throw new InvalidOperationException("La descripción del material es obligatoria.");
+
+                // Protege altas simultáneas o realizadas fuera de la ventana
+                // de OC. No distingue mayúsculas, acentos ni espacios extra.
+                var materialDescriptions = await _context.Materials
+                    .Where(m => m.Active == true && m.IdCompany == material.IdCompany)
+                    .Select(m => m.Description)
+                    .ToListAsync();
+                if (materialDescriptions.Any(description =>
+                    NormalizeDescription(description) == normalizedDescription))
+                {
+                    throw new InvalidOperationException($"Ya existe un material con el nombre '{material.Description?.Trim()}'.");
+                }
 
                var materials = await _context.Materials
                     .Where(m => m.Active == true &&
@@ -507,6 +524,19 @@ namespace Warehouse.Service
                 _logger.LogError(ex, "Error saving Material");
                 throw;
             }
+        }
+
+        private static string NormalizeDescription(string? value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return string.Empty;
+
+            var withoutAccents = string.Concat(value.Trim()
+                .Normalize(NormalizationForm.FormD)
+                .Where(character => CharUnicodeInfo.GetUnicodeCategory(character) != UnicodeCategory.NonSpacingMark));
+
+            return string.Join(' ', withoutAccents
+                    .Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                .ToUpperInvariant();
         }
 
         public async Task<Material?> Update(int id, Material material)
