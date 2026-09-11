@@ -265,6 +265,10 @@ namespace Warehouse.Service
                     {
                         s.Id,
                         s.Description,
+                        // La OC usa este catálogo reducido para buscar el
+                        // material; también necesita el precio de venta para
+                        // precargar la partida seleccionada.
+                        s.VentaMN,
                         measure = _context.Catalogs
                             .Where(c => c.Id == s.IdMedida && c.Type == "MEASURE" && c.Active == 1)
                             .Select(c => c.Description)
