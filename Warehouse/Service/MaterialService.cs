@@ -492,6 +492,11 @@ namespace Warehouse.Service
 
                 _context.Materials.Add(newMaterial);
                 await _context.SaveChangesAsync();
+
+                // El controlador responde el objeto recibido. Propagar el ID
+                // generado evita que el cliente interprete el alta como fallida
+                // aunque el material sí haya quedado guardado.
+                material.Id = newMaterial.Id;
             }
             catch (Exception ex)
             {
