@@ -46,6 +46,7 @@ namespace Warehouse.Service
                         o.IdAuthorize,
                         o.IdSolicit,
                         o.IdProvider,
+                        o.IdIncorExp,
                         o.IdWarehouse,
                         o.IdContract,
                         IdBranchExecution = o.IdBranchExecution ?? _context.Warehouses
@@ -118,6 +119,7 @@ namespace Warehouse.Service
                         o.IdAuthorize,
                         o.IdSolicit,
                         o.IdProvider,
+                        o.IdIncorExp,
                         o.IdWarehouse,
                         o.IdContract,
                         IdBranchExecution = o.IdBranchExecution ?? _context.Warehouses
@@ -191,6 +193,7 @@ namespace Warehouse.Service
                         o.IdAuthorize,
                         o.IdSolicit,
                         o.IdProvider,
+                        o.IdIncorExp,
                         o.IdWarehouse,
                         o.IdContract,
                         IdBranchExecution = o.IdBranchExecution ?? _context.Warehouses

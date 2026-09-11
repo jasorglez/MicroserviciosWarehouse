@@ -38,6 +38,9 @@ namespace Warehouse.Models
         [Column("id_provider")]
         public int? IdProvider { get; set; } = 0;
 
+        [Column("id_incorexp")]
+        public int? IdIncorExp { get; set; }
+
         [Column("id_warehouse")]
         public int? IdWarehouse { get; set; }
 
