@@ -64,6 +64,88 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<List<MaterialComponentResponse>> GetMaterialComponents(int idCompany, int idParentMaterial)
+        {
+            return await _context.MaterialComponents.AsNoTracking()
+                .Where(component => component.IdCompany == idCompany && component.IdParentMaterial == idParentMaterial && component.Active)
+                .Join(_context.Materials,
+                    component => component.IdComponentMaterial,
+                    material => material.Id,
+                    (component, material) => new MaterialComponentResponse
+                    {
+                        IdComponentMaterial = component.IdComponentMaterial,
+                        Quantity = component.Quantity,
+                        Name = material.Description,
+                    })
+                .OrderBy(component => component.Name)
+                .ToListAsync();
+        }
+
+        public async Task SaveMaterialComponents(int idCompany, int idParentMaterial, SaveMaterialComponentsRequest request)
+        {
+            if (request?.Components == null || idCompany <= 0 || idParentMaterial <= 0 || request.IdCompany != idCompany)
+                throw new InvalidOperationException("La empresa o el material padre no son válidos.");
+
+            if (request.Components.Any(component => component.IdComponentMaterial <= 0 || component.Quantity <= 0)
+                || request.Components.Select(component => component.IdComponentMaterial).Distinct().Count() != request.Components.Count)
+                throw new InvalidOperationException("Cada componente debe ser único y tener una cantidad mayor que cero.");
+
+            if (request.Components.Any(component => component.IdComponentMaterial == idParentMaterial))
+                throw new InvalidOperationException("Un material no puede contenerse a sí mismo.");
+
+            var parent = await _context.Materials.AsNoTracking()
+                .FirstOrDefaultAsync(material => material.Id == idParentMaterial && material.IdCompany == idCompany && material.Active == true);
+            if (parent == null)
+                throw new InvalidOperationException("El material padre no está activo en la empresa seleccionada.");
+
+            var componentIds = request.Components.Select(component => component.IdComponentMaterial).ToList();
+            var activeComponentIds = await _context.Materials.AsNoTracking()
+                .Where(material => componentIds.Contains(material.Id) && material.IdCompany == idCompany && material.Active == true)
+                .Select(material => material.Id)
+                .ToListAsync();
+            if (activeComponentIds.Count != componentIds.Count)
+                throw new InvalidOperationException("Todos los componentes deben ser materiales activos de la misma empresa.");
+
+            var graph = await _context.MaterialComponents.AsNoTracking()
+                .Where(component => component.IdCompany == idCompany && component.Active && component.IdParentMaterial != idParentMaterial)
+                .Select(component => new { component.IdParentMaterial, component.IdComponentMaterial })
+                .ToListAsync();
+            foreach (var componentId in componentIds)
+            {
+                var visited = new HashSet<int>();
+                var pending = new Stack<int>();
+                pending.Push(componentId);
+                while (pending.Count > 0)
+                {
+                    var current = pending.Pop();
+                    if (current == idParentMaterial)
+                        throw new InvalidOperationException("La relación crearía un ciclo entre materiales compuestos.");
+                    if (!visited.Add(current)) continue;
+                    foreach (var child in graph.Where(edge => edge.IdParentMaterial == current))
+                        pending.Push(child.IdComponentMaterial);
+                }
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            var previous = await _context.MaterialComponents
+                .Where(component => component.IdCompany == idCompany && component.IdParentMaterial == idParentMaterial && component.Active)
+                .ToListAsync();
+            foreach (var component in previous) component.Active = false;
+
+            await _context.SaveChangesAsync();
+
+            _context.MaterialComponents.AddRange(request.Components.Select(component => new MaterialComponent
+            {
+                IdCompany = idCompany,
+                IdParentMaterial = idParentMaterial,
+                IdComponentMaterial = component.IdComponentMaterial,
+                Quantity = component.Quantity,
+                Active = true,
+            }));
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+
 
         public async Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany)
         {
@@ -699,6 +781,8 @@ namespace Warehouse.Service
     public interface IMaterialService
     {
         Task<List<MaterialsWithFamiliesView>> GetMaterialsWithFamilies(int idCompany);
+        Task<List<MaterialComponentResponse>> GetMaterialComponents(int idCompany, int idParentMaterial);
+        Task SaveMaterialComponents(int idCompany, int idParentMaterial, SaveMaterialComponentsRequest request);
         Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany);
         Task<List<MaterialWithCount>> GetMaterialsWithCounts(int idCompany);
         Task<List<MaterialsXProvider>> MaterialsxProv(string Typereference, int idProv);

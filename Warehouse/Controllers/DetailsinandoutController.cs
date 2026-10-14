@@ -70,6 +70,8 @@ public class DetailsinandoutController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error in DetailsinandoutController for Save");
+            if (ex is InvalidOperationException)
+                return BadRequest(new { message = ex.Message });
             return StatusCode(500, "Internal Server Error");
         }
     }

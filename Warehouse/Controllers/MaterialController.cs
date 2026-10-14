@@ -23,6 +23,43 @@ namespace Warehouse.Controllers
             _logger = logger;
         }
 
+        [HttpGet("{idMaterial}/components")]
+        public async Task<ActionResult<List<MaterialComponentResponse>>> GetMaterialComponents(int idMaterial, [FromQuery] int idCompany)
+        {
+            try
+            {
+                return Ok(await _service.GetMaterialComponents(idCompany, idMaterial));
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading components for material {IdMaterial}", idMaterial);
+                return StatusCode(500, new { message = "No se pudieron cargar los componentes." });
+            }
+        }
+
+        [HttpPut("{idMaterial}/components")]
+        public async Task<IActionResult> SaveMaterialComponents(int idMaterial, [FromBody] SaveMaterialComponentsRequest request)
+        {
+            try
+            {
+                await _service.SaveMaterialComponents(request.IdCompany, idMaterial, request);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving components for material {IdMaterial}", idMaterial);
+                return StatusCode(500, new { message = "No se pudieron guardar los componentes." });
+            }
+        }
+
 
         [HttpGet("{idCompany}")]
         public async Task<ActionResult<List<object>>> GetSupplies(int idCompany, string typematerial)

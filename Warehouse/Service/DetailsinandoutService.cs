@@ -34,6 +34,7 @@ namespace Warehouse.Service;
                             code = x.detailMaterial.material.Insumo,
                             x.detailMaterial.detail.IdInandout,
                             x.detailMaterial.detail.IdProduct,
+                            x.detailMaterial.detail.IdParentProduct,
                             description = x.detailMaterial.material.Description,
                             measure = x.catalog != null ? x.catalog.Description : "",
                             x.detailMaterial.detail.Quantity,
@@ -82,6 +83,38 @@ namespace Warehouse.Service;
         {
             try
             {
+                var movementType = await _context.Inandouts.AsNoTracking()
+                    .Where(movement => movement.Id == detail.IdInandout && movement.Active == true)
+                    .Select(movement => movement.Type)
+                    .FirstOrDefaultAsync();
+                if (movementType == "IN")
+                {
+                    var components = await _context.MaterialComponents.AsNoTracking()
+                        .Where(component => component.IdParentMaterial == detail.IdProduct && component.Active)
+                        .ToListAsync();
+                    if (components.Count > 0)
+                    {
+                        if (detail.Quantity is not > 0)
+                            throw new InvalidOperationException("La cantidad recibida debe ser mayor que cero para desglosar el material.");
+
+                        await using var transaction = await _context.Database.BeginTransactionAsync();
+                        _context.Detailsinandout.AddRange(components.Select(component => new Detailsinandout
+                        {
+                            IdInandout = detail.IdInandout,
+                            IdProduct = component.IdComponentMaterial,
+                            IdParentProduct = detail.IdProduct,
+                            Quantity = detail.Quantity.Value * component.Quantity,
+                            Pending = detail.Pending * component.Quantity,
+                            Total = detail.Total * component.Quantity,
+                            Type = detail.Type,
+                            Active = detail.Active,
+                        }));
+                        await _context.SaveChangesAsync();
+                        await transaction.CommitAsync();
+                        return;
+                    }
+                }
+
                 _context.Detailsinandout.Add(detail);
                 await _context.SaveChangesAsync();
             }

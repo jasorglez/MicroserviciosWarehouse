@@ -18,6 +18,9 @@ public class Detailsinandout
     [Required]
     [Column("id_product")]
     public int IdProduct { get; set; }
+
+    [Column("id_parent_product")]
+    public int? IdParentProduct { get; set; }
     
     [Column("quantity", TypeName = "decimal(9,2)")]
     public decimal? Quantity { get; set; }
