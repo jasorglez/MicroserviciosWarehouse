@@ -30,6 +30,7 @@ namespace Warehouse.Service
                     i.Id,
                     i.IdProject,
                     i.IdWarehouse,
+                    i.IdWarehouseOrigin,
                     i.IdType,
                     i.Folio,
                     i.Date,
@@ -68,6 +69,7 @@ namespace Warehouse.Service
                     i.Id,
                     i.IdProject,
                     i.IdWarehouse,
+                    i.IdWarehouseOrigin,
                     i.IdType,
                     i.Folio,
                     i.Date,
@@ -95,8 +97,58 @@ namespace Warehouse.Service
     {
         try
         {
+            var movementDescription = inandout.IdType.HasValue
+                ? await _context.Catalogs.AsNoTracking()
+                    .Where(catalog => catalog.Id == inandout.IdType.Value)
+                    .Select(catalog => catalog.Description)
+                    .FirstOrDefaultAsync()
+                : null;
+            var isTransfer = inandout.Type == "IN" &&
+                string.Equals(movementDescription?.Trim(), "TRASPASO", StringComparison.OrdinalIgnoreCase);
+
+            if (isTransfer && (!inandout.IdWarehouseOrigin.HasValue || inandout.IdWarehouseOrigin == inandout.IdWarehouse))
+                throw new InvalidOperationException("Selecciona un almacén de origen distinto al almacén de destino.");
+
+            if (!isTransfer)
+            {
+                _context.Inandouts.Add(inandout);
+                await _context.SaveChangesAsync();
+                return;
+            }
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
             _context.Inandouts.Add(inandout);
             await _context.SaveChangesAsync();
+
+            var outboundTransferTypeId = await _context.Catalogs.AsNoTracking()
+                .Where(catalog => catalog.Type == "OUT" && catalog.Active == 1 && catalog.Description == "TRASPASO")
+                .Select(catalog => (int?)catalog.Id)
+                .FirstOrDefaultAsync();
+            var pairedMovement = new Inandout
+            {
+                IdProject = inandout.IdProject,
+                IdWarehouse = inandout.IdWarehouseOrigin,
+                IdWarehouseOrigin = inandout.IdWarehouse,
+                IdType = outboundTransferTypeId ?? inandout.IdType,
+                IdOt = inandout.IdOt,
+                IdAutoriza = inandout.IdAutoriza,
+                Date = inandout.Date,
+                DeliveryDate = inandout.DeliveryDate,
+                IdOc = 0,
+                Folio = $"T-{inandout.Id}",
+                NumBill = null,
+                DeliverName = inandout.DeliverName,
+                CountRow = inandout.CountRow,
+                Comment = $"Salida por traspaso a almacén {inandout.IdWarehouse}",
+                Type = "OUT",
+                Active = inandout.Active,
+                IdTransferPair = inandout.Id
+            };
+            _context.Inandouts.Add(pairedMovement);
+            await _context.SaveChangesAsync();
+            inandout.IdTransferPair = pairedMovement.Id;
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
         catch (Exception ex)
         {
@@ -116,11 +168,43 @@ namespace Warehouse.Service
 
             try
             {
+                if (existingItem.IdTransferPair.HasValue && inandout.Type == "IN")
+                {
+                    var updatedDescription = inandout.IdType.HasValue
+                        ? await _context.Catalogs.AsNoTracking()
+                            .Where(catalog => catalog.Id == inandout.IdType.Value)
+                            .Select(catalog => catalog.Description)
+                            .FirstOrDefaultAsync()
+                        : null;
+                    if (!string.Equals(updatedDescription?.Trim(), "TRASPASO", StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("No se puede cambiar el tipo de un traspaso ya creado.");
+                    if (!inandout.IdWarehouseOrigin.HasValue || inandout.IdWarehouseOrigin == inandout.IdWarehouse)
+                        throw new InvalidOperationException("Selecciona un almacén de origen distinto al almacén de destino.");
+                }
+
                 if (inandout.Folio != null)
                     existingItem.Folio = inandout.Folio;
 
                 if (inandout.IdType != null && inandout.IdType != 0)
                     existingItem.IdType = inandout.IdType;
+
+                existingItem.IdWarehouseOrigin = inandout.IdWarehouseOrigin;
+
+                if (existingItem.IdTransferPair.HasValue)
+                {
+                    var pairedMovement = await _context.Inandouts.FindAsync(existingItem.IdTransferPair.Value);
+                    if (pairedMovement != null && existingItem.Type == "IN")
+                    {
+                        pairedMovement.IdWarehouse = inandout.IdWarehouseOrigin;
+                        pairedMovement.IdWarehouseOrigin = inandout.IdWarehouse;
+                        pairedMovement.Date = inandout.Date;
+                        pairedMovement.DeliveryDate = inandout.DeliveryDate;
+                        pairedMovement.IdOt = inandout.IdOt;
+                        pairedMovement.IdAutoriza = inandout.IdAutoriza;
+                        pairedMovement.DeliverName = inandout.DeliverName;
+                        pairedMovement.Comment = $"Salida por traspaso a almacén {inandout.IdWarehouse}";
+                    }
+                }
 
                 if (inandout.Date.HasValue)
                     existingItem.Date = inandout.Date;
@@ -171,6 +255,11 @@ namespace Warehouse.Service
         try
         {
             existingItem.Active = false;
+            if (existingItem.IdTransferPair.HasValue)
+            {
+                var pairedMovement = await _context.Inandouts.FindAsync(existingItem.IdTransferPair.Value);
+                if (pairedMovement != null) pairedMovement.Active = false;
+            }
             await _context.SaveChangesAsync();
             return true;
         }

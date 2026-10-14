@@ -14,6 +14,9 @@ public class Detailsinandout
     [Required]
     [Column("id_inandout")]
     public int IdInandout { get; set; }
+
+    [Column("id_transfer_pair")]
+    public int? IdTransferPair { get; set; }
     
     [Column("id_product")]
     public int? IdProduct { get; set; }

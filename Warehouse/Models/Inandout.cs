@@ -21,7 +21,13 @@ namespace Warehouse.Models
         
         [Column("id_warehouse")]
         public int? IdWarehouse { get; set; }
-        
+
+        [Column("id_warehouse_origin")]
+        public int? IdWarehouseOrigin { get; set; }
+
+        [Column("id_transfer_pair")]
+        public int? IdTransferPair { get; set; }
+
         [Column("id_type")]
         public int? IdType { get; set; }
 

@@ -103,6 +103,71 @@ namespace Warehouse.Service;
     }
 
 
+    private async Task SaveDetailRowsWithTransferAsync(List<Detailsinandout> details)
+    {
+        if (details.Count == 0) return;
+        var pairedMovementId = await _context.Inandouts.AsNoTracking()
+            .Where(movement => movement.Id == details[0].IdInandout && movement.Active == true)
+            .Select(movement => movement.IdTransferPair)
+            .FirstOrDefaultAsync();
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        _context.Detailsinandout.AddRange(details);
+        await _context.SaveChangesAsync();
+        if (pairedMovementId.HasValue)
+        {
+            var pairedDetails = details.Select(source => new Detailsinandout
+            {
+                IdInandout = pairedMovementId.Value,
+                IdTransferPair = source.Id,
+                IdProduct = source.IdProduct,
+                IdParentProduct = source.IdParentProduct,
+                ComponentName = source.ComponentName,
+                SourceQuantity = source.SourceQuantity,
+                SourceMeasure = source.SourceMeasure,
+                SourceMeasureId = source.SourceMeasureId,
+                GramsPerMeterAtMovement = source.GramsPerMeterAtMovement,
+                ConversionFactorAtMovement = source.ConversionFactorAtMovement,
+                TargetMeasureAtMovement = source.TargetMeasureAtMovement,
+                TargetMeasureIdAtMovement = source.TargetMeasureIdAtMovement,
+                Quantity = source.Quantity,
+                Pending = source.Pending,
+                Total = source.Total,
+                Type = source.Type,
+                Active = source.Active
+            }).ToList();
+            _context.Detailsinandout.AddRange(pairedDetails);
+            await _context.SaveChangesAsync();
+            for (var index = 0; index < details.Count; index++)
+                details[index].IdTransferPair = pairedDetails[index].Id;
+            await _context.SaveChangesAsync();
+        }
+        await transaction.CommitAsync();
+    }
+
+    private async Task SyncPairedDetailAsync(Detailsinandout source)
+    {
+        if (!source.IdTransferPair.HasValue) return;
+        var paired = await _context.Detailsinandout.FindAsync(source.IdTransferPair.Value);
+        if (paired == null) return;
+        paired.IdProduct = source.IdProduct;
+        paired.IdParentProduct = source.IdParentProduct;
+        paired.ComponentName = source.ComponentName;
+        paired.SourceQuantity = source.SourceQuantity;
+        paired.SourceMeasure = source.SourceMeasure;
+        paired.SourceMeasureId = source.SourceMeasureId;
+        paired.GramsPerMeterAtMovement = source.GramsPerMeterAtMovement;
+        paired.ConversionFactorAtMovement = source.ConversionFactorAtMovement;
+        paired.TargetMeasureAtMovement = source.TargetMeasureAtMovement;
+        paired.TargetMeasureIdAtMovement = source.TargetMeasureIdAtMovement;
+        paired.Quantity = source.Quantity;
+        paired.Pending = source.Pending;
+        paired.Total = source.Total;
+        paired.Type = source.Type;
+        paired.Active = source.Active;
+        await _context.SaveChangesAsync();
+    }
+
     public async Task Save(Detailsinandout detail)
         {
             try
@@ -169,8 +234,7 @@ namespace Warehouse.Service;
                         if (detail.Quantity is not > 0)
                             throw new InvalidOperationException("La cantidad recibida debe ser mayor que cero para desglosar el material.");
 
-                        await using var transaction = await _context.Database.BeginTransactionAsync();
-                        _context.Detailsinandout.AddRange(components.Select(component => new Detailsinandout
+                        var componentDetails = components.Select(component => new Detailsinandout
                         {
                             IdInandout = detail.IdInandout,
                             IdProduct = null,
@@ -181,9 +245,8 @@ namespace Warehouse.Service;
                             Total = detail.Total * component.Quantity,
                             Type = detail.Type,
                             Active = detail.Active,
-                        }));
-                        await _context.SaveChangesAsync();
-                        await transaction.CommitAsync();
+                        }).ToList();
+                        await SaveDetailRowsWithTransferAsync(componentDetails);
                         return;
                     }
 
@@ -229,8 +292,7 @@ namespace Warehouse.Service;
                     }
                 }
 
-                _context.Detailsinandout.Add(detail);
-                await _context.SaveChangesAsync();
+                await SaveDetailRowsWithTransferAsync(new List<Detailsinandout> { detail });
             }
             catch (Exception ex)
             {
@@ -248,6 +310,7 @@ namespace Warehouse.Service;
                 _logger.LogWarning("Attempted to update non-existent Detail with ID {Id}", id);
                 return null;
             }
+            var transferPairId = existingItem.IdTransferPair;
 
             try
             {
@@ -285,7 +348,9 @@ namespace Warehouse.Service;
                         detail.TargetMeasureIdAtMovement = configuredConversion.IdMeasureTo;
                         detail.Quantity *= configuredConversion.Factor;
                         _context.Entry(existingItem).CurrentValues.SetValues(detail);
+                        existingItem.IdTransferPair = transferPairId;
                         await _context.SaveChangesAsync();
+                        await SyncPairedDetailAsync(existingItem);
                         return existingItem;
                     }
                     var gramsPerMeter = await _context.Materials.AsNoTracking()
@@ -336,7 +401,9 @@ namespace Warehouse.Service;
                         .FirstOrDefaultAsync();
                 }
                 _context.Entry(existingItem).CurrentValues.SetValues(detail);
+                existingItem.IdTransferPair = transferPairId;
                 await _context.SaveChangesAsync();
+                await SyncPairedDetailAsync(existingItem);
                 return existingItem;
             }
             catch (DbUpdateConcurrencyException ex)
@@ -363,6 +430,11 @@ namespace Warehouse.Service;
             try
             {
                 existingItem.Active = false;
+                if (existingItem.IdTransferPair.HasValue)
+                {
+                    var pairedDetail = await _context.Detailsinandout.FindAsync(existingItem.IdTransferPair.Value);
+                    if (pairedDetail != null) pairedDetail.Active = false;
+                }
                 await _context.SaveChangesAsync();
                 return true;
             }
