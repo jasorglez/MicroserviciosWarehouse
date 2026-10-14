@@ -44,7 +44,8 @@ namespace Warehouse.Controllers
 
                 var productosBajos = await (from d in context.Detailsinandout
                                             join m in context.Inandouts on d.IdInandout equals m.Id
-                                            join t in context.Materials on d.IdProduct equals t.Id
+                                            where d.IdProduct.HasValue
+                                            join t in context.Materials on d.IdProduct.Value equals t.Id
                                             join w in context.Warehouses on m.IdWarehouse equals w.Id
                                             group d by new { t.Description, w.Name, t.StockMin, m.IdWarehouse } into g
                                             where g.Sum(x => x.Quantity) <= g.Key.StockMin

@@ -24,5 +24,8 @@ namespace Warehouse.Models.Views
         public decimal? Quantity { get; set; }
         public bool? Active { get; set; }
         public int IdCompany { get; set; }
+
+        [NotMapped]
+        public decimal? GramsPerMeter { get; set; }
     }
 }

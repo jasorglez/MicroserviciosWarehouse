@@ -119,6 +119,9 @@ namespace Warehouse.Models
         [Column("merma", TypeName = "DECIMAL(18,2)")]
         public decimal? Merma { get; set; }
 
+        [Column("grams_per_meter", TypeName = "DECIMAL(15,4)")]
+        public decimal? GramsPerMeter { get; set; }
+
         [Column("requestquantity")]
         [DefaultValue(0)]
         public int? RequestQuantity { get; set; }

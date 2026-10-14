@@ -15,12 +15,23 @@ public class Detailsinandout
     [Column("id_inandout")]
     public int IdInandout { get; set; }
     
-    [Required]
     [Column("id_product")]
-    public int IdProduct { get; set; }
+    public int? IdProduct { get; set; }
 
     [Column("id_parent_product")]
     public int? IdParentProduct { get; set; }
+
+    [Column("component_name")]
+    public string? ComponentName { get; set; }
+
+    [Column("source_quantity", TypeName = "decimal(15,4)")]
+    public decimal? SourceQuantity { get; set; }
+
+    [Column("source_measure", TypeName = "nvarchar(30)")]
+    public string? SourceMeasure { get; set; }
+
+    [Column("grams_per_meter_at_movement", TypeName = "decimal(15,4)")]
+    public decimal? GramsPerMeterAtMovement { get; set; }
     
     [Column("quantity", TypeName = "decimal(9,2)")]
     public decimal? Quantity { get; set; }

@@ -37,9 +37,17 @@ namespace Warehouse.Service
                     .AsNoTracking()
                     .ToListAsync();
 
+                var materialIds = result.Select(item => item.Id).ToList();
+                var conversionValues = await _context.Materials.AsNoTracking()
+                    .Where(material => materialIds.Contains(material.Id))
+                    .Select(material => new { material.Id, material.GramsPerMeter })
+                    .ToDictionaryAsync(material => material.Id, material => material.GramsPerMeter);
+
                 // Aplicar valores por defecto si es necesario
                 foreach (var item in result)
                 {
+                    if (conversionValues.TryGetValue(item.Id, out var gramsPerMeter))
+                        item.GramsPerMeter = gramsPerMeter;
                     item.Insumo = string.IsNullOrEmpty(item.Insumo) ? "N/A" : item.Insumo;
                     item.MedidaDescription = string.IsNullOrEmpty(item.MedidaDescription) ? "Unidad" : item.MedidaDescription;
                     item.MaterialDescription = string.IsNullOrEmpty(item.MaterialDescription) ? "Sin descripción" : item.MaterialDescription;
@@ -68,16 +76,12 @@ namespace Warehouse.Service
         {
             return await _context.MaterialComponents.AsNoTracking()
                 .Where(component => component.IdCompany == idCompany && component.IdParentMaterial == idParentMaterial && component.Active)
-                .Join(_context.Materials,
-                    component => component.IdComponentMaterial,
-                    material => material.Id,
-                    (component, material) => new MaterialComponentResponse
-                    {
-                        IdComponentMaterial = component.IdComponentMaterial,
-                        Quantity = component.Quantity,
-                        Name = material.Description,
-                    })
-                .OrderBy(component => component.Name)
+                .OrderBy(component => component.Id)
+                .Select(component => new MaterialComponentResponse
+                {
+                    ComponentName = component.ComponentName,
+                    Quantity = component.Quantity,
+                })
                 .ToListAsync();
         }
 
@@ -86,45 +90,16 @@ namespace Warehouse.Service
             if (request?.Components == null || idCompany <= 0 || idParentMaterial <= 0 || request.IdCompany != idCompany)
                 throw new InvalidOperationException("La empresa o el material padre no son válidos.");
 
-            if (request.Components.Any(component => component.IdComponentMaterial <= 0 || component.Quantity <= 0)
-                || request.Components.Select(component => component.IdComponentMaterial).Distinct().Count() != request.Components.Count)
-                throw new InvalidOperationException("Cada componente debe ser único y tener una cantidad mayor que cero.");
-
-            if (request.Components.Any(component => component.IdComponentMaterial == idParentMaterial))
-                throw new InvalidOperationException("Un material no puede contenerse a sí mismo.");
+            var normalizedNames = request.Components.Select(component => component.ComponentName?.Trim() ?? string.Empty).ToList();
+            if (request.Components.Any(component => string.IsNullOrWhiteSpace(component.ComponentName)
+                    || component.ComponentName.Trim().Length > 200 || component.Quantity <= 0)
+                || normalizedNames.Distinct(StringComparer.OrdinalIgnoreCase).Count() != normalizedNames.Count)
+                throw new InvalidOperationException("Cada componente debe tener un nombre único y una cantidad mayor que cero.");
 
             var parent = await _context.Materials.AsNoTracking()
                 .FirstOrDefaultAsync(material => material.Id == idParentMaterial && material.IdCompany == idCompany && material.Active == true);
             if (parent == null)
                 throw new InvalidOperationException("El material padre no está activo en la empresa seleccionada.");
-
-            var componentIds = request.Components.Select(component => component.IdComponentMaterial).ToList();
-            var activeComponentIds = await _context.Materials.AsNoTracking()
-                .Where(material => componentIds.Contains(material.Id) && material.IdCompany == idCompany && material.Active == true)
-                .Select(material => material.Id)
-                .ToListAsync();
-            if (activeComponentIds.Count != componentIds.Count)
-                throw new InvalidOperationException("Todos los componentes deben ser materiales activos de la misma empresa.");
-
-            var graph = await _context.MaterialComponents.AsNoTracking()
-                .Where(component => component.IdCompany == idCompany && component.Active && component.IdParentMaterial != idParentMaterial)
-                .Select(component => new { component.IdParentMaterial, component.IdComponentMaterial })
-                .ToListAsync();
-            foreach (var componentId in componentIds)
-            {
-                var visited = new HashSet<int>();
-                var pending = new Stack<int>();
-                pending.Push(componentId);
-                while (pending.Count > 0)
-                {
-                    var current = pending.Pop();
-                    if (current == idParentMaterial)
-                        throw new InvalidOperationException("La relación crearía un ciclo entre materiales compuestos.");
-                    if (!visited.Add(current)) continue;
-                    foreach (var child in graph.Where(edge => edge.IdParentMaterial == current))
-                        pending.Push(child.IdComponentMaterial);
-                }
-            }
 
             await using var transaction = await _context.Database.BeginTransactionAsync();
             var previous = await _context.MaterialComponents
@@ -138,7 +113,7 @@ namespace Warehouse.Service
             {
                 IdCompany = idCompany,
                 IdParentMaterial = idParentMaterial,
-                IdComponentMaterial = component.IdComponentMaterial,
+                ComponentName = component.ComponentName.Trim(),
                 Quantity = component.Quantity,
                 Active = true,
             }));
@@ -358,6 +333,7 @@ namespace Warehouse.Service
                             .Select(c => c.Description)
                             .FirstOrDefault() ?? "",
                         s.Vigente,
+                        s.GramsPerMeter,
                         s.Active,
                     })
                     .OrderByDescending(s => s.Vigente)
@@ -656,6 +632,7 @@ namespace Warehouse.Service
                 if (material.VentaDLL.HasValue) existingItem.VentaDLL = material.VentaDLL;
                 if (material.StockMin.HasValue) existingItem.StockMin = material.StockMin;
                 if (material.StockMax.HasValue) existingItem.StockMax = material.StockMax;
+                existingItem.GramsPerMeter = material.GramsPerMeter;
                 existingItem.Quantity = material.Quantity ?? 0;
                 existingItem.RequestQuantity = material.RequestQuantity ?? 0;
                 if (!string.IsNullOrEmpty(material.Picture)) existingItem.Picture = material.Picture;

@@ -16,8 +16,9 @@ public class MaterialComponent
     [Column("id_parent_material")]
     public int IdParentMaterial { get; set; }
 
-    [Column("id_component_material")]
-    public int IdComponentMaterial { get; set; }
+    [Column("component_name")]
+    [MaxLength(200)]
+    public string ComponentName { get; set; } = string.Empty;
 
     [Column("quantity", TypeName = "decimal(15,4)")]
     public decimal Quantity { get; set; }
@@ -37,7 +38,8 @@ public class SaveMaterialComponentsRequest
 public class MaterialComponentRequest
 {
     [Required]
-    public int IdComponentMaterial { get; set; }
+    [MaxLength(200)]
+    public string ComponentName { get; set; } = string.Empty;
 
     [Range(typeof(decimal), "0.0001", "999999999999.9999")]
     public decimal Quantity { get; set; }
@@ -45,8 +47,6 @@ public class MaterialComponentRequest
 
 public class MaterialComponentResponse
 {
-    public int IdComponentMaterial { get; set; }
+    public string ComponentName { get; set; } = string.Empty;
     public decimal Quantity { get; set; }
-    public string? Name { get; set; }
-    public string? Measure { get; set; }
 }
