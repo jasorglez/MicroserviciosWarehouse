@@ -30,8 +30,20 @@ public class Detailsinandout
     [Column("source_measure", TypeName = "nvarchar(30)")]
     public string? SourceMeasure { get; set; }
 
+    [Column("source_measure_id")]
+    public int? SourceMeasureId { get; set; }
+
     [Column("grams_per_meter_at_movement", TypeName = "decimal(15,4)")]
     public decimal? GramsPerMeterAtMovement { get; set; }
+
+    [Column("conversion_factor_at_movement", TypeName = "decimal(18,6)")]
+    public decimal? ConversionFactorAtMovement { get; set; }
+
+    [Column("target_measure_at_movement", TypeName = "nvarchar(30)")]
+    public string? TargetMeasureAtMovement { get; set; }
+
+    [Column("target_measure_id_at_movement")]
+    public int? TargetMeasureIdAtMovement { get; set; }
     
     [Column("quantity", TypeName = "decimal(9,2)")]
     public decimal? Quantity { get; set; }

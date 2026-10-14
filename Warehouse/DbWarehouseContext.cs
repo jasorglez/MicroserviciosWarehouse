@@ -21,6 +21,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<Detailsinandout> Detailsinandout { get; set; }
     public virtual DbSet<Material> Materials { get; set; }
     public virtual DbSet<MaterialComponent> MaterialComponents { get; set; }
+    public virtual DbSet<MaterialConversion> MaterialConversions { get; set; }
     public virtual DbSet<Ocandreq> Ocandreqs { get; set; }
     public virtual DbSet<ProcessXPermission> ProcessXPermissions { get; set; }
     public virtual DbSet<Setup> Setups { get; set; }

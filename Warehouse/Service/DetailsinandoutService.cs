@@ -54,12 +54,16 @@ namespace Warehouse.Service;
                             x.detailMaterial.detail.Pending,
                             x.detailMaterial.detail.Total,
                             measure = x.detailMaterial.detail.SourceMeasure
+                                ?? x.detailMaterial.detail.TargetMeasureAtMovement
                                 ?? (x.detailMaterial.detail.GramsPerMeterAtMovement > 0
                                     ? "m"
                                     : x.catalog != null ? x.catalog.Description : ""),
                             x.detailMaterial.detail.SourceQuantity,
                             x.detailMaterial.detail.SourceMeasure,
+                            x.detailMaterial.detail.SourceMeasureId,
                             x.detailMaterial.detail.GramsPerMeterAtMovement,
+                            x.detailMaterial.detail.ConversionFactorAtMovement,
+                            x.detailMaterial.detail.TargetMeasureAtMovement,
                             x.detailMaterial.detail.Type,
                             x.detailMaterial.detail.Active
                         })
@@ -112,7 +116,7 @@ namespace Warehouse.Service;
                     var material = detail.IdProduct.HasValue
                         ? await _context.Materials.AsNoTracking()
                             .Where(item => item.Id == detail.IdProduct.Value)
-                            .Select(item => new { item.GramsPerMeter, item.IdMedida })
+                            .Select(item => new { item.GramsPerMeter, item.IdMedida, item.IdCompany })
                             .FirstOrDefaultAsync()
                         : null;
                     var purchaseMeasure = material?.IdMedida.HasValue == true
@@ -122,7 +126,32 @@ namespace Warehouse.Service;
                             .FirstOrDefaultAsync()
                         : null;
                     var inventoryQuantity = detail.Quantity;
-                    if (material?.GramsPerMeter is > 0 && detail.Quantity is > 0)
+                    var sourceMeasureId = detail.SourceMeasureId ?? material?.IdMedida;
+                    var conversion = material != null && sourceMeasureId.HasValue
+                        ? await _context.MaterialConversions.AsNoTracking()
+                            .Where(item => item.IdCompany == material.IdCompany && item.IdMaterial == detail.IdProduct
+                                && item.IdMeasureFrom == sourceMeasureId.Value && item.Active)
+                            .Select(item => new { item.Factor, item.IdMeasureTo })
+                            .FirstOrDefaultAsync()
+                        : null;
+                    if (conversion != null && detail.Quantity is > 0)
+                    {
+                        var targetMeasure = await _context.Catalogs.AsNoTracking()
+                            .Where(unit => unit.Id == conversion.IdMeasureTo)
+                            .Select(unit => unit.Description)
+                            .FirstOrDefaultAsync();
+                        detail.SourceQuantity = detail.Quantity;
+                        detail.SourceMeasureId = sourceMeasureId;
+                        detail.SourceMeasure = await _context.Catalogs.AsNoTracking()
+                            .Where(unit => unit.Id == sourceMeasureId.Value)
+                            .Select(unit => unit.Description)
+                            .FirstOrDefaultAsync();
+                        detail.ConversionFactorAtMovement = conversion.Factor;
+                        detail.TargetMeasureAtMovement = targetMeasure;
+                        detail.TargetMeasureIdAtMovement = conversion.IdMeasureTo;
+                        inventoryQuantity = detail.Quantity.Value * conversion.Factor;
+                    }
+                    else if (material?.GramsPerMeter is > 0 && detail.Quantity is > 0)
                     {
                         if (!IsKilogramUnit(purchaseMeasure))
                             throw new InvalidOperationException("El material con conversión gramos/metro debe tener unidad de compra en kilogramos.");
@@ -163,11 +192,37 @@ namespace Warehouse.Service;
                 }
                 else if (movementType == "OUT" && detail.IdProduct.HasValue)
                 {
+                    var productCompany = await _context.Materials.AsNoTracking()
+                        .Where(item => item.Id == detail.IdProduct.Value)
+                        .Select(item => item.IdCompany)
+                        .FirstOrDefaultAsync();
+                    var purchaseMeasureId = await _context.Materials.AsNoTracking()
+                        .Where(item => item.Id == detail.IdProduct.Value)
+                        .Select(item => item.IdMedida)
+                        .FirstOrDefaultAsync();
+                    var conversion = await _context.MaterialConversions.AsNoTracking()
+                        .Where(item => item.IdCompany == productCompany && item.IdMaterial == detail.IdProduct.Value
+                            && item.IdMeasureFrom == purchaseMeasureId && item.Active)
+                        .OrderBy(item => item.Id)
+                        .Select(item => new { item.Factor, item.IdMeasureTo })
+                        .FirstOrDefaultAsync();
+                    if (conversion != null)
+                    {
+                        detail.TargetMeasureAtMovement = await _context.Catalogs.AsNoTracking()
+                            .Where(unit => unit.Id == conversion.IdMeasureTo)
+                            .Select(unit => unit.Description)
+                            .FirstOrDefaultAsync();
+                        detail.SourceQuantity = detail.Quantity;
+                        detail.SourceMeasure = detail.TargetMeasureAtMovement;
+                        detail.TargetMeasureIdAtMovement = conversion.IdMeasureTo;
+                        detail.SourceMeasureId = conversion.IdMeasureTo;
+                        detail.ConversionFactorAtMovement = 1m;
+                    }
                     var gramsPerMeter = await _context.Materials.AsNoTracking()
                         .Where(material => material.Id == detail.IdProduct.Value)
                         .Select(material => material.GramsPerMeter)
                         .FirstOrDefaultAsync();
-                    if (gramsPerMeter is > 0)
+                    if (conversion == null && gramsPerMeter is > 0)
                     {
                         detail.SourceMeasure = "m";
                         detail.GramsPerMeterAtMovement = gramsPerMeter;
@@ -200,9 +255,39 @@ namespace Warehouse.Service;
                     .Where(movement => movement.Id == detail.IdInandout)
                     .Select(movement => movement.Type)
                     .FirstOrDefaultAsync();
-                if (movementType == "IN" && detail.IdProduct.HasValue
-                    && (detail.SourceQuantity.HasValue || IsKilogramUnit(detail.SourceMeasure)))
+                if (movementType == "IN" && detail.IdProduct.HasValue)
                 {
+                    var material = await _context.Materials.AsNoTracking()
+                        .Where(item => item.Id == detail.IdProduct.Value)
+                        .Select(item => new { item.IdCompany, item.IdMedida })
+                        .FirstOrDefaultAsync();
+                    var sourceMeasureId = detail.SourceMeasureId ?? material?.IdMedida;
+                    var configuredConversion = material != null && sourceMeasureId.HasValue
+                        ? await _context.MaterialConversions.AsNoTracking()
+                            .Where(item => item.IdCompany == material.IdCompany && item.IdMaterial == detail.IdProduct.Value
+                                && item.IdMeasureFrom == sourceMeasureId.Value && item.Active)
+                            .Select(item => new { item.Factor, item.IdMeasureTo })
+                            .FirstOrDefaultAsync()
+                        : null;
+                    if (configuredConversion != null && detail.Quantity is > 0)
+                    {
+                        detail.SourceQuantity = detail.Quantity;
+                        detail.SourceMeasure = await _context.Catalogs.AsNoTracking()
+                            .Where(unit => unit.Id == sourceMeasureId.Value)
+                            .Select(unit => unit.Description)
+                            .FirstOrDefaultAsync();
+                        detail.ConversionFactorAtMovement = configuredConversion.Factor;
+                        detail.SourceMeasureId = sourceMeasureId;
+                        detail.TargetMeasureAtMovement = await _context.Catalogs.AsNoTracking()
+                            .Where(unit => unit.Id == configuredConversion.IdMeasureTo)
+                            .Select(unit => unit.Description)
+                            .FirstOrDefaultAsync();
+                        detail.TargetMeasureIdAtMovement = configuredConversion.IdMeasureTo;
+                        detail.Quantity *= configuredConversion.Factor;
+                        _context.Entry(existingItem).CurrentValues.SetValues(detail);
+                        await _context.SaveChangesAsync();
+                        return existingItem;
+                    }
                     var gramsPerMeter = await _context.Materials.AsNoTracking()
                         .Where(material => material.Id == detail.IdProduct.Value)
                         .Select(material => material.GramsPerMeter)

@@ -60,6 +60,39 @@ namespace Warehouse.Controllers
             }
         }
 
+        [HttpGet("conversions")]
+        public async Task<ActionResult<List<MaterialConversionResponse>>> GetMaterialConversions([FromQuery] int idCompany, [FromQuery] int? idMaterial = null)
+        {
+            try
+            {
+                return Ok(await _service.GetMaterialConversions(idCompany, idMaterial));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading material conversions for company {IdCompany}", idCompany);
+                return StatusCode(500, new { message = "No se pudieron cargar las conversiones de materiales." });
+            }
+        }
+
+        [HttpPut("{idMaterial}/conversions")]
+        public async Task<IActionResult> SaveMaterialConversions(int idMaterial, [FromBody] SaveMaterialConversionsRequest request)
+        {
+            try
+            {
+                await _service.SaveMaterialConversions(request.IdCompany, idMaterial, request);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving material conversions for material {IdMaterial}", idMaterial);
+                return StatusCode(500, new { message = "No se pudieron guardar las conversiones de materiales." });
+            }
+        }
+
 
         [HttpGet("{idCompany}")]
         public async Task<ActionResult<List<object>>> GetSupplies(int idCompany, string typematerial)

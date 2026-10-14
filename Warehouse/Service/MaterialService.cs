@@ -122,6 +122,85 @@ namespace Warehouse.Service
         }
 
 
+        public async Task<List<MaterialConversionResponse>> GetMaterialConversions(int idCompany, int? idMaterial = null)
+        {
+            var query = from conversion in _context.MaterialConversions.AsNoTracking()
+                        join measureFrom in _context.Catalogs.AsNoTracking() on conversion.IdMeasureFrom equals measureFrom.Id
+                        join measureTo in _context.Catalogs.AsNoTracking() on conversion.IdMeasureTo equals measureTo.Id
+                        where conversion.IdCompany == idCompany && conversion.Active
+                            && (!idMaterial.HasValue || conversion.IdMaterial == idMaterial.Value)
+                        orderby conversion.Id
+                        select new MaterialConversionResponse
+                        {
+                            IdMaterial = conversion.IdMaterial,
+                            IdMeasureFrom = conversion.IdMeasureFrom,
+                            MeasureFrom = measureFrom.Description,
+                            IdMeasureTo = conversion.IdMeasureTo,
+                            MeasureTo = measureTo.Description,
+                            Factor = conversion.Factor,
+                        };
+            return await query.ToListAsync();
+        }
+
+        public async Task SaveMaterialConversions(int idCompany, int idMaterial, SaveMaterialConversionsRequest request)
+        {
+            if (request?.Conversions == null || idCompany <= 0 || idMaterial <= 0 || request.IdCompany != idCompany)
+                throw new InvalidOperationException("La empresa o el material no son válidos.");
+
+            if (request.Conversions.Any(conversion => conversion.IdMeasureFrom <= 0 || conversion.IdMeasureTo <= 0
+                    || conversion.IdMeasureFrom == conversion.IdMeasureTo || conversion.Factor <= 0)
+                || request.Conversions.Select(conversion => conversion.IdMeasureFrom).Distinct().Count() != request.Conversions.Count
+                || request.Conversions.Select(conversion => conversion.IdMeasureTo).Distinct().Count() > 1)
+                throw new InvalidOperationException("Cada unidad origen debe ser única, usar un factor mayor que cero y convertir a la misma unidad de inventario.");
+
+            var parent = await _context.Materials.AsNoTracking()
+                .FirstOrDefaultAsync(material => material.Id == idMaterial && material.IdCompany == idCompany && material.Active == true);
+            if (parent == null)
+                throw new InvalidOperationException("El material no está activo en la empresa seleccionada.");
+
+            if (request.Conversions.Count > 0 && (!parent.IdMedida.HasValue
+                || !request.Conversions.Any(conversion => conversion.IdMeasureFrom == parent.IdMedida.Value)))
+                throw new InvalidOperationException("Incluye la unidad de compra del material como una de las unidades origen.");
+
+            var measureIds = request.Conversions.SelectMany(conversion => new[] { conversion.IdMeasureFrom, conversion.IdMeasureTo }).Distinct().ToList();
+            var validMeasureIds = await _context.Catalogs.AsNoTracking()
+                .Where(measure => measureIds.Contains(measure.Id) && measure.IdCompany == idCompany
+                    && measure.Type == "MEASURE" && measure.Active == 1)
+                .Select(measure => measure.Id)
+                .ToListAsync();
+            if (validMeasureIds.Count != measureIds.Count)
+                throw new InvalidOperationException("Selecciona unidades de medida activas de esta empresa.");
+
+            var currentConversions = await _context.MaterialConversions.AsNoTracking()
+                .Where(conversion => conversion.IdCompany == idCompany && conversion.IdMaterial == idMaterial && conversion.Active)
+                .ToListAsync();
+            var hasInventoryHistory = await _context.Detailsinandout.AsNoTracking()
+                .Join(_context.Inandouts.AsNoTracking(), detail => detail.IdInandout, movement => movement.Id,
+                    (detail, movement) => new { detail, movement })
+                .AnyAsync(row => row.detail.Active && row.detail.IdProduct == idMaterial && row.movement.Active == true && row.movement.Type == "IN");
+            var newTargetMeasureId = request.Conversions.FirstOrDefault()?.IdMeasureTo;
+            var currentTargetMeasureId = currentConversions.FirstOrDefault()?.IdMeasureTo;
+            if (hasInventoryHistory && ((currentConversions.Count == 0 && request.Conversions.Count > 0)
+                || (currentConversions.Count > 0 && (request.Conversions.Count == 0 || currentTargetMeasureId != newTargetMeasureId))))
+                throw new InvalidOperationException("Este material ya tiene entradas de inventario. No se puede cambiar la unidad base; configura la conversión antes de registrar entradas.");
+
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            foreach (var conversion in currentConversions) conversion.Active = false;
+            await _context.SaveChangesAsync();
+
+            _context.MaterialConversions.AddRange(request.Conversions.Select(conversion => new MaterialConversion
+            {
+                IdCompany = idCompany,
+                IdMaterial = idMaterial,
+                IdMeasureFrom = conversion.IdMeasureFrom,
+                IdMeasureTo = conversion.IdMeasureTo,
+                Factor = conversion.Factor,
+                Active = true,
+            }));
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
+        }
+
         public async Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany)
         {
             try
@@ -328,6 +407,7 @@ namespace Warehouse.Service
                         // material; también necesita el precio de venta para
                         // precargar la partida seleccionada.
                         s.VentaMN,
+                        idMeasure = s.IdMedida,
                         measure = _context.Catalogs
                             .Where(c => c.Id == s.IdMedida && c.Type == "MEASURE" && c.Active == 1)
                             .Select(c => c.Description)
@@ -760,6 +840,8 @@ namespace Warehouse.Service
         Task<List<MaterialsWithFamiliesView>> GetMaterialsWithFamilies(int idCompany);
         Task<List<MaterialComponentResponse>> GetMaterialComponents(int idCompany, int idParentMaterial);
         Task SaveMaterialComponents(int idCompany, int idParentMaterial, SaveMaterialComponentsRequest request);
+        Task<List<MaterialConversionResponse>> GetMaterialConversions(int idCompany, int? idMaterial = null);
+        Task SaveMaterialConversions(int idCompany, int idMaterial, SaveMaterialConversionsRequest request);
         Task<List<ProveedoresxtypeView>> MaterialsxProvView(int idCompany);
         Task<List<MaterialWithCount>> GetMaterialsWithCounts(int idCompany);
         Task<List<MaterialsXProvider>> MaterialsxProv(string Typereference, int idProv);
