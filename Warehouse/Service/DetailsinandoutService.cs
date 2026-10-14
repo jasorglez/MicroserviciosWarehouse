@@ -32,42 +32,98 @@ namespace Warehouse.Service;
         {
             try
             {
-                return await _context.Detailsinandout
+                var details = await _context.Detailsinandout
+                    .AsNoTracking()
                     .Where(d => d.Active == true && d.IdInandout == idInandout)
-                    .GroupJoin(_context.Materials,
-                        detail => detail.IdProduct,
-                        material => (int?)material.Id,
-                        (detail, materials) => new { detail, material = materials.FirstOrDefault() })
-                    .GroupJoin(_context.Catalogs,
-                        detailMaterial => detailMaterial.material != null ? detailMaterial.material.IdMedida : null,
-                        catalog => catalog.Id,
-                        (detailMaterial, catalogs) => new { detailMaterial, catalog = catalogs.FirstOrDefault(c => c.Type == "MEASURE" && c.Active == 1) })
-                    .Select(x => new
+                    .Select(detail => new
+                    {
+                        detail.Id,
+                        detail.IdInandout,
+                        detail.IdProduct,
+                        detail.IdParentProduct,
+                        detail.ComponentName,
+                        detail.Quantity,
+                        detail.Pending,
+                        detail.Total,
+                        detail.SourceQuantity,
+                        detail.SourceMeasure,
+                        detail.SourceMeasureId,
+                        detail.GramsPerMeterAtMovement,
+                        detail.ConversionFactorAtMovement,
+                        detail.TargetMeasureAtMovement,
+                        detail.Type,
+                        detail.Active
+                    })
+                    .ToListAsync();
+
+                var productIds = details
+                    .Where(detail => detail.IdProduct.HasValue)
+                    .Select(detail => detail.IdProduct!.Value)
+                    .Distinct()
+                    .ToArray();
+                var materials = new List<(int Id, string? Code, string? Description, int? MeasureId)>();
+                if (productIds.Length > 0)
+                {
+                    var materialRows = await _context.Materials.AsNoTracking()
+                        .Where(material => productIds.Contains(material.Id))
+                        .Select(material => new
                         {
-                            x.detailMaterial.detail.Id,
-                            code = x.detailMaterial.material != null ? x.detailMaterial.material.Insumo : null,
-                            x.detailMaterial.detail.IdInandout,
-                            x.detailMaterial.detail.IdProduct,
-                            x.detailMaterial.detail.IdParentProduct,
-                            description = x.detailMaterial.detail.ComponentName ?? x.detailMaterial.material!.Description,
-                            Quantity = x.detailMaterial.detail.SourceQuantity ?? x.detailMaterial.detail.Quantity,
-                            x.detailMaterial.detail.Pending,
-                            x.detailMaterial.detail.Total,
-                            measure = x.detailMaterial.detail.SourceMeasure
-                                ?? x.detailMaterial.detail.TargetMeasureAtMovement
-                                ?? (x.detailMaterial.detail.GramsPerMeterAtMovement > 0
-                                    ? "m"
-                                    : x.catalog != null ? x.catalog.Description : ""),
-                            x.detailMaterial.detail.SourceQuantity,
-                            x.detailMaterial.detail.SourceMeasure,
-                            x.detailMaterial.detail.SourceMeasureId,
-                            x.detailMaterial.detail.GramsPerMeterAtMovement,
-                            x.detailMaterial.detail.ConversionFactorAtMovement,
-                            x.detailMaterial.detail.TargetMeasureAtMovement,
-                            x.detailMaterial.detail.Type,
-                            x.detailMaterial.detail.Active
+                            material.Id,
+                            Code = material.Insumo,
+                            material.Description,
+                            MeasureId = material.IdMedida
                         })
-                    .ToListAsync<object>();
+                        .ToListAsync();
+                    materials = materialRows
+                        .Select(material => (material.Id, material.Code, material.Description, material.MeasureId))
+                        .ToList();
+                }
+
+                var materialById = materials.ToDictionary(material => material.Id);
+                var measureIds = materials
+                    .Where(material => material.MeasureId.HasValue)
+                    .Select(material => material.MeasureId!.Value)
+                    .Distinct()
+                    .ToArray();
+                var measures = measureIds.Length == 0
+                    ? new Dictionary<int, string>()
+                    : await _context.Catalogs.AsNoTracking()
+                        .Where(catalog => measureIds.Contains(catalog.Id)
+                            && catalog.Type == "MEASURE" && catalog.Active == 1)
+                        .Select(catalog => new { catalog.Id, catalog.Description })
+                        .ToDictionaryAsync(catalog => catalog.Id, catalog => catalog.Description);
+
+                return details.Select(detail =>
+                {
+                    var hasMaterial = materialById.TryGetValue(detail.IdProduct ?? 0, out var material);
+                    var measure = hasMaterial && material.MeasureId is int measureId && measures.TryGetValue(measureId, out var description)
+                        ? description
+                        : string.Empty;
+
+                    return (object)new
+                    {
+                        detail.Id,
+                        code = hasMaterial ? material.Code : null,
+                        detail.IdInandout,
+                        detail.IdProduct,
+                        detail.IdParentProduct,
+                        description = detail.ComponentName ?? (hasMaterial ? material.Description : null) ?? string.Empty,
+                        Quantity = detail.SourceQuantity ?? detail.Quantity,
+                        detail.Pending,
+                        detail.Total,
+                        measure = detail.SourceMeasure
+                            ?? detail.TargetMeasureAtMovement
+                            ?? (detail.GramsPerMeterAtMovement > 0 ? "m" : measure),
+                        detail.SourceQuantity,
+                        detail.SourceMeasure,
+                        detail.SourceMeasureId,
+                        detail.GramsPerMeterAtMovement,
+                        detail.ConversionFactorAtMovement,
+                        detail.TargetMeasureAtMovement,
+                        detail.Type,
+                        detail.Active
+                    };
+                }).ToList();
             }
             catch (Exception ex)
             {
