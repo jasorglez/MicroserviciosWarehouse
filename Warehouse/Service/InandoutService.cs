@@ -19,7 +19,9 @@ namespace Warehouse.Service
         try
         {
             var query = _context.Inandouts
-                .Where(i => i.Type == type && i.IdWarehouse == idWarehouse && i.Active == true);
+                .Where(i => i.Type == type
+                    && (i.IdWarehouse == idWarehouse || (type == "IN" && i.IdWarehouseOrigin == idWarehouse))
+                    && i.Active == true);
 
             if (idProject.HasValue && idProject.Value > 0)
                 query = query.Where(i => i.IdProject == idProject.Value);

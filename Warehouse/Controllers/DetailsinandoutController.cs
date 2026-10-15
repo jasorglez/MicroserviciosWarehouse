@@ -54,6 +54,21 @@ public class DetailsinandoutController : ControllerBase
     }
 
 
+    [HttpGet("stock/{productId}/{warehouseId}")]
+    public async Task<IActionResult> GetStockByProductAndWarehouse(int productId, int warehouseId)
+    {
+        try
+        {
+            var result = await _service.GetStockByProductAndWarehouse(productId, warehouseId);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting stock for product {ProductId} in warehouse {WarehouseId}", productId, warehouseId);
+            throw;
+        }
+    }
+
     [HttpPost]
     public async Task<IActionResult> Save([FromBody] Detailsinandout detail)
     {

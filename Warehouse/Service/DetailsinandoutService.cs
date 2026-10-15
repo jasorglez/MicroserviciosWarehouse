@@ -132,6 +132,32 @@ namespace Warehouse.Service;
             }
         }
 
+    public async Task<object> GetStockByProductAndWarehouse(int productId, int warehouseId)
+    {
+        try
+        {
+            var stock = await _context.Detailsinandout.AsNoTracking()
+                .Where(detail => detail.Active && detail.IdProduct == productId)
+                .Join(_context.Inandouts.AsNoTracking(),
+                    detail => detail.IdInandout,
+                    movement => movement.Id,
+                    (detail, movement) => new { detail, movement })
+                .Where(item => item.movement.Active != false
+                    && item.movement.IdWarehouse == warehouseId
+                    && (item.movement.Type == "IN" || item.movement.Type == "OUT"))
+                .SumAsync(item => (decimal?)(item.movement.Type == "IN"
+                    ? item.detail.Quantity
+                    : -item.detail.Quantity)) ?? 0m;
+
+            return Math.Max(0m, stock);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving stock for product {ProductId} at warehouse {WarehouseId}", productId, warehouseId);
+            throw;
+        }
+    }
+
     public async Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId)
     {
         try
@@ -506,6 +532,7 @@ namespace Warehouse.Service;
     {
         Task<List<object>> GetDetails(int idInandout);
         Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId);
+        Task<object> GetStockByProductAndWarehouse(int productId, int warehouseId);
         Task Save(Detailsinandout detail);
         Task<Detailsinandout?> Update(int id, Detailsinandout detail);
         Task<bool> Delete(int id);

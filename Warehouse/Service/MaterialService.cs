@@ -403,6 +403,7 @@ namespace Warehouse.Service
                     {
                         s.Id,
                         s.Description,
+                        code = s.Insumo,
                         // La OC usa este catálogo reducido para buscar el
                         // material; también necesita el precio de venta para
                         // precargar la partida seleccionada.
