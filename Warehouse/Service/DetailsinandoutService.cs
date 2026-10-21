@@ -28,6 +28,80 @@ namespace Warehouse.Service;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        private async Task ApplyMaterialBrandAsync(Detailsinandout detail, bool isNew)
+        {
+            if (!detail.IdProduct.HasValue) return;
+
+            var companyId = await _context.Materials.AsNoTracking()
+                .Where(material => material.Id == detail.IdProduct.Value)
+                .Select(material => material.IdCompany)
+                .FirstOrDefaultAsync();
+
+            var configured = await (from relation in _context.MaterialBrands.AsNoTracking()
+                                    join catalog in _context.Catalogs.AsNoTracking() on relation.IdCatalog equals catalog.Id
+                                    where relation.IdMaterial == detail.IdProduct.Value && relation.Active
+                                        && catalog.IdCompany == companyId && catalog.Type == "BRAND" && catalog.Active == 1
+                                    orderby catalog.Description
+                                    select new { relation.IdCatalog, catalog.Description })
+                .ToListAsync();
+
+            if (detail.IdBrand.HasValue)
+            {
+                var selected = await (from relation in _context.MaterialBrands.AsNoTracking()
+                                      join catalog in _context.Catalogs.AsNoTracking() on relation.IdCatalog equals catalog.Id
+                                      where relation.IdMaterial == detail.IdProduct.Value && relation.IdCatalog == detail.IdBrand.Value
+                                          && catalog.IdCompany == companyId && catalog.Type == "BRAND"
+                                      select new { RelationActive = relation.Active, CatalogActive = catalog.Active, catalog.Description }).FirstOrDefaultAsync();
+                if (selected == null || (isNew && (!selected.RelationActive || selected.CatalogActive != 1)))
+                    throw new InvalidOperationException("La marca seleccionada no está configurada para este material.");
+                detail.BrandName ??= selected.Description;
+            }
+            else if (configured.Count == 1)
+            {
+                detail.IdBrand = configured[0].IdCatalog;
+                detail.BrandName = configured[0].Description;
+            }
+            else if (configured.Count > 1 && isNew && detail.BrandName != "Sin marca")
+            {
+                throw new InvalidOperationException("Selecciona una marca para este material antes de guardar el movimiento.");
+            }
+        }
+
+        private async Task ValidateBrandStockAsync(Detailsinandout detail)
+        {
+            if (!detail.IdProduct.HasValue || detail.Quantity is null or <= 0) return;
+            var movement = await _context.Inandouts.AsNoTracking()
+                .Where(item => item.Id == detail.IdInandout && item.Active == true)
+                .Select(item => new { item.Type, item.IdWarehouse })
+                .FirstOrDefaultAsync();
+            if (movement?.Type != "OUT" || !movement.IdWarehouse.HasValue) return;
+
+            var multiBrand = await _context.MaterialBrands.AsNoTracking()
+                .CountAsync(brand => brand.IdMaterial == detail.IdProduct.Value && brand.Active);
+            if (multiBrand < 2) return;
+
+            var available = await _context.Detailsinandout.AsNoTracking()
+                .Where(item => item.Active && item.IdProduct == detail.IdProduct && item.IdBrand == detail.IdBrand)
+                .Join(_context.Inandouts.AsNoTracking(), item => item.IdInandout, header => header.Id,
+                    (item, header) => new { item, header })
+                .Where(pair => pair.header.Active != false && pair.header.IdWarehouse == movement.IdWarehouse
+                    && (pair.header.Type == "IN" || pair.header.Type == "OUT"))
+                .SumAsync(pair => (decimal?)(pair.header.Type == "IN" ? pair.item.Quantity : -pair.item.Quantity)) ?? 0m;
+
+            if (detail.Id > 0)
+            {
+                var existing = await _context.Detailsinandout.AsNoTracking()
+                    .Where(item => item.Id == detail.Id && item.Active)
+                    .Select(item => new { item.IdProduct, item.IdBrand, item.Quantity })
+                    .FirstOrDefaultAsync();
+                if (existing?.IdProduct == detail.IdProduct && existing.IdBrand == detail.IdBrand)
+                    available += existing.Quantity ?? 0m;
+            }
+
+            if (detail.Quantity.Value > Math.Max(0m, available))
+                throw new InvalidOperationException($"La existencia de la marca seleccionada es {Math.Max(0m, available)}; no puedes retirar {detail.Quantity.Value}.");
+        }
+
         public async Task<List<object>> GetDetails(int idInandout)
         {
             try
@@ -40,6 +114,8 @@ namespace Warehouse.Service;
                         detail.Id,
                         detail.IdInandout,
                         detail.IdProduct,
+                        detail.IdBrand,
+                        detail.BrandName,
                         detail.IdParentProduct,
                         detail.ComponentName,
                         detail.Quantity,
@@ -109,6 +185,8 @@ namespace Warehouse.Service;
                         detail.IdParentProduct,
                         description = detail.ComponentName ?? (hasMaterial ? material.Description : null) ?? string.Empty,
                         Quantity = detail.SourceQuantity ?? detail.Quantity,
+                        detail.IdBrand,
+                        brand = detail.BrandName,
                         detail.Pending,
                         detail.Total,
                         measure = detail.SourceMeasure
@@ -132,12 +210,13 @@ namespace Warehouse.Service;
             }
         }
 
-    public async Task<object> GetStockByProductAndWarehouse(int productId, int warehouseId)
+    public async Task<object> GetStockByProductAndWarehouse(int productId, int warehouseId, int? brandId = null)
     {
         try
         {
             var stock = await _context.Detailsinandout.AsNoTracking()
-                .Where(detail => detail.Active && detail.IdProduct == productId)
+                .Where(detail => detail.Active && detail.IdProduct == productId
+                    && (!brandId.HasValue || (brandId.Value == 0 ? !detail.IdBrand.HasValue : detail.IdBrand == brandId.Value)))
                 .Join(_context.Inandouts.AsNoTracking(),
                     detail => detail.IdInandout,
                     movement => movement.Id,
@@ -158,12 +237,13 @@ namespace Warehouse.Service;
         }
     }
 
-    public async Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId)
+    public async Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId, int? brandId = null)
     {
         try
         {
             var total = await _context.Detailsinandout
-                .Where(d => d.Active == true && d.IdProduct == productId)
+                .Where(d => d.Active == true && d.IdProduct == productId
+                    && (!brandId.HasValue || (brandId.Value == 0 ? !d.IdBrand.HasValue : d.IdBrand == brandId.Value)))
                 .Join(_context.Inandouts,
                     d => d.IdInandout,
                     i => i.Id,
@@ -203,6 +283,8 @@ namespace Warehouse.Service;
                 IdInandout = pairedMovementId.Value,
                 IdTransferPair = source.Id,
                 IdProduct = source.IdProduct,
+                IdBrand = source.IdBrand,
+                BrandName = source.BrandName,
                 IdParentProduct = source.IdParentProduct,
                 ComponentName = source.ComponentName,
                 SourceQuantity = source.SourceQuantity,
@@ -254,6 +336,7 @@ namespace Warehouse.Service;
         {
             try
             {
+                await ApplyMaterialBrandAsync(detail, isNew: detail.Id <= 0);
                 var movementType = await _context.Inandouts.AsNoTracking()
                     .Where(movement => movement.Id == detail.IdInandout && movement.Active == true)
                     .Select(movement => movement.Type)
@@ -337,6 +420,7 @@ namespace Warehouse.Service;
                 }
                 else if (movementType == "OUT" && detail.IdProduct.HasValue)
                 {
+                    await ValidateBrandStockAsync(detail);
                     var productCompany = await _context.Materials.AsNoTracking()
                         .Where(item => item.Id == detail.IdProduct.Value)
                         .Select(item => item.IdCompany)
@@ -396,6 +480,8 @@ namespace Warehouse.Service;
 
             try
             {
+                detail.Id = id;
+                await ApplyMaterialBrandAsync(detail, isNew: false);
                 var movementType = await _context.Inandouts.AsNoTracking()
                     .Where(movement => movement.Id == detail.IdInandout)
                     .Select(movement => movement.Type)
@@ -482,6 +568,7 @@ namespace Warehouse.Service;
                         .Select(material => material.GramsPerMeter)
                         .FirstOrDefaultAsync();
                 }
+                if (movementType == "OUT") await ValidateBrandStockAsync(detail);
                 _context.Entry(existingItem).CurrentValues.SetValues(detail);
                 existingItem.IdTransferPair = transferPairId;
                 await _context.SaveChangesAsync();
@@ -531,8 +618,8 @@ namespace Warehouse.Service;
     public interface IDetailsinandoutService
     {
         Task<List<object>> GetDetails(int idInandout);
-        Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId);
-        Task<object> GetStockByProductAndWarehouse(int productId, int warehouseId);
+        Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId, int? brandId = null);
+        Task<object> GetStockByProductAndWarehouse(int productId, int warehouseId, int? brandId = null);
         Task Save(Detailsinandout detail);
         Task<Detailsinandout?> Update(int id, Detailsinandout detail);
         Task<bool> Delete(int id);

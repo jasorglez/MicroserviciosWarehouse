@@ -169,8 +169,15 @@ namespace Warehouse.Controllers
                 if (dto.CantidadFisica < 0)
                     return BadRequest(new { error = "La cantidad física no puede ser negativa" });
 
+                if (dto.IdBrand < 0)
+                    return BadRequest(new { error = "idBrand debe ser 0 o un identificador de marca válido" });
+
                 var result = await _inventarioService.AjustarInventarioAsync(dto);
                 return Ok(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
             }
             catch (Exception ex)
             {

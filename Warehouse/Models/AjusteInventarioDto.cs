@@ -7,4 +7,6 @@ public class AjusteInventarioDto
     public decimal CantidadFisica  { get; set; }
     public string? Comentario      { get; set; }
     public int     IdCompany       { get; set; }
+    // 0 representa existencias históricas sin marca; null conserva el ajuste general.
+    public int?    IdBrand         { get; set; }
 }

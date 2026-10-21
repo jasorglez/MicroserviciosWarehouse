@@ -72,6 +72,50 @@ namespace Warehouse.Service
             }
         }
 
+        public async Task<List<object>> GetMaterialBrands(int idCompany, int? idMaterial = null)
+        {
+            var query = from relation in _context.MaterialBrands.AsNoTracking()
+                        join material in _context.Materials.AsNoTracking() on relation.IdMaterial equals material.Id
+                        join catalog in _context.Catalogs.AsNoTracking() on relation.IdCatalog equals catalog.Id
+                        where relation.Active && material.IdCompany == idCompany && material.Active == true
+                            && catalog.Active == 1 && catalog.Type == "BRAND" && catalog.IdCompany == idCompany
+                        select new { id = catalog.Id, relation.IdMaterial, brand = catalog.Description };
+
+            if (idMaterial.HasValue)
+                query = query.Where(item => item.IdMaterial == idMaterial.Value);
+
+            return (await query.OrderBy(item => item.brand).ToListAsync())
+                .Select(item => (object)item).ToList();
+        }
+
+        public async Task SaveMaterialBrands(int idCompany, int idMaterial, IEnumerable<int>? catalogIds)
+        {
+            var materialExists = await _context.Materials.AsNoTracking()
+                .AnyAsync(item => item.Id == idMaterial && item.IdCompany == idCompany && item.Active == true);
+            if (!materialExists) throw new InvalidOperationException("El material no existe o no pertenece a la empresa seleccionada.");
+
+            var ids = (catalogIds ?? Enumerable.Empty<int>()).Where(id => id > 0).Distinct().ToList();
+            var validIds = await _context.Catalogs.AsNoTracking()
+                .Where(item => ids.Contains(item.Id) && item.IdCompany == idCompany && item.Type == "BRAND" && item.Active == 1)
+                .Select(item => item.Id)
+                .ToListAsync();
+            if (validIds.Count != ids.Count)
+                throw new InvalidOperationException("Una o más marcas no pertenecen al catálogo activo de la empresa.");
+
+            var rows = await _context.MaterialBrands.Where(item => item.IdMaterial == idMaterial).ToListAsync();
+            foreach (var row in rows) row.Active = ids.Contains(row.IdCatalog);
+            foreach (var catalogId in ids)
+            {
+                var existing = rows.FirstOrDefault(item => item.IdCatalog == catalogId);
+                if (existing == null)
+                {
+                    _context.MaterialBrands.Add(new MaterialBrand { IdMaterial = idMaterial, IdCatalog = catalogId, Active = true });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
         public async Task<List<MaterialComponentResponse>> GetMaterialComponents(int idCompany, int idParentMaterial)
         {
             return await _context.MaterialComponents.AsNoTracking()
@@ -839,6 +883,8 @@ namespace Warehouse.Service
     public interface IMaterialService
     {
         Task<List<MaterialsWithFamiliesView>> GetMaterialsWithFamilies(int idCompany);
+        Task<List<object>> GetMaterialBrands(int idCompany, int? idMaterial = null);
+        Task SaveMaterialBrands(int idCompany, int idMaterial, IEnumerable<int>? catalogIds);
         Task<List<MaterialComponentResponse>> GetMaterialComponents(int idCompany, int idParentMaterial);
         Task SaveMaterialComponents(int idCompany, int idParentMaterial, SaveMaterialComponentsRequest request);
         Task<List<MaterialConversionResponse>> GetMaterialConversions(int idCompany, int? idMaterial = null);

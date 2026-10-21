@@ -21,6 +21,12 @@ public class Detailsinandout
     [Column("id_product")]
     public int? IdProduct { get; set; }
 
+    [Column("id_brand")]
+    public int? IdBrand { get; set; }
+
+    [Column("brand_name")]
+    public string? BrandName { get; set; }
+
     [Column("id_parent_product")]
     public int? IdParentProduct { get; set; }
 

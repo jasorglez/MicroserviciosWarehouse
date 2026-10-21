@@ -23,6 +23,44 @@ namespace Warehouse.Controllers
             _logger = logger;
         }
 
+        [HttpGet("brands/company/{idCompany:int}")]
+        public async Task<IActionResult> GetMaterialBrands(int idCompany)
+        {
+            try { return Ok(await _service.GetMaterialBrands(idCompany)); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving material brands for company {IdCompany}", idCompany);
+                return StatusCode(500, new { message = "No se pudieron cargar las marcas." });
+            }
+        }
+
+        [HttpGet("{idMaterial:int}/brands")]
+        public async Task<IActionResult> GetMaterialBrands(int idMaterial, [FromQuery] int idCompany)
+        {
+            try { return Ok(await _service.GetMaterialBrands(idCompany, idMaterial)); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error retrieving brands for material {IdMaterial}", idMaterial);
+                return StatusCode(500, new { message = "No se pudieron cargar las marcas del material." });
+            }
+        }
+
+        [HttpPut("{idMaterial:int}/brands")]
+        public async Task<IActionResult> SaveMaterialBrands(int idMaterial, [FromBody] SaveMaterialBrandsRequest request)
+        {
+            try
+            {
+                await _service.SaveMaterialBrands(request.IdCompany, idMaterial, request.CatalogIds);
+                return NoContent();
+            }
+            catch (InvalidOperationException ex) { return BadRequest(new { message = ex.Message }); }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error saving brands for material {IdMaterial}", idMaterial);
+                return StatusCode(500, new { message = "No se pudieron guardar las marcas del material." });
+            }
+        }
+
         [HttpGet("{idMaterial}/components")]
         public async Task<ActionResult<List<MaterialComponentResponse>>> GetMaterialComponents(int idMaterial, [FromQuery] int idCompany)
         {

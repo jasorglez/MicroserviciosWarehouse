@@ -37,11 +37,11 @@ public class DetailsinandoutController : ControllerBase
     }
 
     [HttpGet("sumentrada/{productId}/{warehouseId}")]
-    public async Task<IActionResult> GetSumaEntradaxWarehouse(int productId, int warehouseId)
+    public async Task<IActionResult> GetSumaEntradaxWarehouse(int productId, int warehouseId, [FromQuery] int? brandId = null)
     {
         try
         {
-            var result = await _service.GetTotalInByProductAndWarehouse(productId, warehouseId);
+            var result = await _service.GetTotalInByProductAndWarehouse(productId, warehouseId, brandId);
             return Ok(result);
         }
         catch (Exception ex)
@@ -55,11 +55,11 @@ public class DetailsinandoutController : ControllerBase
 
 
     [HttpGet("stock/{productId}/{warehouseId}")]
-    public async Task<IActionResult> GetStockByProductAndWarehouse(int productId, int warehouseId)
+    public async Task<IActionResult> GetStockByProductAndWarehouse(int productId, int warehouseId, [FromQuery] int? brandId = null)
     {
         try
         {
-            var result = await _service.GetStockByProductAndWarehouse(productId, warehouseId);
+            var result = await _service.GetStockByProductAndWarehouse(productId, warehouseId, brandId);
             return Ok(result);
         }
         catch (Exception ex)
