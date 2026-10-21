@@ -163,6 +163,8 @@ namespace Warehouse.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting Order with ID {Id}", id);
+                if (ex is InvalidOperationException)
+                    return Conflict(new { message = ex.Message });
                 return StatusCode(500, "An error occurred while deleting the order");
             }
         }

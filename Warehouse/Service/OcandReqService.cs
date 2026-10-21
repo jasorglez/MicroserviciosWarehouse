@@ -310,6 +310,18 @@ namespace Warehouse.Service
 
             try
             {
+                var hasDetails = await _context.Detailsreqoc.AnyAsync(d => d.IdMovement == id && d.Active == true);
+                if (hasDetails)
+                    throw new InvalidOperationException("No se puede eliminar el documento porque contiene partidas. Elimina primero sus partidas.");
+
+                if (string.Equals(existingItem.Type, "REQUIS", StringComparison.OrdinalIgnoreCase))
+                {
+                    var hasActiveOrders = await _context.Ocandreqs.AnyAsync(o =>
+                        o.Active == true && o.Type == "OC" && o.IdReq == id);
+                    if (hasActiveOrders)
+                        throw new InvalidOperationException("No se puede eliminar la requisición porque tiene Órdenes de compra relacionadas.");
+                }
+
                 existingItem.Active = false;
                 await _context.SaveChangesAsync();
                 return true;

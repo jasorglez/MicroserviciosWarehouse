@@ -66,6 +66,8 @@ namespace Warehouse.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error saving inandout");
+                if (ex is InvalidOperationException)
+                    return BadRequest(new { message = ex.Message });
                 return StatusCode(500, "An error occured while saving inandout");
             }
         }
@@ -90,6 +92,8 @@ namespace Warehouse.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating inandout with ID {Id}", id);
+                if (ex is InvalidOperationException)
+                    return BadRequest(new { message = ex.Message });
                 return StatusCode(500, "An error ocurred while updating the order");
             }
         }
@@ -110,6 +114,8 @@ namespace Warehouse.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting inandout with ID {Id}", id);
+                if (ex is InvalidOperationException)
+                    return Conflict(new { message = ex.Message });
                 return StatusCode(500, "An error occured while deleting inandout");
             }
         }

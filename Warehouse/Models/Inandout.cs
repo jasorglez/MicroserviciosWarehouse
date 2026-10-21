@@ -45,6 +45,9 @@ namespace Warehouse.Models
         
         [Column("id_oc")]
         public int? IdOc { get; set; }
+
+        [Column("id_entry")]
+        public int? IdEntry { get; set; }
         
         [Column("num_bill", TypeName = "varchar(30)")]
         public string? NumBill { get; set; }

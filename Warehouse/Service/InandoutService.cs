@@ -38,6 +38,7 @@ namespace Warehouse.Service
                     i.Date,
                     i.DeliveryDate,
                     i.IdOc,
+                    i.IdEntry,
                     i.NumBill,i.IdOt,
                     i.DeliverName, i.IdAutoriza,
                     i.CountRow, 
@@ -78,6 +79,7 @@ namespace Warehouse.Service
                     i.IdOt,
                     i.DeliveryDate,
                     i.IdOc,
+                    i.IdEntry,
                     i.NumBill,
                     i.DeliverName,
                     i.CountRow,
@@ -113,6 +115,7 @@ namespace Warehouse.Service
 
             if (!isTransfer)
             {
+                await ValidateEntrySource(inandout);
                 _context.Inandouts.Add(inandout);
                 await _context.SaveChangesAsync();
                 return;
@@ -170,6 +173,7 @@ namespace Warehouse.Service
 
             try
             {
+                await ValidateEntrySource(inandout);
                 if (existingItem.IdTransferPair.HasValue && inandout.Type == "IN")
                 {
                     var updatedDescription = inandout.IdType.HasValue
@@ -219,6 +223,7 @@ namespace Warehouse.Service
 
                 // IdOc: permite 0 (sin OC) o cualquier valor
                 existingItem.IdOc = inandout.IdOc;
+                existingItem.IdEntry = inandout.IdEntry;
 
                 if (inandout.NumBill != null)
                     existingItem.NumBill = inandout.NumBill;
@@ -256,6 +261,14 @@ namespace Warehouse.Service
 
         try
         {
+            var hasDetails = await _context.Detailsinandout.AnyAsync(d => d.IdInandout == id && d.Active);
+            var hasOutgoingMovements = existingItem.Type == "IN" && await _context.Inandouts.AnyAsync(m =>
+                m.Active == true && m.Type == "OUT" && m.IdEntry == id);
+            var pairedHasDetails = existingItem.IdTransferPair.HasValue && await _context.Detailsinandout.AnyAsync(d =>
+                d.IdInandout == existingItem.IdTransferPair.Value && d.Active);
+            if (hasDetails || hasOutgoingMovements || pairedHasDetails)
+                throw new InvalidOperationException("No se puede eliminar el vale porque contiene partidas o tiene Salidas relacionadas. Elimina primero sus partidas y movimientos relacionados.");
+
             existingItem.Active = false;
             if (existingItem.IdTransferPair.HasValue)
             {
@@ -270,6 +283,17 @@ namespace Warehouse.Service
             _logger.LogError(ex, "Error deleting inandout with ID {id}", id);
             throw;
         }
+    }
+
+    private async Task ValidateEntrySource(Inandout movement)
+    {
+        if (movement.Type != "OUT" || !movement.IdEntry.HasValue || movement.IdEntry.Value <= 0) return;
+        var source = await _context.Inandouts.AsNoTracking().FirstOrDefaultAsync(item =>
+            item.Id == movement.IdEntry.Value && item.Active == true && item.Type == "IN");
+        if (source == null)
+            throw new InvalidOperationException("El vale de Entrada seleccionado no existe o ya no está activo.");
+        if (source.IdProject != movement.IdProject || source.IdWarehouse != movement.IdWarehouse)
+            throw new InvalidOperationException("El vale de Entrada debe pertenecer al mismo proyecto y almacén de la Salida.");
     }
 }
 
