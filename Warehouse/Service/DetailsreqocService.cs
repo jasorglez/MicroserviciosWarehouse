@@ -43,6 +43,8 @@ namespace Warehouse.Service
                             dmc.Details.Observation,
                             dmc.Details.IdMovement,
                             dmc.Details.IdSupplie,
+                            dmc.Details.IdBrand,
+                            dmc.Details.BrandName,
                             code = dmc.Material != null ? dmc.Material.Insumo : string.Empty,
                             description = dmc.Material != null ? dmc.Material.Description : string.Empty,
                             measure = c != null ? c.Description : string.Empty,  // Descripción de la unidad de medida
@@ -106,6 +108,7 @@ namespace Warehouse.Service
         {
             try
             {
+                await ValidateBrand(detail);
                 _context.Detailsreqoc.Add(detail);
                 await _context.SaveChangesAsync();
             }
@@ -127,6 +130,7 @@ namespace Warehouse.Service
 
             try
             {
+                await ValidateBrand(detail);
                 detail.Id = id;
                 _context.Entry(existingItem).CurrentValues.SetValues(detail);
                 await _context.SaveChangesAsync();
@@ -142,6 +146,27 @@ namespace Warehouse.Service
                 _logger.LogError(ex, "Error updating Detail with ID {Id}", id);
                 throw;
             }
+        }
+
+        private async Task ValidateBrand(Detailsreqoc detail)
+        {
+            if (!detail.IdBrand.HasValue)
+            {
+                detail.BrandName = null;
+                return;
+            }
+
+            var brand = await (from relation in _context.MaterialBrands
+                               join material in _context.Materials on relation.IdMaterial equals material.Id
+                               join catalog in _context.Catalogs on relation.IdCatalog equals catalog.Id
+                               where relation.IdMaterial == detail.IdSupplie && relation.IdCatalog == detail.IdBrand.Value
+                                   && relation.Active && material.Active == true && catalog.Active == 1
+                                   && catalog.Type == "BRAND" && catalog.IdCompany == material.IdCompany
+                               select catalog.Description).FirstOrDefaultAsync();
+            if (brand == null)
+                throw new ArgumentException("La marca no está asignada al material.");
+
+            detail.BrandName = brand;
         }
 
         public async Task<bool> Delete(int id)

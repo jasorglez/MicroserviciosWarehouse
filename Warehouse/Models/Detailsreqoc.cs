@@ -17,6 +17,12 @@ namespace Warehouse.Models
         [Column("id_supplie")]
         public int IdSupplie { get; set; } = 0;
 
+        [Column("id_brand")]
+        public int? IdBrand { get; set; }
+
+        [Column("brand_name")]
+        public string? BrandName { get; set; }
+
         [Column("id_provider")]
         public int? IdProvider { get; set; } = 0;
 
