@@ -101,14 +101,14 @@ namespace Warehouse.Service
     {
         try
         {
-            var movementDescription = inandout.IdType.HasValue
+            var movementCatalog = inandout.IdType.HasValue
                 ? await _context.Catalogs.AsNoTracking()
-                    .Where(catalog => catalog.Id == inandout.IdType.Value)
-                    .Select(catalog => catalog.Description)
+                    .Where(catalog => catalog.Id == inandout.IdType.Value && catalog.Active == 1 && catalog.Type == "IN")
+                    .Select(catalog => new { catalog.IdCompany, catalog.ValueAddition })
                     .FirstOrDefaultAsync()
                 : null;
             var isTransfer = inandout.Type == "IN" &&
-                string.Equals(movementDescription?.Trim(), "TRASPASO", StringComparison.OrdinalIgnoreCase);
+                string.Equals(movementCatalog?.ValueAddition?.Trim(), "TRANSFER", StringComparison.OrdinalIgnoreCase);
 
             if (isTransfer && (!inandout.IdWarehouseOrigin.HasValue || inandout.IdWarehouseOrigin == inandout.IdWarehouse))
                 throw new InvalidOperationException("Selecciona un almacén de origen distinto al almacén de destino.");
@@ -126,7 +126,9 @@ namespace Warehouse.Service
             await _context.SaveChangesAsync();
 
             var outboundTransferTypeId = await _context.Catalogs.AsNoTracking()
-                .Where(catalog => catalog.Type == "OUT" && catalog.Active == 1 && catalog.Description == "TRASPASO")
+                .Where(catalog => catalog.Type == "OUT" && catalog.Active == 1
+                    && catalog.ValueAddition != null && catalog.ValueAddition.ToUpper() == "TRANSFER"
+                    && (!movementCatalog!.IdCompany.HasValue || catalog.IdCompany == movementCatalog.IdCompany))
                 .Select(catalog => (int?)catalog.Id)
                 .FirstOrDefaultAsync();
             var pairedMovement = new Inandout
@@ -176,14 +178,14 @@ namespace Warehouse.Service
                 await ValidateEntrySource(inandout);
                 if (existingItem.IdTransferPair.HasValue && inandout.Type == "IN")
                 {
-                    var updatedDescription = inandout.IdType.HasValue
+                    var updatedBehavior = inandout.IdType.HasValue
                         ? await _context.Catalogs.AsNoTracking()
-                            .Where(catalog => catalog.Id == inandout.IdType.Value)
-                            .Select(catalog => catalog.Description)
+                            .Where(catalog => catalog.Id == inandout.IdType.Value && catalog.Active == 1 && catalog.Type == "IN")
+                            .Select(catalog => catalog.ValueAddition)
                             .FirstOrDefaultAsync()
                         : null;
-                    if (!string.Equals(updatedDescription?.Trim(), "TRASPASO", StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidOperationException("No se puede cambiar el tipo de un traspaso ya creado.");
+                    if (!string.Equals(updatedBehavior?.Trim(), "TRANSFER", StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("No se puede cambiar el tipo de comportamiento de un traspaso ya creado.");
                     if (!inandout.IdWarehouseOrigin.HasValue || inandout.IdWarehouseOrigin == inandout.IdWarehouse)
                         throw new InvalidOperationException("Selecciona un almacén de origen distinto al almacén de destino.");
                 }
