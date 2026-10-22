@@ -1,3 +1,4 @@
+use warehouses;
 /* Links each warehouse outing to the inbound voucher whose balance it consumes. */
 IF COL_LENGTH(N'dbo.inandout', N'id_entry') IS NULL
     ALTER TABLE dbo.inandout ADD id_entry INT NULL;
