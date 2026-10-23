@@ -35,7 +35,9 @@ namespace Warehouse.Service
             {
                 return await _context.PrefixSetups
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(ps => ps.Type == type && ps.IdProjectOrBranch == idProjectOrBranch && ps.Active);
+                    .Where(ps => ps.Type == type && ps.IdProjectOrBranch == idProjectOrBranch && ps.Active)
+                    .OrderBy(ps => ps.Id)
+                    .FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
@@ -48,6 +50,34 @@ namespace Warehouse.Service
         {
             try
             {
+                if (prefixSetup.Active)
+                {
+                    var existingActiveSetup = await _context.PrefixSetups
+                        .Where(ps => ps.Type == prefixSetup.Type
+                            && ps.IdProjectOrBranch == prefixSetup.IdProjectOrBranch
+                            && ps.Active)
+                        .OrderBy(ps => ps.Id)
+                        .FirstOrDefaultAsync();
+
+                    if (existingActiveSetup != null)
+                    {
+                        existingActiveSetup.PrefixReq = prefixSetup.PrefixReq;
+                        existingActiveSetup.ConsecutiveReq = prefixSetup.ConsecutiveReq;
+                        existingActiveSetup.PrefixCotiz = prefixSetup.PrefixCotiz;
+                        existingActiveSetup.ConsecutiveCotiz = prefixSetup.ConsecutiveCotiz;
+                        existingActiveSetup.PrefixOc = prefixSetup.PrefixOc;
+                        existingActiveSetup.ConsecutiveOc = prefixSetup.ConsecutiveOc;
+                        existingActiveSetup.PrefixEntry = prefixSetup.PrefixEntry;
+                        existingActiveSetup.ConsecutiveEntry = prefixSetup.ConsecutiveEntry;
+                        existingActiveSetup.PrefixOut = prefixSetup.PrefixOut;
+                        existingActiveSetup.ConsecutiveOut = prefixSetup.ConsecutiveOut;
+                        existingActiveSetup.Active = true;
+                        prefixSetup.Id = existingActiveSetup.Id;
+                        await _context.SaveChangesAsync();
+                        return;
+                    }
+                }
+
                 _context.PrefixSetups.Add(prefixSetup);
                 await _context.SaveChangesAsync();
             }
