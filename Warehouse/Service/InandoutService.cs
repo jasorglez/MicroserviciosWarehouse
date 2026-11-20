@@ -190,6 +190,8 @@ namespace Warehouse.Service
                         throw new InvalidOperationException("Selecciona un almacén de origen distinto al almacén de destino.");
                 }
 
+                existingItem.IdProject = inandout.IdProject;
+
                 if (inandout.Folio != null)
                     existingItem.Folio = inandout.Folio;
 
@@ -203,6 +205,7 @@ namespace Warehouse.Service
                     var pairedMovement = await _context.Inandouts.FindAsync(existingItem.IdTransferPair.Value);
                     if (pairedMovement != null && existingItem.Type == "IN")
                     {
+                        pairedMovement.IdProject = inandout.IdProject;
                         pairedMovement.IdWarehouse = inandout.IdWarehouseOrigin;
                         pairedMovement.IdWarehouseOrigin = inandout.IdWarehouse;
                         pairedMovement.Date = inandout.Date;
