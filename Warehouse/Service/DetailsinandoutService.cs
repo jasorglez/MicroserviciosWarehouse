@@ -127,6 +127,7 @@ namespace Warehouse.Service;
                         detail.GramsPerMeterAtMovement,
                         detail.ConversionFactorAtMovement,
                         detail.TargetMeasureAtMovement,
+                        detail.Comment,
                         detail.Type,
                         detail.Active
                     })
@@ -198,6 +199,7 @@ namespace Warehouse.Service;
                         detail.GramsPerMeterAtMovement,
                         detail.ConversionFactorAtMovement,
                         detail.TargetMeasureAtMovement,
+                        detail.Comment,
                         detail.Type,
                         detail.Active
                     };
