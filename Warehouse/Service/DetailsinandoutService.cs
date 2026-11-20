@@ -413,6 +413,7 @@ namespace Warehouse.Service;
                             Pending = detail.Pending * component.Quantity,
                             Total = detail.Total * component.Quantity,
                             Type = detail.Type,
+                            Comment = detail.Comment,
                             Active = detail.Active,
                         }).ToList();
                         await SaveDetailRowsWithTransferAsync(componentDetails);
