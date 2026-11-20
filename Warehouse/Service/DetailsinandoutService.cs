@@ -298,6 +298,7 @@ namespace Warehouse.Service;
                 Pending = source.Pending,
                 Total = source.Total,
                 Type = source.Type,
+                Comment = source.Comment,
                 Active = source.Active
             }).ToList();
             _context.Detailsinandout.AddRange(pairedDetails);
@@ -328,6 +329,7 @@ namespace Warehouse.Service;
         paired.Pending = source.Pending;
         paired.Total = source.Total;
         paired.Type = source.Type;
+        paired.Comment = source.Comment;
         paired.Active = source.Active;
         await _context.SaveChangesAsync();
     }

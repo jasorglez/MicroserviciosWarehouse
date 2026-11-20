@@ -68,6 +68,9 @@ public class Detailsinandout
     [Column("type")]
     public string? Type  { get; set; }
 
+    [Column("comment", TypeName = "nvarchar(500)")]
+    public string? Comment { get; set; }
+
     [Column("active")] public bool Active { get; set; } = true;
 
 
