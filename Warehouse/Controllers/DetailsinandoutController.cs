@@ -36,6 +36,24 @@ public class DetailsinandoutController : ControllerBase
         }
     }
 
+    [HttpGet("kardex/{productId:int}")]
+    public async Task<IActionResult> GetKardexByProduct(int productId, [FromQuery] int[] warehouseIds)
+    {
+        if (productId <= 0 || warehouseIds == null || warehouseIds.Length == 0)
+            return BadRequest("Indica un material y al menos un almacén autorizado.");
+
+        try
+        {
+            var result = await _service.GetKardexByProduct(productId, warehouseIds.Distinct().ToArray());
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting Kardex for product {ProductId}", productId);
+            return StatusCode(500, "Error al consultar el Kardex.");
+        }
+    }
+
     [HttpGet("sumentrada/{productId}/{warehouseId}")]
     public async Task<IActionResult> GetSumaEntradaxWarehouse(int productId, int warehouseId, [FromQuery] int? brandId = null)
     {

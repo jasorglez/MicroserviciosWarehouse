@@ -239,6 +239,54 @@ namespace Warehouse.Service;
         }
     }
 
+    public async Task<List<object>> GetKardexByProduct(int productId, int[] warehouseIds)
+    {
+        if (warehouseIds.Length == 0) return new List<object>();
+
+        var rows = await (from detail in _context.Detailsinandout.AsNoTracking()
+                          join movement in _context.Inandouts.AsNoTracking() on detail.IdInandout equals movement.Id
+                          join warehouse in _context.Warehouses.AsNoTracking() on movement.IdWarehouse equals warehouse.Id
+                          join material in _context.Materials.AsNoTracking() on detail.IdProduct equals material.Id into materialJoin
+                          from material in materialJoin.DefaultIfEmpty()
+                          where detail.Active && detail.IdProduct == productId
+                              && movement.Active == true
+                              && (movement.Type == "IN" || movement.Type == "OUT")
+                              && warehouseIds.Contains(movement.IdWarehouse ?? 0)
+                          orderby movement.Date, movement.Id
+                          select new
+                          {
+                              fecha = movement.Date ?? movement.DeliveryDate,
+                              folio = movement.Folio ?? movement.Id.ToString(),
+                              tipo = movement.Type,
+                              materialId = detail.IdProduct,
+                              codigo = material != null ? material.Insumo : null,
+                              material = detail.ComponentName ?? (material != null ? material.Description : null),
+                              marca = detail.BrandName,
+                              brandId = detail.IdBrand,
+                              warehouseId = movement.IdWarehouse,
+                              almacen = warehouse.Name,
+                              cantidad = detail.SourceQuantity ?? detail.Quantity ?? detail.Total,
+                              referencia = movement.Comment
+                          }).ToListAsync();
+
+        return rows.Select(row => (object)new
+        {
+            row.fecha,
+            row.folio,
+            tipo = row.tipo == "IN" ? "Entrada" : "Salida",
+            row.materialId,
+            row.codigo,
+            material = row.material ?? $"Material #{productId}",
+            marca = row.marca ?? "",
+            row.brandId,
+            row.warehouseId,
+            almacen = row.almacen ?? "",
+            entrada = row.tipo == "IN" ? row.cantidad : 0m,
+            salida = row.tipo == "OUT" ? row.cantidad : 0m,
+            referencia = row.referencia ?? ""
+        }).ToList();
+    }
+
     public async Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId, int? brandId = null)
     {
         try
@@ -623,6 +671,7 @@ namespace Warehouse.Service;
     public interface IDetailsinandoutService
     {
         Task<List<object>> GetDetails(int idInandout);
+        Task<List<object>> GetKardexByProduct(int productId, int[] warehouseIds);
         Task<object> GetTotalInByProductAndWarehouse(int productId, int warehouseId, int? brandId = null);
         Task<object> GetStockByProductAndWarehouse(int productId, int warehouseId, int? brandId = null);
         Task Save(Detailsinandout detail);
