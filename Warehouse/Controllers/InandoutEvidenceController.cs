@@ -5,6 +5,11 @@ using Warehouse.Service;
 
 namespace Warehouse.Controllers
 {
+    public class UpdateEvidenceCommentRequest
+    {
+        public string? Comment { get; set; }
+    }
+
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
@@ -63,6 +68,22 @@ namespace Warehouse.Controllers
             {
                 _logger.LogError(ex, "Error saving evidence");
                 return StatusCode(500, "Error al guardar la evidencia fotográfica.");
+            }
+        }
+
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateComment(int id, [FromBody] UpdateEvidenceCommentRequest request)
+        {
+            try
+            {
+                var updated = await _service.UpdateComment(id, request?.Comment);
+                if (updated == null) return NotFound();
+                return Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating comment for evidence {Id}", id);
+                return StatusCode(500, "Error al actualizar el comentario de la evidencia.");
             }
         }
 

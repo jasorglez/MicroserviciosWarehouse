@@ -78,6 +78,24 @@ namespace Warehouse.Service
                 throw;
             }
         }
+
+        public async Task<Inandoutevidence?> UpdateComment(int id, string? comment)
+        {
+            var existing = await _context.Inandoutevidence.FindAsync(id);
+            if (existing == null) return null;
+
+            try
+            {
+                existing.Comment = comment;
+                await _context.SaveChangesAsync();
+                return existing;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating comment for evidence {Id}", id);
+                throw;
+            }
+        }
     }
 
     public interface IInandoutEvidenceService
@@ -86,5 +104,6 @@ namespace Warehouse.Service
         Task<Dictionary<int, int>> GetCountsByInandoutIds(IEnumerable<int> idInandoutList);
         Task<Inandoutevidence> Save(Inandoutevidence evidence);
         Task<bool> Delete(int id);
+        Task<Inandoutevidence?> UpdateComment(int id, string? comment);
     }
 }
