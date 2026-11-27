@@ -1,3 +1,4 @@
+use warehouses;
 /* Ejecutar en la base de datos warehouses. Este archivo se mantiene local y no se sube a Git. */
 IF NOT EXISTS (
     SELECT 1 FROM sys.columns
