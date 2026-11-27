@@ -34,6 +34,7 @@ namespace Warehouse.Service
                         w.Principal,
                         w.Phone,
                         w.Leader,
+                        w.Image,
                         w.Active
                     })
                     .AsNoTracking()
@@ -107,7 +108,8 @@ namespace Warehouse.Service
                 existingWarehouse.CodePostal = warehouset.CodePostal;
                 existingWarehouse.Phone      = warehouset.Phone;
                 existingWarehouse.Leader     = warehouset.Leader;
-                existingWarehouse.Principal  = warehouset.Principal;                
+                existingWarehouse.Image      = warehouset.Image;
+                existingWarehouse.Principal  = warehouset.Principal;
 
                 await _context.SaveChangesAsync();
                 return true;

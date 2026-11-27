@@ -60,6 +60,10 @@ namespace Warehouse.Models
         [DefaultValue("LEADER")]
         public string? Leader { get; set; } = string.Empty;
                 
+        [StringLength(255)]
+        [Column("image", TypeName = "VARCHAR")]
+        public string? Image { get; set; }
+
         [Column("principal")]
         public bool Principal { get; set; }
 
