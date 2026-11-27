@@ -61,10 +61,6 @@ namespace Warehouse.Models
         [Column("comment", TypeName = "varchar(200)")]
         public string? Comment { get; set; }
 
-        [StringLength(255)]
-        [Column("image", TypeName = "VARCHAR")]
-        public string? Image { get; set; }
-        
         [Column("type", TypeName = "varchar(10)")]
         public string? Type { get; set; }
 

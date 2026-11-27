@@ -43,7 +43,6 @@ namespace Warehouse.Service
                     i.DeliverName, i.IdAutoriza,
                     i.CountRow,
                     i.Comment,
-                    i.Image,
                     i.Type,
                     i.Active
                 })
@@ -85,7 +84,6 @@ namespace Warehouse.Service
                     i.DeliverName,
                     i.CountRow,
                     i.Comment,
-                    i.Image,
                     i.Type, i.IdAutoriza,
                     i.Active
                 })
@@ -246,9 +244,6 @@ namespace Warehouse.Service
 
                 if (inandout.Comment != null)
                     existingItem.Comment = inandout.Comment;
-
-                if (inandout.Image != null)
-                    existingItem.Image = inandout.Image;
 
                 await _context.SaveChangesAsync();
                 return existingItem;

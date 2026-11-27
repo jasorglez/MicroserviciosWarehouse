@@ -102,6 +102,7 @@ builder.Services.AddScoped<IOcandreqService, OcandreqService>();
 builder.Services.AddScoped<IInandoutService, InandoutService>();
 builder.Services.AddScoped<IDetailsreqocService, DetailsreqocService>();
 builder.Services.AddScoped<IDetailsinandoutService, DetailsinandoutService>();
+builder.Services.AddScoped<IInandoutEvidenceService, InandoutEvidenceService>();
 builder.Services.AddScoped<IConfigurationService, ConfigurationService>();  
 builder.Services.AddScoped<ISetupService, SetupService>();  
 builder.Services.AddScoped<ITablesXModulesService, TablesXModulesService>();

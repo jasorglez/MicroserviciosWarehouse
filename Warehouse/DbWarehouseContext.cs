@@ -19,6 +19,7 @@ public partial class DbWarehouseContext : DbContext
     public virtual DbSet<Detailsreqoc> Detailsreqoc { get; set; }
     public virtual DbSet<Inandout> Inandouts { get; set; }
     public virtual DbSet<Detailsinandout> Detailsinandout { get; set; }
+    public virtual DbSet<Inandoutevidence> Inandoutevidence { get; set; }
     public virtual DbSet<Material> Materials { get; set; }
     public virtual DbSet<MaterialBrand> MaterialBrands { get; set; }
     public virtual DbSet<MaterialComponent> MaterialComponents { get; set; }
